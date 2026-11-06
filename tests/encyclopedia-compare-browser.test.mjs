@@ -30,7 +30,7 @@ try{
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__?comparePhysics=1`});await pause(150);
+  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__`});await pause(150);
   const ready=await evaluate(`(async()=>{
     const chemistry=await import('/src/chemistry.js'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return false;
     const ids=['water','methane','ethanol'],data=new Map(),save={schemaVersion:3,discoveredMolecules:ids.map((id,i)=>({id,at:i+1,order:i+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
@@ -68,5 +68,5 @@ try{
   await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);await pause(110);
   const desktop=await evaluate(`(()=>({stage:document.querySelector('.compare-stage')?.getBoundingClientRect().height,controls:!!document.querySelector('.compare-axis'),beads:document.querySelectorAll('.compare-bead').length,scroll:document.documentElement.scrollWidth>innerWidth+1}))()`);
   assert(desktop.stage>300&&desktop.controls&&desktop.beads<25&&!desktop.scroll,'Desktop comparison stays within one viewport');
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true});}
+}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});}
 console.log('MC-COMPARE-01 browser check passed: mobile/desktop, graph switching, axes, undiscovered secret, discovery reveal, save, gamepad A.');

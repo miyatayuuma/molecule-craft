@@ -32,8 +32,9 @@ export async function loadCollectionData(){
 }
 
 export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[],engineeringResources=null}){
-  // Deliberately isolated preview: the normal compare view is unaffected.
-  const physicalComparison=new URLSearchParams(root.defaultView?.location?.search??globalThis.location?.search??'').get('comparePhysics')==='1'
+  // The physical instrument is the default. Explicit ?comparePhysics=0 retains a
+  // reversible legacy view for targeted regressions without touching saved data.
+  const physicalComparison=new URLSearchParams(root.defaultView?.location?.search??globalThis.location?.search??'').get('comparePhysics')!=='0'
     ?(await import('./encyclopedia-compare-physics-view.js')).renderEncyclopediaComparison
     :null;
   const data=await loadCollectionData();
