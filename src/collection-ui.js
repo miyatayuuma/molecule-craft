@@ -16,6 +16,7 @@ import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriga
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 import {moleculeBasicProperties} from './molecule-basic-properties.js?v=1';
+import {renderEncyclopediaComparison} from './encyclopedia-compare-view.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -47,6 +48,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   let polymerPreviewGeneration=0,polymerPreviewObserver=null,thumbnailQueue=[],activeThumbnailJob=null;
   const closeWaiters=new Set();
   let graphFocusId=null,graphHighlightId=null,lastGraphPositions=new Map(),lastGraphVisibleIds=new Set(),suppressNextGraphMotion=false;
+  let comparisonMode='graph',comparisonAxis='molarMass',comparisonFocusId=null,comparisonController=null,comparisonTransitionRects=new Map(),keepUnknownGraphFocus=false;
   let gamepadStickLatched=false,gamepadGraphReadyAt=0,gamepadViewerAt=0;
   const partGroups=data.groups.filter(group=>group.learningRole==='part'),motifGroups=data.groups.filter(group=>group.learningRole==='motif');
   const groupById=id=>data.groups.find(group=>group.id===id),recordById=id=>records.find(record=>record.id===id);
@@ -278,7 +280,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(moleculeTransition.busy){event.preventDefault();return;}
     if(currentDetail){event.preventDefault();backFromDetail();}
   });
-  dialog.addEventListener('close',()=>{closeGlossary();moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
+  dialog.addEventListener('close',()=>{closeGlossary();moleculeTransition.cancel({owner:currentDetail?'detail':'graph'});detailTransitionHandle=null;releaseViewer();comparisonController?.destroy();comparisonController=null;document.body.classList.remove('collection-open');collectionDialogOpen=false;onOpenChange(false);for(const resolve of closeWaiters)resolve();closeWaiters.clear();});
   dialog.addEventListener('click',event=>{if(event.target===dialog){const r=dialog.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)dialog.close();}});
   for(const node of root.querySelectorAll('[data-book-tab]'))node.addEventListener('click',()=>{if(discoverySession||moleculeTransition.busy)return;tab=node.dataset.bookTab;currentDetail=null;listScroll=0;listInnerScroll=0;if(tab==='molecules')ensureGraphFocus();renderBook();dialog.scrollTop=0;list.scrollTop=0;});
   function showDetail(kind,id,{pageStep=0}={}){
@@ -440,7 +442,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   return items.sort((a,b)=>kind==='motifs'?a.id.localeCompare(b.id):number(kind,a.id)-number(kind,b.id));
   }
   function renderGraph(){
-    ensureGraphFocus();
+    if(!keepUnknownGraphFocus)ensureGraphFocus();
+    keepUnknownGraphFocus=false;
     const suppressMotion=suppressNextGraphMotion;suppressNextGraphMotion=false;
     const result=renderEncyclopediaGraph({
       host:list,graph:data.graph,records,stateOptions:graphStateOptions(),focusId:graphFocusId,highlightId:graphHighlightId,
@@ -448,6 +451,44 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       onFocus:id=>focusGraph(id),onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
     });
     lastGraphPositions=result.positions;lastGraphVisibleIds=result.visibleIds;
+  }
+  function comparisonRects(){
+    if(comparisonController)return comparisonController.rectsForVisible();
+    return new Map([...list.querySelectorAll('.graph-node[data-graph-id]')].map(node=>[node.dataset.graphId,node.getBoundingClientRect()]));
+  }
+  function switchComparisonMode(next){
+    if(next===comparisonMode||!['graph','compare'].includes(next)||discoverySession||moleculeTransition.busy)return;
+    if(next==='compare'){
+      comparisonFocusId=graphFocusId??ensureGraphFocus();
+      comparisonTransitionRects=comparisonRects();
+    }else{
+      const id=comparisonController?.focusId();
+      if(id&&data.graph.nodeById(id)){graphFocusId=id;keepUnknownGraphFocus=true;}
+      lastGraphPositions=comparisonController?.positionsForGraph()??new Map();
+      lastGraphVisibleIds=new Set(lastGraphPositions.keys());
+    }
+    comparisonMode=next;renderBook();
+  }
+  function appendComparisonModeControls(){
+    const wrapper=list.querySelector('.encyclopedia-graph');if(!wrapper)return;
+    const switcher=el('div',null,'comparison-mode-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label','分子図鑑の表示');
+    for(const [mode,label]of [['graph','樹形図'],['compare','くらべる']]){
+      const node=button(label,()=>switchComparisonMode(mode));node.setAttribute('aria-pressed',String(comparisonMode===mode));node.dataset.comparisonMode=mode;switcher.append(node);
+    }
+    wrapper.prepend(switcher);
+  }
+  function renderMoleculeOverview(){
+    if(comparisonMode==='compare'){
+      const id=comparisonFocusId??graphFocusId??ensureGraphFocus(),rects=comparisonTransitionRects;
+      comparisonTransitionRects=new Map();
+      comparisonController=renderEncyclopediaComparison({host:list,records,discoveredIds:registeredIds(),axis:comparisonAxis,focusId:id,transitionRects:rects,
+        onFocus:id=>{comparisonFocusId=id;},
+        onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
+        onAxis:axis=>{comparisonTransitionRects=comparisonRects();comparisonAxis=axis;renderBook();},
+      });
+      comparisonFocusId=comparisonController.focusId();
+    }else renderGraph();
+    appendComparisonModeControls();
   }
   function renderGroupList(){
     list.className='collection-grid';
@@ -541,6 +582,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }else for(const item of previews)enqueue(item);
   }
   function renderBook(){
+    comparisonController?.destroy();comparisonController=null;
     reactionBookController=null;
     closeGlossary();
     // Any new page/list rendering ends the prior detail's persistent badge.
@@ -552,14 +594,14 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const split=false; // Single-page navigation on desktop and mobile.
     dialog.classList.toggle('book-split',split);list.hidden=!!currentDetail&&!split;detail.hidden=!currentDetail;
     if(currentDetail){
-      if(split&&list.dataset.renderedTab!==tab){list.classList.remove('reaction-book');if(tab==='molecules'){ensureGraphFocus();renderGraph();}else if(tab==='polymers')renderPolymerList();else renderGroupList();list.dataset.renderedTab=tab;}
+      if(split&&list.dataset.renderedTab!==tab){list.classList.remove('reaction-book');if(tab==='molecules')renderMoleculeOverview();else if(tab==='polymers')renderPolymerList();else renderGroupList();list.dataset.renderedTab=tab;}
       if(split)for(const card of list.querySelectorAll('[data-entry-id]'))card.setAttribute('aria-current',String(card.dataset.entryId===currentDetail.id));
       renderDetail();if(split)detail.scrollTop=0;if(currentDetail?.kind==='molecules')moleculeTransition.markStable('detail',currentDetail.id);return;
     }
     list.dataset.renderedTab=tab;
     if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:(host,text)=>host.tagName==='P'||host.tagName==='H4'?appendChemistryText(host,text):appendCompleteFuriganaText(host,text,completeFurigana)});else list.textContent='反応図鑑を準備中です。';return;}
     list.classList.remove('reaction-book');
-    if(tab==='molecules'){renderGraph();moleculeTransition.markStable('graph',graphFocusId);return;}
+    if(tab==='molecules'){renderMoleculeOverview();moleculeTransition.markStable('graph',comparisonMode==='compare'?comparisonFocusId:graphFocusId);return;}
     if(tab==='polymers')renderPolymerList();else renderGroupList();
   }
   window.matchMedia?.('(min-width: 1050px) and (min-height: 600px)')?.addEventListener?.('change',()=>{if(dialog.open&&currentDetail&&!moleculeTransition.busy)renderBook();});
@@ -781,6 +823,19 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(tab==='reactions'&&reactionBookController?.handleGamepad(sample))return true;
     if(tab!=='molecules')return false;
     const stickX=axes[0]??0,stickY=axes[1]??0;
+    if(pressed.includes(2)){switchComparisonMode(comparisonMode==='graph'?'compare':'graph');return true;}
+    if(comparisonMode==='compare'){
+      if(pressed.includes(1)){dialog.close();return true;}
+      if(pressed.includes(12)||pressed.includes(13)){
+        const axes=['molarMass','atomCount'],next=axes[(axes.indexOf(comparisonAxis)+(pressed.includes(13)?1:-1)+axes.length)%axes.length];
+        list.querySelector(`[data-compare-axis="${next}"]`)?.click();return true;
+      }
+      if(pressed.includes(14)||repeating.includes(14))comparisonController?.move(-1);
+      if(pressed.includes(15)||repeating.includes(15))comparisonController?.move(1);
+      if(pressed.includes(0))comparisonController?.openFocused();
+      comparisonController?.gamepadStick(stickX,now);
+      return true;
+    }
     if(Math.hypot(stickX,stickY)<.35)gamepadStickLatched=false;
     if(pressed.includes(1)){dialog.close();return true;}
     if(pressed.includes(3)){
@@ -815,7 +870,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     isOpen:()=>dialog.open,
     closeAndWait(){if(!collectionDialogOpen&&!dialog.open)return Promise.resolve();return new Promise(resolve=>{closeWaiters.add(resolve);if(dialog.open)dialog.close();});},
     setDiscoverySession(value){discoverySession=value?{...value}:null;if(dialog.open)for(const node of root.querySelectorAll('[data-book-tab]'))node.disabled=!!discoverySession;},
-    registerDiscoveredMolecule(recordId,options={}){const result=state.registerDiscoveredMolecule(recordId,options);if(result.changed){renderPalette();renderSummary();if(dialog.open&&!currentDetail)renderBook();}return result;},
+    registerDiscoveredMolecule(recordId,options={}){if(dialog.open&&!currentDetail&&comparisonController)comparisonTransitionRects=comparisonRects();const result=state.registerDiscoveredMolecule(recordId,options);if(result.changed){renderPalette();renderSummary();if(dialog.open&&!currentDetail)renderBook();}return result;},
     registerDiscoveredPolymer(polymerId,options={}){const result=polymerState.registerDiscoveredPolymer(polymerId,options);if(result.changed){renderSummary();if(dialog.open&&!currentDetail)renderBook();}return result;},
     refreshProgress(){state.refreshAccess();renderPalette();renderSummary();if(dialog.open&&!currentDetail)renderBook();},
     observeStructures(structures){const result=state.observeStructures(structures);if(result.changed){renderPalette();renderSummary();if(dialog.open&&!currentDetail)renderBook();}return result;},

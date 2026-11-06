@@ -1,0 +1,33 @@
+name: Molecule compare limited acceptance
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/compare-visual-gate.yml'
+      - 'src/encyclopedia-compare.js'
+      - 'src/encyclopedia-compare-view.js'
+      - 'src/collection-ui.js'
+      - 'styles.css'
+      - 'tests/encyclopedia-compare*.test.mjs'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/compare-visual-gate.yml'
+      - 'src/encyclopedia-compare.js'
+      - 'src/encyclopedia-compare-view.js'
+      - 'src/collection-ui.js'
+      - 'styles.css'
+      - 'tests/encyclopedia-compare*.test.mjs'
+permissions:
+  contents: read
+jobs:
+  compare-mobile-desktop:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/encyclopedia-compare.test.mjs tests/encyclopedia-graph-ui.test.mjs
+      - run: node tests/encyclopedia-compare-browser.test.mjs
