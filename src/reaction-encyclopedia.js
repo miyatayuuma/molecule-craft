@@ -152,7 +152,7 @@ export function playReactionStarCeremony({host,tags=[],onSettled=()=>{},reducedM
     return true;
   };
   if(entries.length)show();else queueMicrotask(()=>finish());
-  return {advance,cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);resetCards();}};
+  return {advance,finish:()=>finish(),cancel:()=>{cancelled=true;if(timer!==null)clearTimeout(timer);resetCards();}};
 }
 
 export function renderReactionBook({host,authority,progress,records,polymerRecords,onTry=()=>{},appendText=(node,value)=>{node.textContent=value;return node;}}){

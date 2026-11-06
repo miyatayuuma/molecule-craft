@@ -27,6 +27,8 @@ jobs:
       - name: Saved progress and current game systems
         run: |
           node --test tests/resources-persistence.test.mjs tests/collection-persistence.test.mjs tests/polymer-collection-persistence.test.mjs tests/reaction-progress.test.mjs tests/collection.test.mjs tests/expedition-core.test.mjs
+      - name: Discovery ceremony navigation
+        run: node --test tests/collection-detail-input.test.mjs tests/reaction-star-ceremony-close.test.mjs
       - name: Encyclopedia furigana and glossary reading review
         run: |
           node --test tests/encyclopedia-furigana.test.mjs tests/encyclopedia-glossary.test.mjs tests/molecule-name-furigana.test.mjs tests/part-name-furigana.test.mjs
