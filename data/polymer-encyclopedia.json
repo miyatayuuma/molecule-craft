@@ -2,7 +2,7 @@
   {
     "id": "polyethylene",
     "number": 1,
-    "description": "エチレンのC=C結合が開き、炭素鎖が連続して伸びる代表的な付加重合体。",
+    "description": "レジ袋や食品を包むフィルムに使われる、身近なプラスチック。薄いシートにも丈夫な容器にもなる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -32,7 +32,7 @@
   {
     "id": "polypropylene",
     "number": 2,
-    "description": "プロピレンの付加重合体。主鎖にメチル置換基を持つ。",
+    "description": "食品容器や収納ケース、自動車の部品にも使われるプラスチック。軽くて丈夫な製品を作れる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -62,7 +62,7 @@
   {
     "id": "ethylene-propylene-copolymer",
     "number": 3,
-    "description": "エチレンとプロピレンを同じ鎖へ取り込む共重合体。組成によって鎖の性格が変わる。",
+    "description": "自動車のホースやすき間をふさぐ部品に使われるゴム材料の仲間。二種類の原料の割合で性質が変わる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -91,7 +91,7 @@
   {
     "id": "polyisobutylene",
     "number": 4,
-    "description": "イソブテンの付加重合体。置換基を多く持つ炭素鎖を形成する。",
+    "description": "粘着剤やすき間をふさぐ材料などに使われる。空気を逃がしにくいゴムを作る材料にもなる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -121,7 +121,7 @@
   {
     "id": "polystyrene",
     "number": 5,
-    "description": "スチレンのC=C結合が開いてつながる付加重合体。各繰り返し単位にフェニル基を持つ。",
+    "description": "発泡スチロールのような軽い包装材や、食品容器の材料になる。作り方で硬さや形が変わる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -151,7 +151,7 @@
   {
     "id": "polyvinyl-chloride",
     "number": 6,
-    "description": "ポリ塩化ビニルは塩化ビニルの付加重合体で、塩素を持つ炭素鎖からなる。",
+    "description": "水道管や窓枠、電線のカバーに使われる。配合を変えると、硬い製品にも柔らかい製品にもなる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -181,7 +181,7 @@
   {
     "id": "polychlorotrifluoroethylene",
     "number": 7,
-    "description": "CTFEの付加重合体。炭素鎖の水素がフッ素や塩素に置き換わったフッ素系高分子。",
+    "description": "薬品を扱う機械のパッキンや配管に使われる。フッ素と塩素を含む、薬品に強い樹脂の一種。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -211,7 +211,7 @@
   {
     "id": "polyacrylonitrile",
     "number": 8,
-    "description": "アクリロニトリルの付加重合体。各繰り返し単位にニトリル基を持つ。",
+    "description": "セーターなどのアクリル繊維や、軽くて強い炭素繊維を作るための原料になる高分子の仲間。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -241,7 +241,7 @@
   {
     "id": "polyacrylic-acid",
     "number": 9,
-    "description": "アクリル酸のC=C結合を使って鎖を伸ばす付加重合体。側鎖にカルボキシ基を持つ。",
+    "description": "水にとろみをつける材料などに使われる。加工して網目状にした仲間は、紙おむつの吸水材にもなる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -271,7 +271,7 @@
   {
     "id": "polyethylene-oxide",
     "number": 10,
-    "description": "エチレンオキシドの三員環を開いてつながる開環重合体。主鎖にエーテル酸素を含む。",
+    "description": "薬の材料をまとめたり、水にとろみをつけたりする用途がある。水に溶ける性質を生かした高分子。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -301,7 +301,7 @@
   {
     "id": "polyethylene-terephthalate",
     "number": 11,
-    "description": "二価アルコールと二価カルボン酸が縮合を繰り返してできる芳香族ポリエステル。",
+    "description": "ペットボトルや服のポリエステル繊維に使われる。同じ材料から、透明な容器も細い糸も作れる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -331,7 +331,7 @@
   {
     "id": "polyethylene-adipate",
     "number": 12,
-    "description": "エチレングリコールとアジピン酸の縮合でできる脂肪族ポリエステル。",
+    "description": "クッション材や接着剤に使われるポリウレタンの原料には、この高分子に近い組成の材料がある。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -361,7 +361,7 @@
   {
     "id": "polylactic-acid",
     "number": 13,
-    "description": "ヒドロキシ基とカルボキシ基を同じ分子に持つ乳酸が連続してエステル結合を作る高分子。",
+    "description": "3Dプリンターの材料や包装材に使われるプラスチック。用途に合わせて医療材料にも使われる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -391,7 +391,7 @@
   {
     "id": "polyglycolic-acid",
     "number": 14,
-    "description": "グリコール酸が縮合を繰り返してできるポリエステル。",
+    "description": "手術で使う、体の中で吸収される縫い糸の材料。傷が治る間に少しずつ分解される。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -421,7 +421,7 @@
   {
     "id": "phenol-formaldehyde-resin",
     "number": 15,
-    "description": "フェノール環どうしがホルムアルデヒド由来のメチレン橋で結ばれ、反応条件によって枝分かれや架橋が進む樹脂。",
+    "description": "電気製品の部品や、木材を貼り合わせる接着剤に使われる。固まると網目のような構造ができる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -451,7 +451,7 @@
   {
     "id": "polyethylene-adipamide",
     "number": 16,
-    "description": "ジアミンとジカルボン酸が縮合を繰り返してできるポリアミド。",
+    "description": "ナイロンに似た分子の仲間。衣類などに使われるナイロン6,6とは、原料や鎖のつながり方が違う。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -481,7 +481,7 @@
   {
     "id": "polybutadiene",
     "number": 17,
-    "description": "ブタジエンの付加重合でできる共役ジエン系高分子。鎖の微細構造は重合様式で異なる。",
+    "description": "自動車タイヤの側面などに使われるゴムの一種。はね返る力を生かした製品にも使われる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -510,7 +510,7 @@
   {
     "id": "styrene-butadiene-copolymer",
     "number": 18,
-    "description": "スチレンと1,3-ブタジエンを共重合した高分子で、代表例にSBRがある。",
+    "description": "タイヤの地面に触れる部分や靴底に使われる合成ゴム。二種類の原料を組み合わせて作る。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -539,7 +539,7 @@
   {
     "id": "nitrile-butadiene-rubber",
     "number": 19,
-    "description": "アクリロニトリルと1,3-ブタジエンを共重合したニトリル系高分子。",
+    "description": "油に強い手袋やホース、Oリングに使われるゴム。油が触れる場所で役立つ。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -568,7 +568,7 @@
   {
     "id": "polyisoprene",
     "number": 20,
-    "description": "イソプレンの重合体。cis-1,4型は天然ゴムの主成分として知られる。",
+    "description": "天然ゴムの主成分と同じ仲間。タイヤや手袋など、伸び縮みする製品に使われる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -597,7 +597,7 @@
   {
     "id": "butyl-rubber",
     "number": 21,
-    "description": "主にイソブテンと少量のイソプレンからなる共重合体。",
+    "description": "タイヤの内側で空気を逃がしにくくするゴム。薬の瓶のゴム栓などにも使われる。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -626,7 +626,7 @@
   {
     "id": "polyvinylidene-fluoride",
     "number": 22,
-    "description": "フッ化ビニリデンの付加重合体で、繰り返し単位にCF₂基を持つ。",
+    "description": "電池の中の材料をまとめる役目や、薬品を扱う配管の材料に使われるフッ素樹脂。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -656,7 +656,7 @@
   {
     "id": "vinylidene-fluoride-hexafluoropropylene-copolymer",
     "number": 23,
-    "description": "フッ化ビニリデンとヘキサフルオロプロピレンを共重合したフッ素系高分子。",
+    "description": "電池の中の薄い膜やシールに使われる、柔らかいフッ素樹脂の仲間。二種類の原料を組み合わせて作る。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -685,7 +685,7 @@
   {
     "id": "polytetrafluoroethylene",
     "number": 24,
-    "description": "テトラフルオロエチレンの付加重合体で、主鎖にCF₂単位が並ぶ。",
+    "description": "フライパンの焦げつき防止加工や、すべりをよくする部品に使われる。摩擦が小さいフッ素樹脂。",
     "details": [
       {
         "title": "反応の見どころ",
@@ -715,7 +715,7 @@
   {
     "id": "nylon-6-6",
     "number": 25,
-    "description": "ヘキサメチレンジアミンとアジピン酸の縮合でできるポリアミド。",
+    "description": "服のナイロン繊維や、歯車などの部品に使われる。細い糸にも硬い部品にもできる高分子。",
     "details": [
       {
         "title": "反応の見どころ",

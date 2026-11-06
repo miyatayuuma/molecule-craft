@@ -9,6 +9,7 @@ import {ENGINEERING_APPLICATIONS,ENGINEERING_RECIPES} from '../src/engineering-f
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
+const polymerEducation=JSON.parse(readFileSync(new URL('../data/polymer-encyclopedia.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
 
 test('all encyclopedia UI labels have ruby, including engineering status text',()=>{
@@ -43,6 +44,31 @@ test('all runtime-composed engineering headings have complete, contextual ruby',
      recipe.applicationId==='WEAR_SKIN'?['耐摩耗','たいまもう']:null;
    if(lead)assert.ok(segments.some(s=>s.kind==='ruby'&&s.text===lead[0]&&s.reading===lead[1]),`${title}: incorrect prefix reading`);
  }
+});
+
+test('all 25 everyday polymer introductions retain complete and contextual ruby',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const index=createCompleteFuriganaIndex(corpus);
+ assert.equal(polymerEducation.length,25);
+ for(const entry of polymerEducation){
+   const text=entry.description;
+   assert.ok(text.length>=25&&text.length<=110,`${entry.id}: short introduction`);
+   assert.ok(corpus.texts[text],`${entry.id}: missing contextual corpus entry`);
+   const segments=completeFuriganaSegments(text,index);
+   assert.equal(reconstruct(segments),text,entry.id);
+   const missing=segments.filter(s=>s.kind==='text').flatMap(s=>[...s.text]).filter(c=>/[一-龯々]/u.test(c));
+   assert.deepEqual(missing,[],`${entry.id}: missing Kanji ruby`);
+ }
+ const readingAt=(id,phrase)=>{
+   const text=polymerEducation.find(item=>item.id===id).description;
+   const start=text.indexOf(phrase);
+   assert.ok(start>=0,`${id}: ${phrase} not found`);
+   return corpus.texts[text].filter(([at,part])=>at>=start&&at+part.length<=start+phrase.length)
+     .map(([,part,reading])=>[part,reading]);
+ };
+ assert.deepEqual(readingAt('polyglycolic-acid','縫い糸'),[['縫','ぬ'],['糸','いと']]);
+ assert.deepEqual(readingAt('styrene-butadiene-copolymer','靴底'),[['靴底','くつぞこ']]);
+ assert.deepEqual(readingAt('ethylene-propylene-copolymer','すき間'),[['間','ま']]);
 });
 
 test('ambiguous chemical and contextual compounds use independently reviewed readings',()=>{
@@ -117,9 +143,10 @@ test('in-app glossary triggers never cut through a complete ruby span',()=>{
     if(chunks.length<raw.length)crossingCount++;
   }
   assert.ok(crossingCount>0,'test corpus must contain intersecting glossary triggers');
+  // This former introductory sentence is now a synthetic boundary fixture:
+  // everyday lead copy must be free to change without losing this edge case.
   const sentence='プロピレンの付加重合体。主鎖にメチル置換基を持つ。';
-  const annotations=corpus.texts[sentence];
-  assert.ok(annotations?.some(([,surface,reading])=>surface==='付加重合体'&&reading==='ふかじゅうごうたい'));
+  const annotations=[[sentence.indexOf('付加重合体'),'付加重合体','ふかじゅうごうたい']];
   const original=encyclopediaTermSegments(sentence);
   assert.ok(original.some(x=>x.kind==='term'&&x.text==='付加重合'));
   const fixed=coalesceSegmentsAtRubyBoundaries(original,annotations);
@@ -164,7 +191,7 @@ test('all encyclopedia science texts have complete Kanji-only ruby, not a 26-ter
  assert.equal(readingOf('炭素鎖','炭素鎖'),'炭素鎖:たんそさ');
  const chemistryReadings={
    '側鎖':'そくさ','直鎖':'ちょくさ','鎖長':'さちょう','共重合体':'きょうじゅうごうたい',
-   '付加重合体':'ふかじゅうごうたい','四面体':'しめんたい','四面体形':'しめんたいけい',
+   '四面体':'しめんたい','四面体形':'しめんたいけい',
    '網目':'あみめ','水和':'すいわ','不斉':'ふせい','酸無水物':'さんむすいぶつ',
    '炭素数':'たんそすう','原子数':'げんしすう','頭尾結合':'とうびけつごう',
    '四塩化炭素':'しえんかたんそ','分子間力':'ぶんしかんりょく',
