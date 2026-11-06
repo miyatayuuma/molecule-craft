@@ -164,3 +164,61 @@ export class ComparisonRopeScene {
     this.renderer.domElement.remove();
   }
 }
+
+// Accessibility/fallback surface for cloud browsers and older phones where a
+// WebGL context cannot be created. Geometry still follows the same PBD rope;
+// a rendered image of the licensed model replaces only its static stage mesh.
+export class ComparisonRopeCanvas {
+  constructor(stage) {
+    this.stage = stage;
+    this.canvas = stage.ownerDocument.createElement('canvas');
+    this.canvas.className = 'compare-physics-canvas';
+    this.canvas.setAttribute('aria-hidden', 'true');
+    this.context = this.canvas.getContext('2d');
+    if (!this.context) throw new Error('No drawing context for comparison');
+    this.platform = stage.ownerDocument.createElement('img');
+    this.platform.className = 'compare-pedestal-fallback';
+    this.platform.alt = '';
+    this.platform.src = new URL('../assets/compare/pedestal-preview.png', import.meta.url).href;
+    stage.prepend(this.platform);
+    stage.prepend(this.canvas);
+  }
+
+  resize(width, height) {
+    this.width = width; this.height = height;
+    this.ratio = Math.min(1.6, globalThis.devicePixelRatio || 1);
+    this.canvas.width = Math.round(width * this.ratio);
+    this.canvas.height = Math.round(height * this.ratio);
+    this.context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
+  }
+
+  async loadPlatform() { return 'provisional'; }
+
+  draw(physics, focusIndex) {
+    const ctx = this.context;
+    if (!this.width || !this.height) return;
+    ctx.clearRect(0, 0, this.width, this.height);
+    const points = physics.ropePoints(Math.max(0, focusIndex - 5), Math.min(physics.arcPositions.length - 1, focusIndex + 5));
+    if (points.length < 2) return;
+    const colors = ['#87c6c8', '#489ba8', '#c0efe1'];
+    for (let ply = 0; ply < 3; ply++) {
+      ctx.beginPath();
+      const offset = i => Math.sin(i * 1.34 + ply * Math.PI * 2 / 3) * 1.5;
+      ctx.moveTo(points[0].x, points[0].y + offset(0));
+      for (let i = 1; i < points.length; i++) {
+        const a = points[i - 1], b = points[i];
+        ctx.quadraticCurveTo(a.x, a.y + offset(i - 1), (a.x + b.x) / 2, (a.y + b.y) / 2 + offset(i));
+      }
+      const last = points.at(-1);
+      ctx.lineTo(last.x, last.y + offset(points.length - 1));
+      ctx.strokeStyle = colors[ply];
+      ctx.lineWidth = 2.4;
+      ctx.shadowColor = '#76dfe2';
+      ctx.shadowBlur = 5;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  dispose() { this.canvas.remove(); this.platform.remove(); }
+}
