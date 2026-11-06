@@ -2,12 +2,12 @@ import {buildComparisonRows,COMPARISON_AXES,comparisonValueLabel,layoutCompariso
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 import {moleculeDisplayName} from './collection-catalog.js';
 import {ComparisonRopePhysics} from './compare-rope-physics.js';
-import {ComparisonRopeScene} from './compare-rope-scene.js';
+import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js';
 
 const STYLE_ID='molecule-craft-compare-physics-style';
 const STYLE=`
 .compare-graph{position:relative}.compare-axis{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;padding:0 4px}.compare-axis button{min-height:38px;padding:6px 12px;border:1px solid #456979;border-radius:12px;background:#132e3e;color:#a9cbd3;font-size:12px}.compare-axis button[aria-pressed=true]{border-color:#76d9c8;background:#285550;color:#f2fffb}.compare-axis-note{font-size:10px;color:#8daebd}
-.compare-stage{position:relative;touch-action:pan-y;user-select:none;cursor:grab;background:radial-gradient(ellipse at 50% 43%,#23445a 0,#102a3c 34%,#071724 78%,#06111d 100%)}.compare-stage.is-dragging{cursor:grabbing}.compare-physics-canvas{position:absolute;inset:0;display:block;z-index:1;width:100%;height:100%;pointer-events:none}
+.compare-stage{position:relative;touch-action:pan-y;user-select:none;cursor:grab;background:radial-gradient(ellipse at 50% 43%,#23445a 0,#102a3c 34%,#071724 78%,#06111d 100%)}.compare-stage.is-dragging{cursor:grabbing}.compare-physics-canvas{position:absolute;inset:0;display:block;z-index:1;width:100%;height:100%;pointer-events:none}.compare-pedestal-fallback{position:absolute;z-index:0;left:50%;top:calc(43% + 60px);transform:translate(-50%,-50%);width:min(95%,440px);height:auto;pointer-events:none;filter:drop-shadow(0 8px 16px #000a)}
 .compare-instrument{position:absolute;z-index:6;left:50%;top:calc(43% + 85px);transform:translateX(-50%);display:grid;justify-items:center;gap:1px;min-width:146px;padding:5px 12px 7px;border:1px solid #54abb9a8;border-radius:8px;background:linear-gradient(165deg,#16394af5,#091e2aef);box-shadow:inset 0 0 14px #61d1df1c,0 5px 18px #0008;pointer-events:none;color:#dcfbfb}.compare-instrument::before{content:'MOLECULAR ANALYZER';font-size:7px;letter-spacing:.2em;color:#83c7d2}.compare-instrument-name{font-size:9px;color:#a9dbe0}.compare-instrument-value{font-family:ui-monospace,SFMono-Regular,monospace;font-weight:750;font-size:18px;letter-spacing:.015em;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 0 12px #6ae1e577}.compare-instrument-value.undiscovered{font-size:15px;color:#8ca9bd}.compare-platform-waiting{position:absolute;z-index:2;left:50%;top:calc(43% + 43px);transform:translateX(-50%);color:#718f9f;font-size:9px;pointer-events:none}.compare-platform-waiting.provisional{top:calc(43% + 156px);color:#8bafc0}
 .compare-bead.graph-node{z-index:4;width:56px;height:56px;min-height:56px;padding:3px;overflow:visible;touch-action:pan-y;transition:border-color 140ms ease;background:radial-gradient(circle at 29% 20%,#3e8390 0,#205263 40%,#0c2335 83%);border:2px solid #8bc9d4;box-shadow:inset -8px -9px 12px #0815269c,inset 3px 3px 7px #d5fff02f,0 8px 19px #0008}.compare-bead.graph-node.focus{width:82px;height:82px;min-height:82px;padding:6px;z-index:5;box-shadow:inset -10px -10px 14px #09192999,inset 4px 4px 9px #d5fff04c,0 0 22px #65e4d73c,0 13px 28px #000b}.compare-bead.graph-node .graph-focus-thumbnail{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.compare-bead.graph-node.focus .graph-focus-thumbnail{inset:5px;width:calc(100% - 10px);height:calc(100% - 10px)}.compare-bead.graph-node.unknown{background:radial-gradient(circle at 29% 20%,#376075 0,#172e45 54%,#081724 100%);border:2px dashed #769db3;color:#9ab4c4}.compare-bead.graph-node.unknown:before{display:none}.compare-bead.graph-node.unknown .compare-question{font-size:26px;line-height:1;color:#9fc3d5;font-weight:700}.compare-bead.graph-node.unknown.focus .compare-question{font-size:37px;color:#c0dce8}
 .compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-tip{margin:0;text-align:center;color:#8ba5b6;font-size:10px}.compare-count{color:#85a7b6;font-size:10px}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
@@ -70,7 +70,11 @@ export function renderEncyclopediaComparison({
         new URL('../assets/compare/hologram-projector-cc0.glb',import.meta.url).href)
         .then(loaded=>{if(disposed)return;if(loaded==='preferred')waiting.remove();else if(loaded==='provisional'){waiting.textContent='台座は仮素材（CC0）';waiting.classList.add('provisional');}})
         .catch(error=>{console.info('Compare analyzer model not yet available',error);});
-    }catch(error){console.warn('Rope WebGL unavailable',error);waiting.textContent='3D表示を初期化できません';}
+    }catch(error){
+      console.info('Using physical Canvas rope because WebGL is unavailable',error);
+      scene=new ComparisonRopeCanvas(stage);scene.resize(stageWidth(),stageHeight());
+      waiting.textContent='台座は仮素材（CC0）';waiting.classList.add('provisional');
+    }
   }
   const nearest=()=>nearestComparisonIndex(positions,center);
   const updateSummary=()=>{

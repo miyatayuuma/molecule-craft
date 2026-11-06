@@ -6,6 +6,7 @@ Preview entrypoint: `/?comparePhysics=1` (or `/molecule-craft/?comparePhysics=1`
 
 - Drag the beads left or right to pull a continuous material coordinate across the central support; release to snap to a molecule. Keyboard arrows and gamepad remain available.
 - The strand uses Verlet integration with gravity, distance constraints, weak bend resistance and local bead contact. Each gap contains four rope segments; two descending sides are visible. The visible rope is a lit Three.js three-ply tube, not a decorative SVG connector.
+- When WebGL is unavailable, the same physical state is rendered on a 2D canvas with a static Blender render of the same CC0 pedestal. The fallback image is produced by `scripts/render-compare-pedestal.py` from the original `.glb`, not a newly modeled asset.
 - The central display reads the focused molecule's molar mass or atom count. Equal values intentionally show equal readouts; their beads remain separate. Unknown molecules never reveal their identity, image or physical value.
 - This is an **opt-in visual prototype**, not the final accepted artwork. The real Blender `Scifi pedestal turntable` still needs its author-distributed source file (Blend Swap 22567, CC-BY). The current pedestal is the CC0 `Hologram Projector` with its floating hologram hidden, temporarily restyled to fit the instrument.
 
