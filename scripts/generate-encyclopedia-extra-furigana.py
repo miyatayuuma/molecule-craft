@@ -37,6 +37,8 @@ TOKEN_READINGS = {
 # (the tokenizer alone treats 三方 as みかた, 錐 as きり, etc.).
 COMPOUNDS = {
     # Dynamic encyclopedia and engineering labels need full contextual readings.
+    # 数値の「値」ではなく「およその値（あたい）」の文脈。
+    'およその値': 'オヨソノアタイ',
     '耐熱': 'タイネツ',
     '耐摩耗': 'タイマモウ',
     '製作': 'セイサク',

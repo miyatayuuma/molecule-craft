@@ -28,6 +28,13 @@ test('all encyclopedia UI labels have ruby, including engineering status text',(
  }
 });
 
+test('approximate molar-mass note reads 値 as あたい',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const sentence='モル質量は、分子1モルあたりの質量です。原子量を使って計算したおよその値です。';
+ const at=sentence.indexOf('値');
+ assert.deepEqual(corpus.texts[sentence].filter(([position])=>position===at),[[at,'値','あたい']]);
+});
+
 test('all runtime-composed engineering headings have complete, contextual ruby',()=>{
  const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
  const index=createCompleteFuriganaIndex(corpus);
