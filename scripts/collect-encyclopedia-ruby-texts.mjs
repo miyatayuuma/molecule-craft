@@ -45,18 +45,21 @@ for(const group of reactionGroups(authority,{getState:()=> 'verified'}).groups){
 for(const path of ['src/collection-ui.js','src/reaction-encyclopedia.js']){
   const source=readFileSync(new URL(path,root),'utf8');
   const literal=/(?<quote>['"`])(?<body>(?:\\.|(?!\k<quote>)[^\\])*?)\k<quote>/gs;
-  for(const match of source.matchAll(literal)){
+  // Matching across lines can swallow unrelated quoted strings and silently
+  // omit visible UI labels such as 製作する and 材料不足.
+  for(const line of source.split(/\r?\n/))for(const match of line.matchAll(literal)){
     let value=match.groups.body;
     value=value.replace(/\$\{[^}]*\}/g,'');
     value=value.replace(/\\(['"`\\])/g,'$1');
-    // The regex can encounter fragments of nested template expressions. A
-    // backtick inside the captured body is JavaScript source, not visible UI.
-    if(value.length<=180&&!value.includes('\n')&&!/[{};`]/.test(value))add(value);
+    if(value.length<=180&&!/[{};`]/.test(value))add(value);
   }
 }
 
 // Some UI strings depend on the number/entry, but the Kanji phrase is stable.
 for(const value of [
+  // Reviewed alternatives: these compounds have context-dependent readings
+  // even when not present as a complete source sentence yet.
+  '制作','構想上',
   '観察してみよう：','LABの条件：','原子数の合う反応式','材料と構成単位の対応',
   '見つかった分子','見つかる部品','代表的な繰り返し単位',
   '二種類の単量体由来部分を含む代表的な配列です。実際の組成比や並び方を示すものではありません。',
