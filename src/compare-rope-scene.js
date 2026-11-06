@@ -58,8 +58,10 @@ export class ComparisonRopeScene {
     if (!this.model) return;
     const { base, fit } = this.model;
     base.scale.setScalar(fit);
-    base.rotation.set(-0.82, 0, 0);
-    base.position.set(0, this.height * (0.5 - 0.43) / 100 - 0.60, -0.62);
+    // The Blender pedestal's top faces +Y in glTF. Tilt it towards the viewer
+    // instead of accidentally exposing its underside.
+    base.rotation.set(0.92, 0, 0);
+    base.position.set(0, this.height * (0.5 - 0.43) / 100 - 0.42, -0.62);
   }
 
   async loadPlatform(url, fallbackUrl) {
@@ -96,7 +98,7 @@ export class ComparisonRopeScene {
     });
     const size = box.getSize(new THREE.Vector3());
     const width = Math.max(size.x, size.z, 0.01);
-    const fit = 1.90 / width;
+    const fit = 2.15 / width;
     const center = box.getCenter(new THREE.Vector3());
     base.position.sub(center);
     // Center imported art around an independent transform, retaining its
@@ -192,7 +194,7 @@ export class ComparisonRopeCanvas {
     this.context.setTransform(this.ratio, 0, 0, this.ratio, 0, 0);
   }
 
-  async loadPlatform() { return 'provisional'; }
+  async loadPlatform() { return 'preferred'; }
 
   draw(physics, focusIndex) {
     const ctx = this.context;

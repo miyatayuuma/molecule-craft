@@ -65,7 +65,7 @@ export function renderEncyclopediaComparison({
   if(physics){
     try{
       scene=new ComparisonRopeScene(stage);scene.resize(stageWidth(),stageHeight());
-      // CC-BY pedestal is only loaded when the author-provided blend has been converted.
+      // Preferred pedestal was converted from the author's BlendSwap source.
       scene.loadPlatform(new URL('../assets/compare/scifi-pedestal.glb',import.meta.url).href,
         new URL('../assets/compare/hologram-projector-cc0.glb',import.meta.url).href)
         .then(loaded=>{if(disposed)return;if(loaded==='preferred')waiting.remove();else if(loaded==='provisional'){waiting.textContent='台座は仮素材（CC0）';waiting.classList.add('provisional');}})
@@ -73,7 +73,7 @@ export function renderEncyclopediaComparison({
     }catch(error){
       console.info('Using physical Canvas rope because WebGL is unavailable',error);
       scene=new ComparisonRopeCanvas(stage);scene.resize(stageWidth(),stageHeight());
-      waiting.textContent='台座は仮素材（CC0）';waiting.classList.add('provisional');
+      waiting.remove();
     }
   }
   const nearest=()=>nearestComparisonIndex(positions,center);
