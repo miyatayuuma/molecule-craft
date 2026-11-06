@@ -269,13 +269,21 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   keyboardTabs('[data-palette-tab]');keyboardTabs('[data-book-tab]');
   const notifyOpen=()=>{collectionDialogOpen=true;onOpenChange(true);};
   q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();renderBook();dialog.showModal();document.body.classList.add('collection-open');notifyOpen();});
-  q('close-collection').addEventListener('click',()=>dialog.close());
+  const setAwardExit=active=>{
+    const control=q('close-collection');
+    control.textContent=active?'→':'×';
+    control.setAttribute('aria-label',active?'発見演出を終えて次へ進む':'図鑑を閉じる');
+  };
+  // During an award the × exits only the ceremony, not the discovery queue.
+  // Otherwise the queued molecule/polymer detail is lost and the player lands on the top screen.
+  q('close-collection').addEventListener('click',()=>{if(discoveryAward?.finish)discoveryAward.finish();else dialog.close();});
   function backFromDetail(){
     (detail.querySelector('#detail-back, #motif-detail-back')??q('close-collection'))?.click();
   }
   // Native Escape follows the same hierarchy as controller B. Single-item
   // discovery sessions keep their existing close/resume-Lab contract.
   dialog.addEventListener('cancel',event=>{
+    if(discoveryAward?.finish){event.preventDefault();discoveryAward.finish();return;}
     if(discoverySession)return;
     if(moleculeTransition.busy){event.preventDefault();return;}
     if(currentDetail){event.preventDefault();backFromDetail();}
@@ -353,7 +361,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     let finished=false,removeInteraction=()=>{},cancelVisual=()=>{};
     const complete=result=>{
       if(finished)return;finished=true;removeInteraction();dialog.removeEventListener('close',dismiss);
-      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;onSettled(result);
+      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;setAwardExit(false);onSettled(result);
     };
     const dismiss=()=>{cancelVisual();complete({status:'dismissed'});};
     const runner=playReactionStarCeremony({host:list,tags,reducedMotion:prefersReducedMotion(),onSettled:complete});
@@ -361,7 +369,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     removeInteraction=beginAwardInteraction(()=>runner.advance());
     dialog.gamepadAdvance=()=>runner.advance();
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;finished=true;}};
+    discoveryAward={finish:()=>runner.finish(),cancel:()=>{runner.cancel();removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;setAwardExit(false);finished=true;}};
+    setAwardExit(true);
     return true;
   }
   function openPolymerAward(id,{onSettled=()=>{}}={}){
@@ -378,13 +387,13 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(name)name.textContent='???';
     card.scrollIntoView?.({block:'center',behavior:prefersReducedMotion()?'auto':'smooth'});
     let timer=null,finished=false,ready=false,removeInteraction=()=>{};
-    const settle=(status='presented')=>{
-      if(finished||(status==='presented'&&!ready))return;
+    const settle=(status='presented',force=false)=>{
+      if(finished||(status==='presented'&&!ready&&!force))return;
       finished=true;if(timer!==null)clearTimeout(timer);
       removeInteraction();dialog.removeEventListener('close',dismiss);
       card.classList.remove('polymer-award-hidden','polymer-award-target');
       restoreName();
-      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;
+      notice.remove();discoveryAward=null;delete dialog.gamepadAdvance;setAwardExit(false);
       if(status==='presented')openPolymer(id);
       onSettled({status});
     };
@@ -397,7 +406,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     removeInteraction=beginAwardInteraction(()=>settle());
     dialog.gamepadAdvance=()=>settle();
     dialog.addEventListener('close',dismiss,{once:true});
-    discoveryAward={cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;card.classList.remove('polymer-award-hidden','polymer-award-target');restoreName();}};
+    discoveryAward={finish:()=>settle('presented',true),cancel:()=>{finished=true;if(timer!==null)clearTimeout(timer);removeInteraction();dialog.removeEventListener('close',dismiss);notice.remove();delete dialog.gamepadAdvance;setAwardExit(false);card.classList.remove('polymer-award-hidden','polymer-award-target');restoreName();}};
+    setAwardExit(true);
     timer=setTimeout(reveal,prefersReducedMotion()?80:950);
     return true;
   }
@@ -783,6 +793,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function handleGamepad(sample,now=0,{openKeyboard}={}){
     if(!sample||!dialog.open){gamepadStickLatched=false;gamepadGraphReadyAt=0;gamepadViewerAt=0;return false;}
+    if(discoveryAward){
+      if(sample.pressed?.includes(1))discoveryAward.finish();
+      else if(sample.pressed?.includes(0))dialog.gamepadAdvance?.();
+      return true;
+    }
     if(moleculeTransition.busy||discoverySession)return true;
     const pressed=sample.pressed??[],repeating=sample.repeat??[],held=sample.held??[],axes=sample.axes??[0,0,0,0];
     const tabs=['molecules','groups','reactions','polymers'];
