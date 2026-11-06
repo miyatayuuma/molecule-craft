@@ -68,5 +68,5 @@ try{
   await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);await pause(110);
   const desktop=await evaluate(`(()=>({stage:document.querySelector('.compare-stage')?.getBoundingClientRect().height,controls:!!document.querySelector('.compare-axis'),beads:document.querySelectorAll('.compare-bead').length,scroll:document.documentElement.scrollWidth>innerWidth+1}))()`);
   assert(desktop.stage>300&&desktop.controls&&desktop.beads<25&&!desktop.scroll,'Desktop comparison stays within one viewport');
-}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true});}
+}finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});}
 console.log('MC-COMPARE-01 browser check passed: mobile/desktop, graph switching, axes, undiscovered secret, discovery reveal, save, gamepad A.');
