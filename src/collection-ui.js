@@ -11,8 +11,7 @@ import {GRAPH_NODE_STATE,graphNodeState,selectInitialGraphFocus,transitionGraphF
 import {ENCYCLOPEDIA_MOTION,renderEncyclopediaGraph} from './encyclopedia-graph-view.js?v=6';
 import {createMoleculeTransitionController,encyclopediaDetailVisualRect,encyclopediaVisualRect} from './encyclopedia-molecule-transition.js?v=2';
 import {renderChemistryVisuals,validateChemistryVisualSpecs} from './encyclopedia-chemistry-visuals.js?v=5';
-import {hamajimaTermSegments} from './hamajima-term-reference.js?v=1';
-import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from './encyclopedia-glossary.js';
+import {encyclopediaTermSegments} from './encyclopedia-terms.js';
 import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex,appendCompleteFuriganaText} from './encyclopedia-furigana.js?v=4';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
@@ -65,16 +64,20 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     }
     return host;
   };
-  const appendChemistryText=(host,text,{fullText=text,annotations=[],startOffset=0}={})=>{
+  const appendChemistryText=(host,text,{fullText=text,annotations=[],startOffset=0,limit=4}={})=>{
     if(fullText===text&&startOffset===0&&!annotations.length){
       annotations=completeFurigana.texts[String(text??'')]??[];
       if(!annotations.length){let offset=0;annotations=[];for(const part of completeFuriganaSegments(text,completeFurigana)){if(part.kind==='ruby')annotations.push([offset,part.text,part.reading]);offset+=part.text.length;}}
     }
     const fragment=document.createDocumentFragment();
     let offset=startOffset;
-    for(const segment of coalesceSegmentsAtRubyBoundaries(hamajimaTermSegments(text),annotations,startOffset)){
+    for(const segment of coalesceSegmentsAtRubyBoundaries(encyclopediaTermSegments(text,{limit}),annotations,startOffset)){
       if(segment.kind==='term'){
-        const link=document.createElement('a');link.href=segment.reference.url;link.target='_blank';link.rel='noopener noreferrer external';appendReadingText(link,fullText,annotations,offset,offset+segment.text.length);fragment.append(link);
+        const trigger=button(null,()=>toggleGlossary(trigger,segment.text,segment.meaning),'dex-glossary-term');
+        appendReadingText(trigger,fullText,annotations,offset,offset+segment.text.length);
+        trigger.setAttribute('aria-label',`${segment.text}の意味を見る`);
+        trigger.setAttribute('aria-expanded','false');
+        fragment.append(trigger);
       }else appendReadingText(fragment,fullText,annotations,offset,offset+segment.text.length);
       offset+=segment.text.length;
     }
@@ -110,18 +113,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const encyclopediaSummaryParagraph=(text,kind,id)=>{
     const paragraph=el('p',null,'dex-description');
     const annotations=data.furigana?.[kind]?.[id]??[];
-    let offset=0;
-    const segments=kind==='parts'?partSummaryGlossarySegments(text):moleculeSummaryGlossarySegments(text);
-    for(const segment of segments){
-      if(segment.kind==='term'){
-        const trigger=button(null,()=>toggleGlossary(trigger,segment.text,segment.meaning),'dex-glossary-term');
-        appendReadingText(trigger,text,annotations,offset,offset+segment.text.length);
-        trigger.setAttribute('aria-label',`${segment.text}の意味を見る`);trigger.setAttribute('aria-expanded','false');
-        paragraph.append(trigger);
-      }else appendChemistryText(paragraph,segment.text,{fullText:text,annotations,startOffset:offset});
-      offset+=segment.text.length;
-    }
-    return paragraph;
+    return appendChemistryText(paragraph,text,{annotations,limit:3});
   };
   dialog.addEventListener('click',event=>{
     if(glossaryPopup&&!glossaryPopup.contains(event.target)&&!glossaryTrigger?.contains(event.target))closeGlossary();
@@ -542,7 +534,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       renderDetail();if(split)detail.scrollTop=0;if(currentDetail?.kind==='molecules')moleculeTransition.markStable('detail',currentDetail.id);return;
     }
     list.dataset.renderedTab=tab;
-    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:(host,text)=>appendCompleteFuriganaText(host,text,completeFurigana)});else list.textContent='反応図鑑を準備中です。';return;}
+    if(tab==='reactions'){list.replaceChildren();list.classList.add('reaction-book');if(reactionAuthority&&reactionProgress)reactionBookController=renderReactionBook({host:list,authority:reactionAuthority,progress:reactionProgress,records,polymerRecords,onTry:onTryReaction,appendText:(host,text)=>host.tagName==='P'||host.tagName==='H4'?appendChemistryText(host,text):appendCompleteFuriganaText(host,text,completeFurigana)});else list.textContent='反応図鑑を準備中です。';return;}
     list.classList.remove('reaction-book');
     if(tab==='molecules'){renderGraph();moleculeTransition.markStable('graph',graphFocusId);return;}
     if(tab==='polymers')renderPolymerList();else renderGroupList();

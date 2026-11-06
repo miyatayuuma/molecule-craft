@@ -1,7 +1,7 @@
-// One source of truth for glossary meanings, external references, and candidate terms.
+// One source of truth for glossary meanings, historical source IDs, and candidate terms.
 // This is hand-maintained source data after the one-time legacy dictionary migration.
 // summaryScope: both = molecule/part summaries, parts = part summaries only.
-// A meaning with null summaryScope is editorial copy awaiting the separate UI rollout.
+// summaryScope is legacy summary metadata; all entries are available to the unified UI.
 // candidateWave records original inventory provenance, not an unfinished definition.
 export const ENCYCLOPEDIA_TERM_CATALOG=Object.freeze([
   {term:"燃料電池",meaning:"水素などの燃料と酸素の化学反応を利用して、電気を直接つくる装置。",summaryScope:"both",summaryPriority:2,referencePageId:null,candidateWave:null},

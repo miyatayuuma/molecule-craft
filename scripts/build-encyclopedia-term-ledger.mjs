@@ -1,12 +1,12 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
-import {ENCYCLOPEDIA_TERM_CATALOG,HAMAJIMA_TERM_REFERENCES} from '../src/encyclopedia-terms.js';
+import {ENCYCLOPEDIA_TERM_CATALOG} from '../src/encyclopedia-terms.js';
 import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
 import {reactionDetailInfo} from '../src/reaction-encyclopedia.js';
 import {GROUP_PREVIEW_SPECS} from '../src/reaction-book-visual.js';
 
-// The catalog is the sole source for meanings, links, and candidate inventory.
+// The catalog is the sole source for meanings and historical reference IDs.
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const json=async path=>JSON.parse(await readFile(resolve(ROOT,path),'utf8'));
@@ -62,7 +62,7 @@ for(const entry of ENCYCLOPEDIA_TERM_CATALOG){
   if(entry.summaryScope!==null){
     item.popupAreas.push(entry.summaryScope==='parts'?'部品・概要':'分子・概要／部品・概要');
   }
-  if(entry.referencePageId)item.reference=HAMAJIMA_TERM_REFERENCES[entry.term];
+  if(entry.referencePageId)item.reference={pageId:entry.referencePageId};
   item.candidateWave=entry.candidateWave;
 }
 
@@ -82,7 +82,7 @@ for(const item of terms.values()){
     popupAreas:item.popupAreas,externalPageId:item.reference?.pageId??null,
     appearanceFields:matches.length,areas,
     examples:matches.slice(0,5).map(row=>`${row.scope}:${row.id}`),
-    action:!matches.length?'現在は表示不要・本文で採用時に再確認':!item.editorialMeaning?'説明原稿を作成':!popup?'第4段階で表示接続':external?'第4段階で外部リンク撤去':'第4段階で表示範囲を統一',
+    action:!matches.length?'現在は表示不要・本文で採用時に再確認':'第4段階でアプリ内解説に接続済み',
   });
 }
 entries.sort((a,b)=>a.priority.localeCompare(b.priority)||b.appearanceFields-a.appearanceFields||a.term.localeCompare(b.term,'ja'));
@@ -97,13 +97,13 @@ const escapeCell=value=>String(value??'—').replaceAll('|','\\|').replaceAll('\
 const ledgerMD=[
   '# Molecule Craft 用語台帳（図鑑4区分）',
   '',
-  '> 自動生成ファイル。用語の説明本文・現行ポップアップ対象・外部参考IDは `src/encyclopedia-term-catalog.js` に一元管理し、本文中の出現実績と採否をこの台帳へ反映する。',
+  '> 自動生成ファイル。用語の説明本文・従来の表示区分・出典確認用の参考IDは `src/encyclopedia-term-catalog.js` に一元管理し、本文中の出現実績と採否をこの台帳へ反映する。参考IDはゲームの外部リンクには使用しない。',
   '',
   '## 対象と読み方',
   '',
   '- 対象：分子142件、部品（概要と官能基説明）、反応54経路、高分子25件の実際の表示説明文。反応の分類ラベル、高分子の学習欄・工程欄・分類ラベルも含む。',
-  '- 224語すべての説明原稿を辞書に整備済み。旧2モジュールは既存API互換の入口のみ。',
-  '- **ポップアップあり／外部リンクのみ／未登録**は第4段階より前の**現行表示状況**。解説原稿の完成度ではない。現行ポップアップは概要内最大3語を選択する。',
+  '- 224語すべての説明原稿とルビを辞書に整備済み。4図鑑の本文からアプリ内の用語説明を開く。概要内は最大3語、詳しい説明は段落あたり最大4語。',
+  '- **ポップアップあり／外部リンクのみ／未登録**は第4段階より前の**旧表示状況**であり、現在のUIではない。',
   '- 現行本文に登場する語は「採用」、現在使っていない参考用語は「保留」とした。部分一致の数え上げであり、具体的な表示場所は第4段階で文脈を確認する。',
   '- 「出現欄数」は単純な部分文字列検索で、同じ欄の複数回出現は1欄。複合語中の一致を含むため、実装時の語境界・文脈確認が必要。',
   '- P0＝現行の表示がリンク頼みか未登録の重要語、P1＝その他の表示整理候補、P2＝すでにポップアップがある語、P3＝現行文で未使用の保留語。これは第4段階向け優先度であり、執筆残数ではない。',
@@ -112,22 +112,22 @@ const ledgerMD=[
   '',
   `**第1〜3段階の結果：説明原稿 ${definitionReadyCount}/${entries.length}語。現行本文で採用 ${activeCount}語、未使用の予備 ${entries.length-activeCount}語。**`,
   '',
-  `第4段階前の表示現況：ポップアップ＋外部リンク ${coverageCounts['ポップアップ＋外部リンク']}語、ポップアップのみ ${coverageCounts['ポップアップのみ']}語、外部リンクのみ ${coverageCounts['外部リンクのみ']}語、未登録 ${coverageCounts['未登録']}語。`,
+  `第4段階前の表示履歴：ポップアップ＋外部リンク ${coverageCounts['ポップアップ＋外部リンク']}語、ポップアップのみ ${coverageCounts['ポップアップのみ']}語、外部リンクのみ ${coverageCounts['外部リンクのみ']}語、未登録 ${coverageCounts['未登録']}語。現在は外部辞書へのリンクを作らない。`,
   '',
   '## 作業順',
   '',
   '1. 【完了】既存96語の解説を校正し、外部リンク依存53語と未登録候補75語の説明原稿を整備。',
   '2. 【完了】現行本文への出現を監査し、使用中と保留の候補を区別。表記違い（シス／cisなど）も同じ意味で統一。',
-  '3. 【次段階】語境界・送り仮名・ルビを文脈別に確認して4図鑑へ説明を接続し、浜島書店へのプレイヤー向けリンクを撤去する。',
+  '3. 【実装済み・公開前】4図鑑へ説明を接続し、浜島書店へのプレイヤー向けリンクを撤去。実機確認を経て公開する。',
   '',
   '**第4段階での優先接続例（20語）**：二重結合、単結合、三重結合、電子対、孤立電子対、極性、水素結合、イオン、官能基、エステル、エステル結合、酸性、塩基性、触媒、ラジカル、主鎖、側鎖、構成単位、モノマー、分子量。',
   '',
 ];
 for(const priority of ['P0','P1','P2','P3']){
-  ledgerMD.push(`## ${priority}（${counts[priority]}語）`,'','| 用語 | 現在の表示 | 出現欄数と区分 | 整備済みの説明原稿 | 次の対応 |','|---|---|---|---|---|');
+  ledgerMD.push(`## ${priority}（${counts[priority]}語）`,'','| 用語 | 旧表示の記録 | 出現欄数と区分 | 整備済みの説明原稿 | 対応状況 |','|---|---|---|---|---|');
   for(const row of entries.filter(row=>row.priority===priority)){
     const areas=row.areas.map(area=>`${area.scope} ${area.fields}`).join('、')||'現行文なし';
-    ledgerMD.push(`| ${escapeCell(row.term)} | ${row.coverage}${row.externalPageId?`（[参考](${HAMAJIMA_TERM_REFERENCES[row.term]?.url})）`:''} | ${escapeCell(areas)} | ${escapeCell(row.meaning)} | ${row.action} |`);
+    ledgerMD.push(`| ${escapeCell(row.term)} | ${row.coverage}${row.externalPageId?`（参考ID ${row.externalPageId}）`:''} | ${escapeCell(areas)} | ${escapeCell(row.meaning)} | ${row.action} |`);
   }
   ledgerMD.push('');
 }

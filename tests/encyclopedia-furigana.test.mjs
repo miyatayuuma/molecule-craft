@@ -4,19 +4,17 @@ import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
-import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
-import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
-import {ENCYCLOPEDIA_TERM_CATALOG} from '../src/encyclopedia-terms.js';
+import {ENCYCLOPEDIA_TERM_CATALOG,encyclopediaTermSegments} from '../src/encyclopedia-terms.js';
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
 
-test('chemistry reference links never cut through a complete ruby span',()=>{
+test('in-app glossary triggers never cut through a complete ruby span',()=>{
   const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
   let crossingCount=0;
   for(const [text,annotations] of Object.entries(corpus.texts)){
-    const raw=hamajimaTermSegments(text);
+    const raw=encyclopediaTermSegments(text,{limit:4});
     const chunks=coalesceSegmentsAtRubyBoundaries(raw,annotations);
     assert.equal(reconstruct(chunks),text);
     let offset=0;
@@ -32,15 +30,15 @@ test('chemistry reference links never cut through a complete ruby span',()=>{
       offset+=chunk.text.length;
     }
     for(const [at,surface] of annotations){
-      for(let i=at;i<at+surface.length;i++)assert.ok(covered.has(i),`reference link hides ruby at ${i}: ${text}`);
+      for(let i=at;i<at+surface.length;i++)assert.ok(covered.has(i),`glossary trigger hides ruby at ${i}: ${text}`);
     }
     if(chunks.length<raw.length)crossingCount++;
   }
-  assert.ok(crossingCount>0,'test corpus must contain intersecting reference links');
+  assert.ok(crossingCount>0,'test corpus must contain intersecting glossary triggers');
   const sentence='プロピレンの付加重合体。主鎖にメチル置換基を持つ。';
   const annotations=corpus.texts[sentence];
   assert.ok(annotations?.some(([,surface,reading])=>surface==='付加重合体'&&reading==='ふかじゅうごうたい'));
-  const original=hamajimaTermSegments(sentence);
+  const original=encyclopediaTermSegments(sentence);
   assert.ok(original.some(x=>x.kind==='term'&&x.text==='付加重合'));
   const fixed=coalesceSegmentsAtRubyBoundaries(original,annotations);
   assert.ok(fixed.some(x=>x.kind==='text'&&x.text.includes('付加重合体')));
@@ -160,27 +158,17 @@ test('all 142 molecule summaries have exact, non-overlapping kana readings',()=>
   }
 });
 
-test('glossary popups and chemical dictionary links preserve the full description',()=>{
+test('in-app glossary triggers preserve the full description and ruby readings',()=>{
   for(const [id,entry] of Object.entries(encyclopedia.molecules)){
     let cursor=0,visible='',readingCount=0;
-    for(const glossarySegment of moleculeSummaryGlossarySegments(entry.description)){
-      if(glossarySegment.kind==='term'){
-        const segments=furiganaSegmentsForRange(entry.description,furigana.molecules[id],cursor,cursor+glossarySegment.text.length);
-        visible+=reconstruct(segments);
-        readingCount+=segments.filter(item=>item.kind==='ruby').length;
-      }else{
-        let childOffset=cursor;
-        for(const segment of hamajimaTermSegments(glossarySegment.text)){
-          const segments=furiganaSegmentsForRange(entry.description,furigana.molecules[id],childOffset,childOffset+segment.text.length);
-          visible+=reconstruct(segments);
-          readingCount+=segments.filter(item=>item.kind==='ruby').length;
-          childOffset+=segment.text.length;
-        }
-      }
+    for(const glossarySegment of coalesceSegmentsAtRubyBoundaries(encyclopediaTermSegments(entry.description,{limit:3}),furigana.molecules[id])){
+      const segments=furiganaSegmentsForRange(entry.description,furigana.molecules[id],cursor,cursor+glossarySegment.text.length);
+      visible+=reconstruct(segments);
+      readingCount+=segments.filter(item=>item.kind==='ruby').length;
       cursor+=glossarySegment.text.length;
     }
     assert.equal(visible,entry.description,id);
-    assert.equal(readingCount,furigana.molecules[id].length,`${id}: split link/glossary must not hide a reading`);
+    assert.equal(readingCount,furigana.molecules[id].length,`${id}: glossary must not hide a reading`);
   }
 });
 
@@ -202,13 +190,15 @@ test('exceptional compound readings are corrected in the source data',()=>{
   assert.ok(annotations.some(([,surface,reading])=>surface==='含'&&reading==='がん'));
 });
 
-test('chemical names are not split into misleading oxidation links',()=>{
+test('chemical names are not split into misleading oxidation explanations',()=>{
   for(const compound of ['一酸化炭素','二酸化炭素']){
-    assert.deepEqual(hamajimaTermSegments(compound),[{kind:'text',text:compound}]);
+    const segments=encyclopediaTermSegments(compound);
+    assert.equal(reconstruct(segments),compound);
+    assert.ok(!segments.some(segment=>segment.kind==='term'&&segment.text==='酸化'));
   }
 });
 
-test('all 17 part descriptions have intact readings and no glossary/link gaps',()=>{
+test('all 17 part descriptions have intact readings and no glossary gaps',()=>{
   assert.deepEqual(Object.keys(furigana.parts).sort(),Object.keys(encyclopedia.parts).sort());
   for(const [id,{description}] of Object.entries(encyclopedia.parts)){
     const annotations=furigana.parts[id];
@@ -222,18 +212,13 @@ test('all 17 part descriptions have intact readings and no glossary/link gaps',(
       previousEnd=offset+surface.length;
     }
     let offset=0,readingCount=0,visible='';
-    const glossary=partSummaryGlossarySegments(description);
+    const glossary=coalesceSegmentsAtRubyBoundaries(encyclopediaTermSegments(description,{limit:3}),annotations);
     assert.ok(glossary.filter(segment=>segment.kind==='term').length<=3,id);
     assert.ok(glossary.some(segment=>segment.kind==='term'),`${id}: at least one difficult term should have a meaning`);
     for(const item of glossary){
-      const pieces=item.kind==='term'?[item]:hamajimaTermSegments(item.text);
-      let innerOffset=offset;
-      for(const piece of pieces){
-        const rendered=furiganaSegmentsForRange(description,annotations,innerOffset,innerOffset+piece.text.length);
-        visible+=reconstruct(rendered);
-        readingCount+=rendered.filter(segment=>segment.kind==='ruby').length;
-        innerOffset+=piece.text.length;
-      }
+      const rendered=furiganaSegmentsForRange(description,annotations,offset,offset+item.text.length);
+      visible+=reconstruct(rendered);
+      readingCount+=rendered.filter(segment=>segment.kind==='ruby').length;
       offset+=item.text.length;
     }
     assert.equal(visible,description,id);
@@ -301,7 +286,7 @@ test('new glossary chemical compounds have reviewed on-yomi without changing sta
 });
 
 test('unfamiliar everyday vocabulary such as 不凍液 now opens an explanation',()=>{
-  const found=moleculeSummaryGlossarySegments('不凍液は液化した材料と違う');
+  const found=encyclopediaTermSegments('不凍液は液化した材料と違う');
   assert.ok(found.some(item=>item.kind==='term'&&item.text==='不凍液'));
   assert.ok(found.some(item=>item.kind==='term'&&item.text==='液化'));
 });

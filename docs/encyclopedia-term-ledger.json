@@ -65,7 +65,7 @@
         "分子・詳細:ethene#0:title",
         "分子・詳細:propene#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "エステル",
@@ -122,7 +122,7 @@
         "分子・概要:terephthalic-acid",
         "分子・詳細:terephthalic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "塩基",
@@ -155,7 +155,7 @@
         "分子・詳細:hypochlorous-acid#0:title",
         "分子・詳細:propyne#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "縮合",
@@ -200,7 +200,7 @@
         "高分子・概要:polyethylene-terephthalate",
         "高分子・詳細:polyethylene-terephthalate#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "極性",
@@ -233,7 +233,7 @@
         "分子・詳細:carbon-dioxide#0:title",
         "分子・詳細:carbon-dioxide#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "塩基性",
@@ -266,7 +266,7 @@
         "分子・詳細:methylamine#0:body",
         "分子・詳細:dimethylamine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ラジカル",
@@ -295,7 +295,7 @@
         "高分子・詳細:polyvinyl-chloride#1:body",
         "高分子・詳細:polychlorotrifluoroethylene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸性",
@@ -328,7 +328,7 @@
         "分子・詳細:1-butyne#0:body",
         "分子・詳細:formic-acid#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "主鎖",
@@ -365,7 +365,7 @@
         "高分子・概要:polypropylene",
         "高分子・学習:polypropylene:structure"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分子量",
@@ -398,7 +398,7 @@
         "高分子・学習:polyethylene:applications",
         "高分子・学習:polyethylene:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アルコール",
@@ -447,7 +447,7 @@
         "分子・概要:ethanol",
         "分子・概要:2-propanol"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "水素結合",
@@ -476,7 +476,7 @@
         "分子・詳細:ammonia#1:body",
         "分子・詳細:hydrogen-sulfide#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "メチル基",
@@ -513,7 +513,7 @@
         "分子・詳細:toluene#0:title",
         "分子・概要:p-xylene"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "エステル結合",
@@ -558,7 +558,7 @@
         "高分子・詳細:polyethylene-terephthalate#0:body",
         "高分子・学習:polyethylene-terephthalate:structure"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アミン",
@@ -603,7 +603,7 @@
         "分子・詳細:dimethylamine#0:title",
         "分子・概要:trimethylamine"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "芳香環",
@@ -644,7 +644,7 @@
         "分子・詳細:chlorobenzene#0:title",
         "分子・詳細:chlorobenzene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "側鎖",
@@ -681,7 +681,7 @@
         "分子・詳細:ethylbenzene#0:body",
         "分子・詳細:p-xylene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "イオン",
@@ -718,7 +718,7 @@
         "分子・詳細:formic-acid#0:body",
         "分子・詳細:acetic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "共役",
@@ -755,7 +755,7 @@
         "分子・詳細:acetic-acid#0:body",
         "分子・詳細:ethyl-acetate#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "単結合",
@@ -788,7 +788,7 @@
         "分子・詳細:sulfur-trioxide#0:body",
         "分子・詳細:hydrogen-peroxide#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "電子対",
@@ -817,7 +817,7 @@
         "分子・詳細:phosphine#0:title",
         "分子・詳細:phosphine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ベンゼン環",
@@ -854,7 +854,7 @@
         "分子・概要:p-xylene",
         "分子・概要:styrene"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "結晶",
@@ -883,7 +883,7 @@
         "高分子・学習:polypropylene:limits",
         "高分子・学習:ethylene-propylene-copolymer:property"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "触媒",
@@ -912,7 +912,7 @@
         "高分子・詳細:polypropylene#0:body",
         "高分子・詳細:polypropylene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "孤立電子対",
@@ -937,7 +937,7 @@
         "分子・詳細:phosphine#0:body",
         "分子・詳細:phosphorus-trichloride#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "置換基",
@@ -978,7 +978,7 @@
         "分子・詳細:lactic-acid#0:body",
         "分子・詳細:alanine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "付加重合",
@@ -1015,7 +1015,7 @@
         "分子・概要:chlorotrifluoroethylene",
         "分子・詳細:chlorotrifluoroethylene#1:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アルデヒド",
@@ -1060,7 +1060,7 @@
         "分子・概要:propionaldehyde",
         "分子・詳細:propionaldehyde#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "モノマー",
@@ -1097,7 +1097,7 @@
         "分子・詳細:hexamethylenediamine#0:body",
         "高分子・詳細:polychlorotrifluoroethylene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "結晶化",
@@ -1122,7 +1122,7 @@
         "高分子・学習:ethylene-propylene-copolymer:property",
         "高分子・学習:polychlorotrifluoroethylene:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アルケン",
@@ -1151,7 +1151,7 @@
         "分子・詳細:benzene#1:body",
         "分子・詳細:acrylic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ケトン",
@@ -1184,7 +1184,7 @@
         "分子・詳細:propionaldehyde#0:title",
         "分子・詳細:propionaldehyde#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ナイロン",
@@ -1221,7 +1221,7 @@
         "分子・概要:adipic-acid",
         "分子・概要:hexamethylenediamine"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "架橋",
@@ -1254,7 +1254,7 @@
         "高分子・学習:polyacrylic-acid:property",
         "高分子・学習:polyacrylic-acid:applications"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "局在",
@@ -1283,7 +1283,7 @@
         "分子・詳細:benzene#0:body",
         "分子・詳細:aniline#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "電荷",
@@ -1316,7 +1316,7 @@
         "分子・詳細:formic-acid#0:body",
         "分子・詳細:benzoic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "配位触媒",
@@ -1345,7 +1345,7 @@
         "高分子・詳細:polyisoprene#1:body",
         "反応・詳細:polymer:polyethylene-coordination:conditionSummary"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アミド結合",
@@ -1390,7 +1390,7 @@
         "部品・詳しく:carbamoyl",
         "高分子・詳細:polyethylene-adipamide#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "構成単位",
@@ -1419,7 +1419,7 @@
         "高分子・学習:ethylene-propylene-copolymer:structure",
         "高分子・学習:ethylene-propylene-copolymer:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "三重結合",
@@ -1456,7 +1456,7 @@
         "分子・詳細:ethyne#0:title",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "エステル化",
@@ -1489,7 +1489,7 @@
         "反応・分類:エステル化",
         "反応・詳細:polymer:polyethylene-terephthalate-direct-polycondensation:conditionSummary"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ニトロ基",
@@ -1518,7 +1518,7 @@
         "分子・詳細:nitrobenzene#0:title",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "高分子",
@@ -1555,7 +1555,7 @@
         "高分子・概要:polychlorotrifluoroethylene",
         "高分子・学習:polyethylene-oxide:applications"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "反復単位",
@@ -1588,7 +1588,7 @@
         "高分子・学習:polystyrene:structure",
         "高分子・学習:polychlorotrifluoroethylene:structure"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ポリエステル",
@@ -1625,7 +1625,7 @@
         "高分子・概要:polyethylene-terephthalate",
         "高分子・学習:polyethylene-terephthalate:applications"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "立体規則性",
@@ -1654,7 +1654,7 @@
         "高分子・学習:polypropylene:property",
         "高分子・学習:polypropylene:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分極",
@@ -1679,7 +1679,7 @@
         "分子・詳細:sulfuric-acid#1:body",
         "分子・詳細:chloroform#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "重縮合",
@@ -1704,7 +1704,7 @@
         "高分子・詳細:polylactic-acid#2:body",
         "高分子・詳細:polyglycolic-acid#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "単量体",
@@ -1741,7 +1741,7 @@
         "高分子・詳細:polyacrylonitrile#2:body",
         "高分子・学習:polyacrylonitrile:applications"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "電子密度",
@@ -1766,7 +1766,7 @@
         "分子・詳細:nitromethane#0:body",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "官能基",
@@ -1803,7 +1803,7 @@
         "分子・詳細:succinic-acid#0:body",
         "部品・詳しく:carbon-chain"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "還元",
@@ -1828,7 +1828,7 @@
         "分子・詳細:succinic-acid#0:body",
         "分子・詳細:cysteine#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アルカン",
@@ -1857,7 +1857,7 @@
         "分子・概要:cyclopropane",
         "分子・概要:cyclobutane"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アルキン",
@@ -1886,7 +1886,7 @@
         "分子・概要:2-butyne",
         "分子・詳細:2-butyne#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ヒドロキシ基",
@@ -1919,7 +1919,7 @@
         "高分子・概要:polylactic-acid",
         "高分子・詳細:polylactic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "開環重合",
@@ -1952,7 +1952,7 @@
         "高分子・詳細:polyglycolic-acid#1:body",
         "高分子・詳細:polyglycolic-acid#2:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "双性イオン",
@@ -1977,7 +1977,7 @@
         "分子・詳細:alanine#0:body",
         "分子・詳細:serine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "炭化水素",
@@ -2010,7 +2010,7 @@
         "分子・詳細:ethylene-glycol#0:body",
         "分子・詳細:propionic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ポリエチレン",
@@ -2047,7 +2047,7 @@
         "高分子・詳細:polyethylene#2:body",
         "高分子・学習:polyethylene-adipate:applications"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "加水分解",
@@ -2080,7 +2080,7 @@
         "高分子・学習:polyglycolic-acid:limits",
         "反応・分類:加水分解"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "形式電荷",
@@ -2105,7 +2105,7 @@
         "分子・詳細:nitromethane#1:title",
         "分子・詳細:nitromethane#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "結合角",
@@ -2130,7 +2130,7 @@
         "分子・詳細:cyclobutane#0:body",
         "分子・詳細:ethylene-oxide#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "置換反応",
@@ -2155,7 +2155,7 @@
         "分子・詳細:acetophenone#0:body",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "繰り返し単位",
@@ -2183,7 +2183,7 @@
         "高分子・概要:polyacrylonitrile",
         "高分子・概要:polyvinylidene-fluoride"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "構造異性体",
@@ -2207,7 +2207,7 @@
         "分子・詳細:isobutene#0:body",
         "分子・詳細:propionaldehyde#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化剤",
@@ -2231,7 +2231,7 @@
         "分子・詳細:hypochlorous-acid#1:body",
         "分子・詳細:ozone#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸無水物",
@@ -2263,7 +2263,7 @@
         "部品・詳しく:ester",
         "反応・詳細:normal:complete-01-anhydride-hydrolysis:bondChange"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分子量分布",
@@ -2291,7 +2291,7 @@
         "高分子・詳細:polyethylene-oxide#2:body",
         "高分子・学習:polyethylene-terephthalate:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "芳香族性",
@@ -2315,7 +2315,7 @@
         "分子・詳細:chlorobenzene#0:body",
         "分子・詳細:furan#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "立体配置",
@@ -2343,7 +2343,7 @@
         "高分子・学習:polylactic-acid:limits",
         "高分子・学習:polyisoprene:structure"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "π結合",
@@ -2367,7 +2367,7 @@
         "分子・詳細:propene#0:body",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "カルボニル基",
@@ -2390,7 +2390,7 @@
         "分子・詳細:benzaldehyde#0:body",
         "分子・詳細:acetophenone#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "キラリティ",
@@ -2413,7 +2413,7 @@
         "分子・詳細:lactic-acid#0:title",
         "分子・詳細:alanine#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "位置異性体",
@@ -2436,7 +2436,7 @@
         "分子・詳細:hydroquinone#0:body",
         "分子・詳細:salicylic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "結合次数",
@@ -2463,7 +2463,7 @@
         "分子・詳細:ethyne#0:body",
         "部品・詳しく:vinyl"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化物",
@@ -2489,7 +2489,7 @@
         "分子・詳細:carbon-monoxide#1:body",
         "高分子・詳細:polystyrene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "不斉炭素",
@@ -2511,7 +2511,7 @@
         "分子・詳細:2-butanol#0:body",
         "分子・詳細:glycine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "付加反応",
@@ -2533,7 +2533,7 @@
         "分子・詳細:propene#0:body",
         "分子・詳細:benzene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分子間力",
@@ -2555,7 +2555,7 @@
         "分子・詳細:propane#0:body",
         "分子・詳細:isobutane#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "連鎖成長",
@@ -2577,7 +2577,7 @@
         "高分子・詳細:polyethylene#0:body",
         "高分子・詳細:polypropylene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "σ結合",
@@ -2599,7 +2599,7 @@
         "分子・詳細:ethene#0:body",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "カルボニル化合物",
@@ -2620,7 +2620,7 @@
       "examples": [
         "分子・詳細:tert-butanol#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ポリ塩化ビニル",
@@ -2641,7 +2641,7 @@
       "examples": [
         "高分子・概要:polyvinyl-chloride"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "還元剤",
@@ -2662,7 +2662,7 @@
       "examples": [
         "分子・詳細:hydrogen-peroxide#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "極性分子",
@@ -2683,7 +2683,7 @@
       "examples": [
         "分子・詳細:chlorine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化還元反応",
@@ -2704,7 +2704,7 @@
       "examples": [
         "分子・詳細:succinic-acid#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化数",
@@ -2725,7 +2725,7 @@
       "examples": [
         "分子・詳細:hypochlorous-acid#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化力",
@@ -2746,7 +2746,7 @@
       "examples": [
         "分子・詳細:chlorine#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "縮合重合",
@@ -2767,7 +2767,7 @@
       "examples": [
         "高分子・分類:縮合重合"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "電気陰性度",
@@ -2788,7 +2788,7 @@
       "examples": [
         "分子・詳細:fluoromethane#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "無極性分子",
@@ -2809,7 +2809,7 @@
       "examples": [
         "分子・詳細:chlorine#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "立体異性体",
@@ -2830,7 +2830,7 @@
       "examples": [
         "分子・詳細:2-butene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "重合",
@@ -2881,7 +2881,7 @@
         "分子・詳細:propene#0:body",
         "分子・概要:1-butene"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸化",
@@ -2928,7 +2928,7 @@
         "分子・詳細:carbon-monoxide#1:body",
         "分子・詳細:chlorine#0:title"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "置換",
@@ -2973,7 +2973,7 @@
         "分子・詳細:p-xylene#0:title",
         "分子・詳細:chloromethane#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "付加",
@@ -3022,7 +3022,7 @@
         "分子・詳細:vinyl-chloride#0:body",
         "分子・詳細:acrylonitrile#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "共重合",
@@ -3069,7 +3069,7 @@
         "分子・概要:isoprene",
         "分子・詳細:isoprene#1:title"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "末端",
@@ -3110,7 +3110,7 @@
         "分子・詳細:propyne#0:body",
         "分子・詳細:1-butyne#0:title"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "溶媒",
@@ -3141,7 +3141,7 @@
         "分子・概要:methylcyclohexane",
         "分子・概要:toluene"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "エネルギー",
@@ -3170,7 +3170,7 @@
         "反応・詳細:normal:complete-04-aspirin-hydrolysis:condition1",
         "反応・詳細:normal:complete-10-ethylene-oxide-basic-cleavage:condition1"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ゴム",
@@ -3211,7 +3211,7 @@
         "分子・詳細:isoprene#1:body",
         "高分子・学習:ethylene-propylene-copolymer:property"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "カルボン酸",
@@ -3254,7 +3254,7 @@
         "分子・概要:butyric-acid",
         "分子・詳細:butyric-acid#0:body"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "cis",
@@ -3299,7 +3299,7 @@
         "分子・詳細:1-3-butadiene#0:body",
         "分子・詳細:isoprene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "trans",
@@ -3340,7 +3340,7 @@
         "分子・詳細:1-3-butadiene#0:body",
         "分子・注釈:stereochemistry"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アミノ酸",
@@ -3375,7 +3375,7 @@
         "分子・概要:serine",
         "分子・詳細:serine#0:title"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "沸点",
@@ -3406,7 +3406,7 @@
         "分子・概要:isobutane",
         "分子・詳細:isobutane#0:body"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "物性",
@@ -3435,7 +3435,7 @@
         "分子・詳細:n-pentane#0:title",
         "分子・詳細:1-butene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "異性体",
@@ -3464,7 +3464,7 @@
         "分子・詳細:isobutene#0:body",
         "分子・詳細:p-xylene#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "鎖長",
@@ -3497,7 +3497,7 @@
         "高分子・学習:polychlorotrifluoroethylene:limits",
         "高分子・詳細:polyethylene-terephthalate#2:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "芳香族化合物",
@@ -3524,7 +3524,7 @@
         "分子・概要:p-xylene",
         "分子・概要:phenol"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "カチオン",
@@ -3553,7 +3553,7 @@
         "反応・詳細:polymer:polyisobutylene-cationic:condition0",
         "反応・詳細:polymer:butyl-rubber-cationic:conditionSummary"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "フェノール環",
@@ -3590,7 +3590,7 @@
         "高分子・学習:phenol-formaldehyde-resin:property",
         "高分子・学習:phenol-formaldehyde-resin:observe"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ポリマー",
@@ -3623,7 +3623,7 @@
         "分子・詳細:adipic-acid#0:body",
         "分子・概要:glycolic-acid"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "シス",
@@ -3656,7 +3656,7 @@
         "高分子・詳細:polyisoprene#1:body",
         "高分子・詳細:polyisoprene#2:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "可塑剤",
@@ -3685,7 +3685,7 @@
         "高分子・学習:polyvinyl-chloride:limits",
         "高分子・学習:nitrile-butadiene-rubber:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "中和",
@@ -3714,7 +3714,7 @@
         "高分子・学習:polyacrylic-acid:applications",
         "高分子・学習:polyacrylic-acid:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分岐",
@@ -3751,7 +3751,7 @@
         "高分子・詳細:polyethylene#2:body",
         "高分子・学習:phenol-formaldehyde-resin:structure"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分子式",
@@ -3782,7 +3782,7 @@
         "分子・概要:2-butyne",
         "分子・概要:2-butanol"
       ],
-      "action": "第4段階で外部リンク撤去"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "エチル基",
@@ -3810,7 +3810,7 @@
         "分子・概要:methyl-ethyl-ether",
         "分子・詳細:diethyl-ether#0:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ハロゲン",
@@ -3842,7 +3842,7 @@
         "反応・分類:halogenation",
         "反応・詳細:normal:complete-20-hydrogen-chlorination:bondChange"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "硬化",
@@ -3870,7 +3870,7 @@
         "高分子・学習:phenol-formaldehyde-resin:applications",
         "高分子・学習:phenol-formaldehyde-resin:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "充填材",
@@ -3894,7 +3894,7 @@
         "高分子・学習:polytetrafluoroethylene:limits",
         "高分子・学習:nylon-6-6:limits"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "乳化",
@@ -3922,7 +3922,7 @@
         "高分子・学習:styrene-butadiene-copolymer:applications",
         "高分子・詳細:nitrile-butadiene-rubber#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "水溶液",
@@ -3949,7 +3949,7 @@
         "分子・詳細:methylamine#0:body",
         "高分子・詳細:polyacrylic-acid#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "脱水",
@@ -3976,7 +3976,7 @@
         "反応・分類:脱水",
         "反応・分類:dehydration"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "粘度",
@@ -4003,7 +4003,7 @@
         "高分子・学習:polyisobutylene:applications",
         "高分子・学習:polyethylene-oxide:property"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "トランス",
@@ -4025,7 +4025,7 @@
         "高分子・詳細:polybutadiene#1:body",
         "高分子・詳細:polyisoprene#1:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ハロゲン化",
@@ -4051,7 +4051,7 @@
         "高分子・学習:butyl-rubber:limits",
         "反応・分類:ハロゲン化"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "結晶性",
@@ -4077,7 +4077,7 @@
         "高分子・学習:polyethylene-oxide:property",
         "高分子・詳細:polylactic-acid#2:body"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "熱可塑性",
@@ -4098,7 +4098,7 @@
       "examples": [
         "高分子・学習:polytetrafluoroethylene:property"
       ],
-      "action": "第4段階で表示接続"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "炭素",
@@ -4153,7 +4153,7 @@
         "分子・詳細:propane#0:body",
         "分子・概要:n-butane"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "反応",
@@ -4208,7 +4208,7 @@
         "分子・概要:nitrogen",
         "分子・詳細:nitrogen#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "原料",
@@ -4247,7 +4247,7 @@
         "分子・概要:ethane",
         "分子・概要:propene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "電子",
@@ -4294,7 +4294,7 @@
         "分子・詳細:ammonia#0:body",
         "分子・詳細:ammonia#1:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "炭素鎖",
@@ -4341,7 +4341,7 @@
         "分子・概要:1-butyne",
         "分子・概要:2-butyne"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "製造",
@@ -4372,7 +4372,7 @@
         "分子・概要:carbon-disulfide",
         "分子・概要:sulfuric-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "由来",
@@ -4427,7 +4427,7 @@
         "分子・詳細:isoamyl-acetate#0:body",
         "分子・概要:furan"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "原子",
@@ -4470,7 +4470,7 @@
         "分子・詳細:chlorine#0:body",
         "分子・詳細:phosphine#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "フッ素",
@@ -4517,7 +4517,7 @@
         "分子・概要:vinylidene-fluoride",
         "分子・詳細:vinylidene-fluoride#1:title"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸素",
@@ -4572,7 +4572,7 @@
         "分子・概要:hydrogen-sulfide",
         "分子・概要:hydrogen-peroxide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "性質",
@@ -4615,7 +4615,7 @@
         "分子・詳細:hydrogen-sulfide#0:body",
         "分子・詳細:sulfur-trioxide#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "カルボキシ基",
@@ -4666,7 +4666,7 @@
         "分子・詳細:oxalic-acid#0:body",
         "分子・詳細:benzoic-acid#0:title"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "樹脂",
@@ -4713,7 +4713,7 @@
         "分子・概要:methanol",
         "分子・概要:1-butanol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "繊維",
@@ -4752,7 +4752,7 @@
         "分子・概要:acetic-acid",
         "分子・概要:acetic-anhydride"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "影響",
@@ -4791,7 +4791,7 @@
         "分子・詳細:vinyl-chloride#0:body",
         "分子・詳細:benzaldehyde#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "反応性",
@@ -4826,7 +4826,7 @@
         "分子・詳細:ethene#0:body",
         "分子・詳細:propene#0:title"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "化合物",
@@ -4861,7 +4861,7 @@
         "分子・概要:benzene",
         "分子・概要:toluene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "揮発",
@@ -4900,7 +4900,7 @@
         "分子・概要:chloroform",
         "分子・概要:2-propanol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "合成",
@@ -4939,7 +4939,7 @@
         "分子・概要:acetonitrile",
         "分子・概要:anisole"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "分解",
@@ -4978,7 +4978,7 @@
         "分子・概要:methanethiol",
         "分子・概要:acetaldehyde"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "工業",
@@ -5013,7 +5013,7 @@
         "分子・概要:dichloromethane",
         "分子・概要:chloroform"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "医薬品",
@@ -5048,7 +5048,7 @@
         "分子・概要:methylamine",
         "分子・概要:aniline"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "共重合体",
@@ -5095,7 +5095,7 @@
         "分子・概要:hexafluoropropylene",
         "高分子・概要:ethylene-propylene-copolymer"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "出発点",
@@ -5126,7 +5126,7 @@
         "反応・詳細:polymer:polychlorotrifluoroethylene-radical:condition0",
         "反応・詳細:polymer:polyacrylonitrile-radical:condition0"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "ひずみ",
@@ -5157,7 +5157,7 @@
         "分子・詳細:cyclobutane#0:title",
         "分子・詳細:cyclobutane#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "圧力",
@@ -5192,7 +5192,7 @@
         "高分子・詳細:polytetrafluoroethylene#1:body",
         "高分子・詳細:nylon-6-6#1:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "主成分",
@@ -5235,7 +5235,7 @@
         "分子・概要:methyl-salicylate",
         "分子・詳細:isoprene#1:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "有毒",
@@ -5262,7 +5262,7 @@
         "分子・概要:phosphine",
         "分子・概要:carbon-disulfide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "タンパク質",
@@ -5293,7 +5293,7 @@
         "分子・概要:cysteine",
         "分子・詳細:cysteine#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "揮発性",
@@ -5324,7 +5324,7 @@
         "分子・概要:acetone",
         "分子・概要:ethyl-acetate"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "香料",
@@ -5355,7 +5355,7 @@
         "分子・概要:methyl-salicylate",
         "分子・概要:isoamyl-acetate"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "消毒",
@@ -5390,7 +5390,7 @@
         "分子・詳細:hypochlorous-acid#0:body",
         "分子・概要:ethanol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "代謝",
@@ -5421,7 +5421,7 @@
         "分子・概要:methionine",
         "分子・詳細:methionine#0:body"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アミノ基",
@@ -5460,7 +5460,7 @@
         "分子・詳細:hexamethylenediamine#0:title",
         "部品・詳しく:amide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "塗料",
@@ -5491,7 +5491,7 @@
         "分子・概要:ethyl-acetate",
         "分子・概要:acrylic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "燃焼",
@@ -5526,7 +5526,7 @@
         "分子・概要:sulfur-dioxide",
         "反応・分類:燃焼"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "共通",
@@ -5561,7 +5561,7 @@
         "部品・詳しく:carbonyl",
         "反応・分類:other"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "刺激臭",
@@ -5588,7 +5588,7 @@
         "分子・概要:methylamine",
         "分子・概要:acrolein"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "中間体",
@@ -5619,7 +5619,7 @@
         "分子・詳細:succinic-acid#0:body",
         "分子・概要:2-4-dinitrotoluene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "有機合成",
@@ -5646,7 +5646,7 @@
         "分子・概要:anisole",
         "分子・概要:malonic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "抑える",
@@ -5681,7 +5681,7 @@
         "高分子・詳細:polyisobutylene#0:body",
         "高分子・学習:nitrile-butadiene-rubber:property"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "厳重",
@@ -5707,7 +5707,7 @@
         "分子・概要:ethylene-oxide",
         "分子・概要:hydrogen-cyanide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "細胞",
@@ -5733,7 +5733,7 @@
         "分子・概要:hydrogen-cyanide",
         "分子・概要:serine"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "周囲",
@@ -5771,7 +5771,7 @@
         "部品・詳しく:alkyne",
         "高分子・学習:polytetrafluoroethylene:structure"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "炭素骨格",
@@ -5801,7 +5801,7 @@
         "分子・概要:malonic-acid",
         "部品・詳しく:nitrile"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "半導体",
@@ -5831,7 +5831,7 @@
         "分子・概要:fluoromethane",
         "高分子・学習:polychlorotrifluoroethylene:applications"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "肥料",
@@ -5857,7 +5857,7 @@
         "分子・概要:sulfuric-acid",
         "分子・概要:urea"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "油脂",
@@ -5891,7 +5891,7 @@
         "分子・概要:acrolein",
         "部品・概要:ester"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "元素",
@@ -5924,7 +5924,7 @@
         "分子・詳細:hydrogen-sulfide#0:body",
         "部品・詳しく:nitrile"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "高温",
@@ -5949,7 +5949,7 @@
         "分子・概要:ethyne",
         "分子・概要:acrolein"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "循環",
@@ -5974,7 +5974,7 @@
         "分子・概要:carbonyl-sulfide",
         "分子・概要:dimethyl-sulfide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "水素イオン",
@@ -6003,7 +6003,7 @@
         "分子・詳細:sulfuric-acid#1:body",
         "部品・概要:amino"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "糖",
@@ -6032,7 +6032,7 @@
         "分子・概要:pyruvic-acid",
         "部品・概要:hydroxyl"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "発泡材",
@@ -6057,7 +6057,7 @@
         "分子・概要:cyclopentane",
         "分子・概要:ethylbenzene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "シクロアルカン",
@@ -6081,7 +6081,7 @@
         "分子・概要:cyclopropane",
         "分子・概要:cyclobutane"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "角質",
@@ -6105,7 +6105,7 @@
         "分子・概要:salicylic-acid",
         "分子・概要:glycolic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "血液",
@@ -6129,7 +6129,7 @@
         "分子・概要:carbon-monoxide",
         "分子・概要:carbonic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "占める",
@@ -6153,7 +6153,7 @@
         "分子・概要:oxygen",
         "分子・概要:nitrogen"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "抽出",
@@ -6177,7 +6177,7 @@
         "分子・概要:n-hexane",
         "分子・概要:diethyl-ether"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "発酵",
@@ -6201,7 +6201,7 @@
         "分子・概要:ethanol",
         "分子・概要:lactic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "微生物",
@@ -6225,7 +6225,7 @@
         "分子・概要:methane",
         "分子・概要:trimethylamine"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "保存料",
@@ -6249,7 +6249,7 @@
         "分子・概要:propionic-acid",
         "分子・概要:benzoic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "妨げる",
@@ -6273,7 +6273,7 @@
         "分子・概要:carbon-monoxide",
         "分子・概要:hydrogen-cyanide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "防御",
@@ -6297,7 +6297,7 @@
         "分子・概要:formic-acid",
         "分子・概要:salicylic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "麻酔",
@@ -6321,7 +6321,7 @@
         "分子・概要:chloroform",
         "分子・概要:diethyl-ether"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "有害",
@@ -6345,7 +6345,7 @@
         "分子・概要:vinyl-chloride",
         "分子・概要:phenol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "有機酸",
@@ -6369,7 +6369,7 @@
         "分子・概要:lactic-acid",
         "分子・概要:malic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "冷媒",
@@ -6393,7 +6393,7 @@
         "分子・概要:isobutane",
         "分子・概要:difluoromethane"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "アセチル化剤",
@@ -6416,7 +6416,7 @@
       "examples": [
         "分子・概要:acetic-anhydride"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "クエン酸回路",
@@ -6439,7 +6439,7 @@
       "examples": [
         "分子・概要:succinic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "たんぱく質",
@@ -6462,7 +6462,7 @@
       "examples": [
         "部品・概要:thiol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "液化",
@@ -6485,7 +6485,7 @@
       "examples": [
         "分子・概要:propane"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "柑橘類",
@@ -6508,7 +6508,7 @@
       "examples": [
         "分子・概要:citric-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "光合成",
@@ -6531,7 +6531,7 @@
       "examples": [
         "分子・概要:carbon-dioxide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "酸性雨",
@@ -6554,7 +6554,7 @@
       "examples": [
         "分子・概要:sulfur-dioxide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "植物ホルモン",
@@ -6577,7 +6577,7 @@
       "examples": [
         "分子・概要:ethene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "腸内細菌",
@@ -6600,7 +6600,7 @@
       "examples": [
         "分子・概要:butyric-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "調節",
@@ -6623,7 +6623,7 @@
       "examples": [
         "分子・概要:carbonic-acid"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "尿素",
@@ -6646,7 +6646,7 @@
       "examples": [
         "部品・概要:carbamoyl"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "燃料電池",
@@ -6669,7 +6669,7 @@
       "examples": [
         "分子・概要:hydrogen"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "濃度",
@@ -6692,7 +6692,7 @@
       "examples": [
         "分子・概要:formaldehyde"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "発がん性",
@@ -6715,7 +6715,7 @@
       "examples": [
         "分子・概要:benzene"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "微量",
@@ -6738,7 +6738,7 @@
       "examples": [
         "分子・概要:phosphine"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "不完全燃焼",
@@ -6761,7 +6761,7 @@
       "examples": [
         "分子・概要:carbon-monoxide"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "不凍液",
@@ -6784,7 +6784,7 @@
       "examples": [
         "分子・概要:ethylene-glycol"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "溶接",
@@ -6807,7 +6807,7 @@
       "examples": [
         "分子・概要:ethyne"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "立体構造",
@@ -6830,7 +6830,7 @@
       "examples": [
         "分子・概要:cysteine"
       ],
-      "action": "第4段階で表示範囲を統一"
+      "action": "第4段階でアプリ内解説に接続済み"
     },
     {
       "term": "シス-トランス異性体",

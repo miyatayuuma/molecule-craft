@@ -20,10 +20,10 @@ export function furiganaSegmentsForRange(value,annotations=[],start=0,end=String
   return segments;
 }
 
-// A reference link may end halfway through one reviewed ruby span, e.g.
-// 付加重合 (linked) + 体, while the annotation covers 付加重合体 as a whole.
-// Preserve the reading by treating that whole span as plain (unlinked) text;
-// independent links outside it remain intact.
+// A glossary trigger may end halfway through one reviewed ruby span, e.g.
+// 付加重合 (button) + 体, while the annotation covers 付加重合体 as a whole.
+// Preserve the reading by treating that whole span as plain, non-interactive
+// text; independent glossary triggers outside it remain intact.
 export function coalesceSegmentsAtRubyBoundaries(segments,annotations=[],startOffset=0){
   const merged=[];
   let offset=startOffset;
@@ -35,6 +35,7 @@ export function coalesceSegmentsAtRubyBoundaries(segments,annotations=[],startOf
       previous.text+=segment.text;
       previous.kind='text';
       delete previous.reference;
+      delete previous.meaning;
     }else merged.push({...segment});
     offset+=segment.text.length;
   }
