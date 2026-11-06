@@ -13,7 +13,7 @@ const server=createServer(async(req,res)=>{try{
   const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
   if(pathname==='/__compare_fixture__'){res.writeHead(200,{'content-type':'text/html'}).end(html);return;}
   const file=normalize(join(root,pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}
-  res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream'}).end(await readFile(file));
+  const bytes=await readFile(file);res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream'}).end(bytes);
 }catch{res.writeHead(404).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const chrome=['google-chrome','chromium','chromium-browser'].map(name=>spawnSync('which',[name],{encoding:'utf8'})).find(result=>result.status===0)?.stdout.trim();
