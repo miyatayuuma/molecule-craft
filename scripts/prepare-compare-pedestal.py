@@ -11,6 +11,7 @@ The source itself is distributed in GitHub Release compare-stage-source.
 
 import math
 import sys
+import tempfile
 from pathlib import Path
 
 import bpy
@@ -47,6 +48,7 @@ shader.inputs['Metallic'].default_value = 0.65
 shader.inputs['Roughness'].default_value = 0.38
 shader.inputs['Emission Strength'].default_value = 0.7
 links.new(shader.outputs['BSDF'], output.inputs['Surface'])
+temporary_textures = tempfile.TemporaryDirectory(prefix='compare-pedestal-web-')
 
 for suffix, input_name, color_space in (
     ('COL', 'Base Color', 'sRGB'),
@@ -60,6 +62,13 @@ for suffix, input_name, color_space in (
     texture = nodes.new('ShaderNodeTexImage')
     texture.label = f'Original {suffix} map'
     texture.image = bpy.data.images.load(str(path), check_existing=True)
+    # The disk is ~220 CSS pixels wide. Shipping four 4096px GPU textures
+    # would consume ~200 MB on Android with no perceptible benefit at that size.
+    # Work on temporary copies only; the original 4K maps remain in the Release.
+    texture.image.scale(1024, 1024)
+    texture.image.filepath_raw = str(Path(temporary_textures.name) / f'{suffix}.png')
+    texture.image.file_format = 'PNG'
+    texture.image.save()
     texture.image.colorspace_settings.name = color_space
     texture.interpolation = 'Linear'
     links.new(texture.outputs['Color'], shader.inputs[input_name])
@@ -125,3 +134,4 @@ scene.view_settings.look = 'AgX - Medium High Contrast'
 scene.view_settings.exposure = 0.65
 bpy.ops.render.render(write_still=True)
 print('Rendered', target_png)
+temporary_textures.cleanup()

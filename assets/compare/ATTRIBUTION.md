@@ -6,7 +6,8 @@
 - License: [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/)
 - Source archive: GitHub Release `compare-stage-source`, `Scifi.pedestal.turntable.zip`
 - Changes made: converted Blender 2.79 Cycles materials to glTF-compatible PBR,
-  embedded the source-provided texture maps into `scifi-pedestal.glb`, adjusted
+  resized the source-provided 4K texture maps to 1024px for mobile GPU memory
+  before embedding them into `scifi-pedestal.glb`, adjusted
   lighting and scale, and rendered `pedestal-preview.png` for the no-WebGL view.
 
 The model's original mesh and UV mapping remain intact. No purchased preview
