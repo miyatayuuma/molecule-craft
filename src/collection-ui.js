@@ -15,6 +15,7 @@ import {encyclopediaTermSegments} from './encyclopedia-terms.js';
 import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex,appendCompleteFuriganaText} from './encyclopedia-furigana.js?v=4';
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
+import {moleculeBasicProperties} from './molecule-basic-properties.js?v=1';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -86,6 +87,27 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   };
   const chemistryParagraph=(text,className)=>appendChemistryText(el('p',null,className),text);
   const chemistryHeading=(text)=>appendChemistryText(el('h5'),text);
+  function basicDataTable(record){
+    const basic=moleculeBasicProperties(record),host=el('div',null,'molecule-basic-data'),table=el('table',null,'molecule-basic-table');
+    host.append(el('h4','基本データ'));
+    const row=(label,value)=>{
+      const tr=el('tr'),name=el('th',label),cell=el('td');name.scope='row';
+      if(typeof value==='string')cell.textContent=value;else cell.append(value);
+      tr.append(name,cell);table.append(tr);
+    };
+    row('原子数',`${basic.atomCount}個`);
+    row('元素の種類',`${basic.elementCount}種類`);
+    const composition=el('div',null,'molecule-basic-composition');
+    for(const item of basic.composition){
+      const chip=el('span',`${item.symbol} × ${item.count}`);
+      chip.setAttribute('aria-label',`${item.symbol}が${item.count}個`);
+      composition.append(chip);
+    }
+    row('元素ごとの数',composition);
+    row('モル質量',`${basic.molarMass.toFixed(2)} g/mol`);
+    host.append(table,el('p','モル質量は、分子1モルあたりの質量です。原子量を使って計算したおよその値です。','molecule-basic-note'));
+    return host;
+  }
   const button=(text,handler,className)=>{const node=el('button',text,className);node.type='button';node.addEventListener('click',handler);return node;};
   let glossaryPopup=null,glossaryTrigger=null;
   function closeGlossary(){
@@ -568,6 +590,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     detail.append(encyclopediaSummaryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。','molecules',record.id));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
     if(record.aliases?.length)extra.append(el('p',`別名：${record.aliases.join('、')}`));
+    extra.append(basicDataTable(record));
     const detailSections=Array.isArray(catalogEntry.details)?catalogEntry.details:[];
     if(detailSections.length){const chemistry=el('div',null,'chemistry-detail');for(const item of detailSections){const sectionNode=el('section',null,'chemistry-detail-section');sectionNode.append(chemistryHeading(item.title),chemistryParagraph(item.body));chemistry.append(sectionNode);}for(const visual of renderChemistryVisuals(document,catalogEntry,record))chemistry.append(visual);extra.append(chemistry);}
     const playerNoteKeys=(Array.isArray(catalogEntry.notes)?catalogEntry.notes:[]).filter(key=>key==='stereochemistry');
