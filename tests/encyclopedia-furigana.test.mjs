@@ -6,6 +6,7 @@ import {execFileSync} from 'node:child_process';
 import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriganaSegments,createCompleteFuriganaIndex} from '../src/encyclopedia-furigana.js';
 import {moleculeSummaryGlossarySegments,partSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
 import {hamajimaTermSegments} from '../src/hamajima-term-reference.js';
+import {ENCYCLOPEDIA_TERM_CATALOG} from '../src/encyclopedia-terms.js';
 
 const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',import.meta.url),'utf8'));
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
@@ -258,8 +259,8 @@ test('all kanji in both catalog summaries have readings and every functional-gro
 });
 
 test('glossary popup descriptions have complete Kanji-only furigana',()=>{
-  const glossarySource=readFileSync(new URL('../src/encyclopedia-glossary.js',import.meta.url),'utf8');
-  const definitions=[...glossarySource.matchAll(/^\s*\['([^']+)','([^']+)',[12]\],?$/gm)];
+  const definitions=ENCYCLOPEDIA_TERM_CATALOG.filter(entry=>entry.meaning!==null)
+    .map(entry=>[null,entry.term,entry.meaning]);
   assert.ok(definitions.length>=90);
   assert.deepEqual(Object.keys(furigana.glossary).sort(),definitions.map(item=>item[1]).sort());
   for(const [,word,meaning] of definitions){
