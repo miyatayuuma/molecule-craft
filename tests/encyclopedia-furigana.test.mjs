@@ -258,11 +258,9 @@ test('all kanji in both catalog summaries have readings and every functional-gro
   }
 });
 
-test('glossary popup descriptions have complete Kanji-only furigana',()=>{
-  // Phase 1–3 editorial meanings await UI rollout; only existing summary popups need ruby here.
-  const definitions=ENCYCLOPEDIA_TERM_CATALOG.filter(entry=>entry.summaryScope!==null)
-    .map(entry=>[null,entry.term,entry.meaning]);
-  assert.ok(definitions.length>=90);
+test('all 224 glossary meanings have complete Kanji-only furigana before UI rollout',()=>{
+  const definitions=ENCYCLOPEDIA_TERM_CATALOG.map(entry=>[null,entry.term,entry.meaning]);
+  assert.equal(definitions.length,224);
   assert.deepEqual(Object.keys(furigana.glossary).sort(),definitions.map(item=>item[1]).sort());
   for(const [,word,meaning] of definitions){
     const annotations=furigana.glossary[word],covered=new Set();
@@ -279,6 +277,26 @@ test('glossary popup descriptions have complete Kanji-only furigana',()=>{
       if(/[一-龯々]/u.test(meaning[i]))assert.ok(covered.has(i),`${word}: no reading at ${i}`);
     }
     assert.equal(reconstruct(furiganaSegmentsForRange(meaning,annotations)),meaning,word);
+  }
+});
+
+test('new glossary chemical compounds have reviewed on-yomi without changing standalone readings',()=>{
+  const phrases=[
+    ['側鎖','主鎖','しゅさ'],
+    ['主鎖','側鎖','そくさ'],
+    ['立体規則性','側鎖','そくさ'],
+    ['アルカン','鎖状','さじょう'],
+    ['酸無水物','酸無水物','さんむすいぶつ'],
+    ['電子対','一組','ひとくみ'],
+    ['主鎖','鎖。','くさり。'],
+  ];
+  for(const [term,phrase,reading] of phrases){
+    const meaning=ENCYCLOPEDIA_TERM_CATALOG.find(entry=>entry.term===term)?.meaning;
+    assert.ok(meaning?.includes(phrase),`${term}: source context missing ${phrase}`);
+    const start=meaning.indexOf(phrase);
+    const result=furiganaSegmentsForRange(meaning,furigana.glossary[term],start,start+phrase.length)
+      .map(part=>part.kind==='ruby'?part.reading:part.text).join('');
+    assert.equal(result,reading,`${term}: ${phrase}`);
   }
 });
 

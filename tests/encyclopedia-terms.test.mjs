@@ -40,6 +40,8 @@ test('technical distinctions and alternate spellings are consistent in the writt
   assert.equal(meaning('反復単位'),meaning('繰り返し単位').replace('反復単位ともいう。','').trim());
   assert.match(meaning('ポリマー'),/高分子/);
   assert.match(meaning('高分子'),/構成単位/);
+  assert.match(meaning('中和'),/必ず中性になるとは限らない/);
+  assert.match(meaning('ナイロン'),/アミド結合を繰り返し持つ/);
 });
 
 test('review ledger separates approved current terms from seven unused reference-only terms',()=>{
