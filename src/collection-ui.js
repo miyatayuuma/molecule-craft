@@ -32,6 +32,10 @@ export async function loadCollectionData(){
 }
 
 export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpenChange=()=>{},storage,root=document,elementPalette=createElementPalette(root),elementAccess=()=>true,recipeState=()=>({recipes:[],hints:[]}),polymerRecords=[],polymerContent=[],polymerRoutes=[],engineeringResources=null}){
+  // Deliberately isolated preview: the normal compare view is unaffected.
+  const physicalComparison=new URLSearchParams(root.defaultView?.location?.search??globalThis.location?.search??'').get('comparePhysics')==='1'
+    ?(await import('./encyclopedia-compare-physics-view.js')).renderEncyclopediaComparison
+    :null;
   const data=await loadCollectionData();
   const completeFurigana=createCompleteFuriganaIndex(data.extraFurigana);
   validateChemistryVisualSpecs(data.encyclopedia,records);
@@ -492,7 +496,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(comparisonMode==='compare'){
       const id=comparisonFocusId??graphFocusId??ensureGraphFocus(),rects=comparisonTransitionRects;
       comparisonTransitionRects=new Map();
-      comparisonController=renderEncyclopediaComparison({host:list,records,discoveredIds:registeredIds(),axis:comparisonAxis,focusId:id,transitionRects:rects,
+      comparisonController=(physicalComparison??renderEncyclopediaComparison)({host:list,records,discoveredIds:registeredIds(),axis:comparisonAxis,focusId:id,transitionRects:rects,
         onFocus:id=>{comparisonFocusId=id;},
         onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
         onAxis:axis=>{comparisonTransitionRects=comparisonRects();comparisonAxis=axis;renderBook();},
