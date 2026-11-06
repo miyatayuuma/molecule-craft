@@ -56,6 +56,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const number=(kind,id)=>kind==='molecules'?entry(kind,id)?.number??(records.findIndex(item=>item.id===id)+1):kind==='polymers'?polymerContentById.get(id)?.number??(polymerRecords.findIndex(item=>item.id===id)+1):groupById(id)?.learningRole==='part'?(entry('groups',id)?.number??(partGroups.findIndex(item=>item.id===id)+1)):null;
   const numberLabel=(kind,id)=>{const value=number(kind,id);return Number.isInteger(value)?`No. ${String(value).padStart(3,'0')}`:'';};
   const el=(tag,text,className)=>{const node=document.createElement(tag);if(text!=null){if(/[一-龯々]/u.test(String(text)))appendCompleteFuriganaText(node,text,completeFurigana);else node.textContent=text;}if(className)node.className=className;return node;};
+  const setReadingText=(node,text)=>{node.replaceChildren();appendCompleteFuriganaText(node,text,completeFurigana);};
   const appendReadingText=(host,fullText,annotations,start,end)=>{
     for(const segment of furiganaSegmentsForRange(fullText,annotations,start,end)){
       if(segment.kind==='ruby'){
@@ -624,8 +625,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
         const result=engineeringResources.fabricateEngineering(recipe.id);
         // Fabrication changes this row, not the 3D model or its scroll position.
         const next=engineeringResources.engineeringEligibility(recipe.id);
-        status.textContent=statusLabels[next.status]??next.status;
-        action.textContent=next.status==='ALREADY_FABRICATED'?'製作済み':'製作する';
+        setReadingText(status,statusLabels[next.status]??next.status);
+        setReadingText(action,next.status==='ALREADY_FABRICATED'?'製作済み':'製作する');
         action.disabled=next.status!=='AVAILABLE';
         row.querySelector('.storage-message')?.remove();
         if(!result.committed&&result.status==='SAVE_FAILED')row.append(el('p','製作を保存できません。材料と製作状態は変更していません。','storage-message'));

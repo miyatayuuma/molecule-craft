@@ -36,6 +36,22 @@ TOKEN_READINGS = {
 # Whole compounds get reviewed readings before ambiguous word boundary splits
 # (the tokenizer alone treats 三方 as みかた, 錐 as きり, etc.).
 COMPOUNDS = {
+    # Dynamic encyclopedia and engineering labels need full contextual readings.
+    '製作': 'セイサク',
+    '制作': 'セイサク',
+    '消費': 'ショウヒ',
+    '恒久': 'コウキュウ',
+    '不足': 'フソク',
+    '登録': 'トウロク',
+    '復元': 'フクゲン',
+    '再読み込み': 'サイヨミコミ',
+    '変更': 'ヘンコウ',
+    '画面': 'ガメン',
+    # The suffix 上 in these noun compounds is ジョウ, not ウエ.
+    '構造上': 'コウゾウジョウ',
+    '構想上': 'コウソウジョウ',
+    '触媒上': 'ショクバイジョウ',
+    '芳香環上': 'ホウコウカンジョウ',
     # Japanese morphological tokenizers often mistake the first character of
     # scientific compounds for an ordinary verb, personal name, or place name.
     '二重結合': 'ニジュウケツゴウ',
@@ -221,7 +237,7 @@ def annotate_raw(segment, tokenizer, base, full):
                 reading = 'カン'
             if surface == '三重' and full.startswith('三重結合', offset):
                 reading = 'サンジュウ'
-            if surface == '間' and full[offset + len(surface):].startswith(('に', 'で')):
+            if surface == '間' and full[offset + len(surface):].startswith(('に', 'で', 'だけ')):
                 reading = 'アイダ'
             if surface == '生' and full.startswith('生分解性', offset):
                 reading = 'セイ'

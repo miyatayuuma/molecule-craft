@@ -10,6 +10,40 @@ const encyclopedia=JSON.parse(readFileSync(new URL('../data/encyclopedia.json',i
 const furigana=JSON.parse(readFileSync(new URL('../data/encyclopedia-furigana.json',import.meta.url),'utf8'));
 const reconstruct=segments=>segments.map(item=>item.text).join('');
 
+test('all encyclopedia UI labels have ruby, including engineering status text',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const index=createCompleteFuriganaIndex(corpus);
+ const literal=/(?<quote>['"`])(?<body>(?:\\.|(?!\k<quote>)[^\\])*?)\k<quote>/gs;
+ for(const file of ['collection-ui.js','reaction-encyclopedia.js']){
+   const source=readFileSync(new URL(`../src/${file}`,import.meta.url),'utf8');
+   for(const line of source.split(/\r?\n/))for(const match of line.matchAll(literal)){
+     const value=match.groups.body.replace(/\$\{[^}]*\}/g,'').replace(/\\(['"`\\])/g,'$1');
+     if(value.length>180||/[{};`]/.test(value)||!/[一-龯々]/u.test(value))continue;
+     const missing=completeFuriganaSegments(value,index)
+       .filter(segment=>segment.kind==='text').map(segment=>[...segment.text].filter(c=>/[一-龯々]/u.test(c)).join('')).join('');
+     assert.equal(missing,'',`${file}: ${value}`);
+   }
+ }
+});
+
+test('reviewed compounds never inherit unrelated single-character readings',()=>{
+ const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
+ const index=createCompleteFuriganaIndex(corpus);
+ const expected={
+   '製作':'せいさく','制作':'せいさく','消費':'しょうひ','恒久':'こうきゅう',
+   '構造上':'こうぞうじょう','構想上':'こうそうじょう',
+   '触媒上':'しょくばいじょう','芳香環上':'ほうこうかんじょう',
+   '不足':'ふそく','登録':'とうろく',
+ };
+ for(const [word,reading] of Object.entries(expected)){
+   assert.deepEqual(completeFuriganaSegments(word,index),[{kind:'ruby',text:word,reading}],word);
+ }
+ const sentence='一度製作すると恒久的に解放されます。高分子の発見と代表Sampleは消費しません。';
+ assert.ok(Object.hasOwn(corpus.texts,sentence),'the engineering paragraph must have a context-specific annotation');
+ const screenNotice='この画面の間だけ図鑑に登録しました。保存できていません。';
+ assert.ok(corpus.texts[screenNotice].some(([,surface,reading])=>surface==='間'&&reading==='あいだ'));
+});
+
 test('in-app glossary triggers never cut through a complete ruby span',()=>{
   const corpus=JSON.parse(readFileSync(new URL('../data/encyclopedia-extra-furigana.json',import.meta.url)));
   let crossingCount=0;
