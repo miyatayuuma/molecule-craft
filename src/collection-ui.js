@@ -269,10 +269,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   keyboardTabs('[data-palette-tab]');keyboardTabs('[data-book-tab]');
   const notifyOpen=()=>{collectionDialogOpen=true;onOpenChange(true);};
   q('open-collection').addEventListener('click',()=>{if(!canOpen())return;ensureGraphFocus();renderBook();dialog.showModal();document.body.classList.add('collection-open');notifyOpen();});
+  const originalCollectionCloseLabel=q('close-collection').getAttribute('aria-label');
   const setAwardExit=active=>{
     const control=q('close-collection');
     control.textContent=active?'→':'×';
-    control.setAttribute('aria-label',active?'発見演出を終えて次へ進む':'図鑑を閉じる');
+    control.setAttribute('aria-label',active?'つぎへすすむ':originalCollectionCloseLabel);
   };
   // During an award the × exits only the ceremony, not the discovery queue.
   // Otherwise the queued molecule/polymer detail is lost and the player lands on the top screen.

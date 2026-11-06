@@ -69,7 +69,7 @@ try{
   assert.equal(started.newReaction,'normal:complete-01-anhydride-hydrolysis');
   assert.deepEqual(started.newSpecies,['acetic-acid']);
   await waitFor(`!!document.querySelector('#collection-dialog').open&&!!document.querySelector('.discovery-award-notice')`,'Reaction award did not open');
-  assert.equal(await evaluate(`document.querySelector('#close-collection').getAttribute('aria-label')`),'発見演出を終えて次へ進む');
+  assert.equal(await evaluate(`document.querySelector('#close-collection').getAttribute('aria-label')`),'つぎへすすむ');
   await evaluate(`document.querySelector('#close-collection').click()`);
   await waitFor(`document.querySelector('#collection-dialog').open&&document.querySelector('#collection-detail').dataset.detailId==='acetic-acid'`,'Closing the star ceremony did not advance to molecule detail');
   assert.equal(await evaluate(`document.querySelector('#close-collection').getAttribute('aria-label')`),'図鑑を閉じる');
