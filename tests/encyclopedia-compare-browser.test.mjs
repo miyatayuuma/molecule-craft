@@ -18,13 +18,14 @@ const server=createServer(async(req,res)=>{try{
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const chrome=['google-chrome','chromium','chromium-browser'].map(name=>spawnSync('which',[name],{encoding:'utf8'})).find(result=>result.status===0)?.stdout.trim();
 assert(chrome,'Chromium is needed for the limited visual interaction check');
-const profile=await mkdtemp(join(tmpdir(),'molecule-compare-'));let child=null,socket=null;
+const profile=await mkdtemp(join(tmpdir(),'molecule-compare-'));let child=null,socket=null,chromeErrors='';
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
   const debugPort=9249;
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','ignore']});
-  let websocketUrl='';for(let i=0;i<100;i++){try{const tabs=await(await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json();websocketUrl=tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl;if(websocketUrl)break;}catch{}await pause(100);}
-  assert(websocketUrl,'Browser debugger should start');socket=new WebSocket(websocketUrl);await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-background-networking','--use-gl=angle','--use-angle=swiftshader','--enable-webgl','--ignore-gpu-blocklist',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','pipe']});
+  child.stderr.on('data',data=>{chromeErrors+=String(data).slice(0,1200);});
+  let websocketUrl='';for(let i=0;i<160;i++){try{const response=await fetch(`http://127.0.0.1:${debugPort}/json/list`);if(response.ok){const tabs=await response.json();websocketUrl=tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl;if(websocketUrl)break;}}catch{}await pause(100);}
+  assert(websocketUrl,`Browser debugger should start (binary ${chrome}; exit ${child.exitCode??'running'}): ${chromeErrors.slice(-900)}`);socket=new WebSocket(websocketUrl);await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
   let next=0;const waiting=new Map();socket.addEventListener('message',event=>{const result=JSON.parse(event.data);if(waiting.has(result.id)){const resolve=waiting.get(result.id);waiting.delete(result.id);resolve(result);}});
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
