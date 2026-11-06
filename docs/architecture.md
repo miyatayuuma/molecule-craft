@@ -148,7 +148,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 ## 図鑑とデータ
 
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
-- `src/encyclopedia-term-catalog.js`：4図鑑の短い解説・外部参考ID・未説明候補224語の唯一の用語データ正本。`src/encyclopedia-terms.js` が概要用と参考リンク用の検索と互換APIを構築し、旧 `encyclopedia-glossary.js` / `hamajima-term-reference.js` は薄い再export入口。
+- `src/encyclopedia-term-catalog.js`：4図鑑に登場する候補224語すべての解説原稿と、現行概要ポップアップ96語・外部参考IDの唯一の用語データ正本。`summaryScope:null` の新規128語は本文が作成済みでも第4段階のUI接続まで表示対象にはしない。`src/encyclopedia-terms.js` が互換検索APIを構築し、旧 `encyclopedia-glossary.js` / `hamajima-term-reference.js` は薄い再export入口。
 - `docs/encyclopedia-term-ledger.md`：上記辞書と本文の出現箇所を突き合わせた生成台帳。`node scripts/build-encyclopedia-term-ledger.mjs --check` で整合性を確認する。
 - `src/reaction-model-layout.js`：反応式54経路の固定水平軸と全模型共通尺度。`scripts/build-reaction-model-assets.mjs` は既存分子SVGと承認済み高分子構成単位から `assets/reaction-models/` / `generated/reaction-model-metrics.js` を生成する。3D詳細・化学authorityとは独立。`tests/reaction-equation-layout.test.mjs` が尺度と記号の非重複を検証する。
 - `src/collection-state.js`：発見記録、部品解放、保存互換。

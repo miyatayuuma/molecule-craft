@@ -10,7 +10,9 @@ for(const entry of ENCYCLOPEDIA_TERM_CATALOG){
     (entry.summaryScope!==null&&![1,2].includes(entry.summaryPriority))||
     (entry.summaryScope===null&&entry.summaryPriority!==null))throw Error(`Invalid summary glossary fields: ${entry.term}`);
   if(entry.referencePageId!==null&&!/^\d{8}$/.test(entry.referencePageId))throw Error(`Invalid reference page: ${entry.term}`);
-  if(entry.candidateWave!==null&&(![1,2].includes(entry.candidateWave)||entry.meaning!==null||entry.referencePageId!==null))throw Error(`Invalid pending term: ${entry.term}`);
+  // Inventory wave is historical metadata, not a marker that editorial meaning is missing.
+  // Newly written meanings are deliberately not activated in summary popups until UI phase 4.
+  if(entry.candidateWave!==null&&(![1,2].includes(entry.candidateWave)||entry.referencePageId!==null))throw Error(`Invalid inventory candidate: ${entry.term}`);
   TERMS.set(entry.term,entry);
 }
 

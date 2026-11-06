@@ -259,7 +259,8 @@ test('all kanji in both catalog summaries have readings and every functional-gro
 });
 
 test('glossary popup descriptions have complete Kanji-only furigana',()=>{
-  const definitions=ENCYCLOPEDIA_TERM_CATALOG.filter(entry=>entry.meaning!==null)
+  // Phase 1–3 editorial meanings await UI rollout; only existing summary popups need ruby here.
+  const definitions=ENCYCLOPEDIA_TERM_CATALOG.filter(entry=>entry.summaryScope!==null)
     .map(entry=>[null,entry.term,entry.meaning]);
   assert.ok(definitions.length>=90);
   assert.deepEqual(Object.keys(furigana.glossary).sort(),definitions.map(item=>item[1]).sort());

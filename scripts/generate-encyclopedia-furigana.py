@@ -91,6 +91,11 @@ def annotate(text, tokenizer, context):
                 reading = 'シツ'
             if surface == '黄' and text.startswith('黄緑色', offset):
                 reading = 'オウ'
+            # Janome can interpret the suffix of フッ化物 as the word 化物（ばけもの）.
+            if surface == '化物' and text[:offset].endswith('フッ'):
+                reading = 'カブツ'
+            if surface == '土' and text.startswith('土などへ', offset):
+                reading = 'ツチ'
             # The glossary treats 肥料 as an individually tappable term.
             if surface == '窒素肥料':
                 annotations.extend([[offset, '窒素', 'ちっそ'], [offset + 2, '肥料', 'ひりょう']])

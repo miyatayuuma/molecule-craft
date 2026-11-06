@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "source": "Unified encyclopedia term catalog + 4 encyclopedia sections",
   "reactionPaths": 54,
   "proseFields": 1093,
@@ -15,12 +15,16 @@
     "外部リンクのみ": 53,
     "未登録": 75
   },
+  "definitionReadyCount": 224,
+  "activeCount": 217,
   "entries": [
     {
       "term": "二重結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "2つの原子が2組の電子対を共有する結合。構造式では2本の線で表す。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222202",
       "appearanceFields": 65,
@@ -61,13 +65,15 @@
         "分子・詳細:ethene#0:title",
         "分子・詳細:propene#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "エステル",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "酸とアルコールに由来する、−COO−などの結合部分を持つ化合物の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54124001",
       "appearanceFields": 59,
@@ -116,13 +122,15 @@
         "分子・概要:terephthalic-acid",
         "分子・詳細:terephthalic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "塩基",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "水素イオンを受け取るなどして、酸と反応する物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43211005",
       "appearanceFields": 57,
@@ -147,13 +155,15 @@
         "分子・詳細:hypochlorous-acid#0:title",
         "分子・詳細:propyne#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "縮合",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "2つの分子が結びつき、水などの小さな分子が取れる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 53,
@@ -190,13 +200,15 @@
         "高分子・概要:polyethylene-terephthalate",
         "高分子・詳細:polyethylene-terephthalate#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "極性",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "結合や分子の中で、電子の分布が偏っていること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42224001",
       "appearanceFields": 43,
@@ -221,13 +233,15 @@
         "分子・詳細:carbon-dioxide#0:title",
         "分子・詳細:carbon-dioxide#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "塩基性",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "水溶液が酸性とは反対の性質を示すこと。一般にpHが7より大きい。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43211003",
       "appearanceFields": 41,
@@ -252,13 +266,15 @@
         "分子・詳細:methylamine#0:body",
         "分子・詳細:dimethylamine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ラジカル",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "組になっていない電子（不対電子）を持つ原子や分子など。反応に関わりやすい。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 39,
@@ -279,13 +295,15 @@
         "高分子・詳細:polyvinyl-chloride#1:body",
         "高分子・詳細:polychlorotrifluoroethylene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸性",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "酸としての性質を示すこと。ふつうの水溶液ではpHが7より小さい。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 37,
@@ -310,13 +328,15 @@
         "分子・詳細:1-butyne#0:body",
         "分子・詳細:formic-acid#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "主鎖",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の長いつながりの中心となる鎖。そこから側鎖が枝分かれすることもある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 37,
@@ -345,13 +365,15 @@
         "高分子・概要:polypropylene",
         "高分子・学習:polypropylene:structure"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分子量",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子をつくる原子の相対的な重さを、全部足した数。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 36,
@@ -376,13 +398,15 @@
         "高分子・学習:polyethylene:applications",
         "高分子・学習:polyethylene:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アルコール",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "単結合だけを持つ炭素に、ヒドロキシ基（−OH）が結びついた有機化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54121101",
       "appearanceFields": 33,
@@ -423,13 +447,15 @@
         "分子・概要:ethanol",
         "分子・概要:2-propanol"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "水素結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "酸素や窒素などに結びついた水素と、近くの酸素や窒素などとの間に働く引力。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "51112201",
       "appearanceFields": 33,
@@ -450,13 +476,15 @@
         "分子・詳細:ammonia#1:body",
         "分子・詳細:hydrogen-sulfide#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "メチル基",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "炭素1個と水素3個がまとまった、−CH₃という分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 30,
@@ -485,13 +513,15 @@
         "分子・詳細:toluene#0:title",
         "分子・概要:p-xylene"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "エステル結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "−C(=O)−O−という原子のつながり。ポリエステルの鎖にも使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54124002",
       "appearanceFields": 29,
@@ -528,13 +558,15 @@
         "高分子・詳細:polyethylene-terephthalate#0:body",
         "高分子・学習:polyethylene-terephthalate:structure"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アミン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "アンモニアの水素を炭素を含む基に置き換えた化合物の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54134001",
       "appearanceFields": 28,
@@ -571,13 +603,15 @@
         "分子・詳細:dimethylamine#0:title",
         "分子・概要:trimethylamine"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "芳香環",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "ベンゼン環のように、電子が環全体に広がって安定した輪の構造。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 28,
@@ -610,13 +644,15 @@
         "分子・詳細:chlorobenzene#0:title",
         "分子・詳細:chlorobenzene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "側鎖",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "主鎖や環から枝のように伸びた原子のつながり。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 27,
@@ -645,13 +681,15 @@
         "分子・詳細:ethylbenzene#0:body",
         "分子・詳細:p-xylene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "イオン",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "電子を失ったり受け取ったりして、プラスまたはマイナスの電気を帯びた粒。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 26,
@@ -680,13 +718,15 @@
         "分子・詳細:formic-acid#0:body",
         "分子・詳細:acetic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "共役",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "隣り合う軌道を通して、電子がいくつもの結合に広がること。二重結合と単結合が交互に並ぶと起こりやすい。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 25,
@@ -715,13 +755,15 @@
         "分子・詳細:acetic-acid#0:body",
         "分子・詳細:ethyl-acetate#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "単結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "2つの原子が1組の電子対を共有する結合。構造式では1本の線で表す。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222201",
       "appearanceFields": 25,
@@ -746,13 +788,15 @@
         "分子・詳細:sulfur-trioxide#0:body",
         "分子・詳細:hydrogen-peroxide#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "電子対",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "2個で一組になった電子。結合に使われるものと、使われないものがある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222101",
       "appearanceFields": 24,
@@ -773,13 +817,15 @@
         "分子・詳細:phosphine#0:title",
         "分子・詳細:phosphine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ベンゼン環",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素6個が六角形に並び、電子が環全体に広がった構造。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54131001",
       "appearanceFields": 23,
@@ -808,13 +854,15 @@
         "分子・概要:p-xylene",
         "分子・概要:styrene"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "結晶",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "原子や分子などが、規則正しく繰り返し並んだ固体。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 23,
@@ -835,13 +883,15 @@
         "高分子・学習:polypropylene:limits",
         "高分子・学習:ethylene-propylene-copolymer:property"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "触媒",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "反応を進みやすくする物質。反応の前後で全体として消費されず、繰り返し働ける。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 23,
@@ -862,13 +912,15 @@
         "高分子・詳細:polypropylene#0:body",
         "高分子・詳細:polypropylene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "孤立電子対",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "原子の周りにある、結合に使われていない電子の組。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222105",
       "appearanceFields": 21,
@@ -885,13 +937,15 @@
         "分子・詳細:phosphine#0:body",
         "分子・詳細:phosphorus-trichloride#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "置換基",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子の骨組みに結びついた、原子や原子団の部分。水素と入れ替わった形で考えることが多い。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 19,
@@ -924,13 +978,15 @@
         "分子・詳細:lactic-acid#0:body",
         "分子・詳細:alanine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "付加重合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "単量体が小さな分子を取り除かずに次々とつながり、高分子になる重合。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42227009",
       "appearanceFields": 19,
@@ -959,13 +1015,15 @@
         "分子・概要:chlorotrifluoroethylene",
         "分子・詳細:chlorotrifluoroethylene#1:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アルデヒド",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素に酸素が二重結合し、その炭素に水素も結びついた部分（−CHO）を持つ化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54122101",
       "appearanceFields": 17,
@@ -1002,13 +1060,15 @@
         "分子・概要:propionaldehyde",
         "分子・詳細:propionaldehyde#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "モノマー",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "つながって高分子をつくる材料となる小さな分子。単量体ともいう。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42227005",
       "appearanceFields": 16,
@@ -1037,13 +1097,15 @@
         "分子・詳細:hexamethylenediamine#0:body",
         "高分子・詳細:polychlorotrifluoroethylene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "結晶化",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "原子や分子などが規則正しく並び、結晶になること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 16,
@@ -1060,13 +1122,15 @@
         "高分子・学習:ethylene-propylene-copolymer:property",
         "高分子・学習:polychlorotrifluoroethylene:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アルケン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素どうしの二重結合を少なくとも一つ持つ、炭素と水素だけの分子の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54116001",
       "appearanceFields": 15,
@@ -1087,13 +1151,15 @@
         "分子・詳細:benzene#1:body",
         "分子・詳細:acrylic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ケトン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素と酸素の二重結合（C=O）の炭素に、炭素を含む基が2つ結びついた化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54122201",
       "appearanceFields": 14,
@@ -1118,13 +1184,15 @@
         "分子・詳細:propionaldehyde#0:title",
         "分子・詳細:propionaldehyde#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ナイロン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "アミド結合を含む高分子の仲間。丈夫な繊維や部品に使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54213103",
       "appearanceFields": 14,
@@ -1153,13 +1221,15 @@
         "分子・概要:adipic-acid",
         "分子・概要:hexamethylenediamine"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "架橋",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の別々の鎖の間に、橋のような結合をつくってつなぐこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 14,
@@ -1184,13 +1254,15 @@
         "高分子・学習:polyacrylic-acid:property",
         "高分子・学習:polyacrylic-acid:applications"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "局在",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "電子や電荷などが、ある特定の場所に集中していること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 14,
@@ -1211,13 +1283,15 @@
         "分子・詳細:benzene#0:body",
         "分子・詳細:aniline#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "電荷",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "プラスやマイナスの電気の量。電子はマイナスの電荷を持つ。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 14,
@@ -1242,13 +1316,15 @@
         "分子・詳細:formic-acid#0:body",
         "分子・詳細:benzoic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "配位触媒",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "金属の周りに材料分子を集めて結びつけ、高分子の鎖を伸ばす働きなどをする触媒。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 14,
@@ -1269,13 +1345,15 @@
         "高分子・詳細:polyisoprene#1:body",
         "反応・詳細:polymer:polyethylene-coordination:conditionSummary"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アミド結合",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "−C(=O)−N−という原子のつながり。ナイロンやたんぱく質にも見られる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 13,
@@ -1312,13 +1390,15 @@
         "部品・詳しく:carbamoyl",
         "高分子・詳細:polyethylene-adipamide#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "構成単位",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の鎖を組み立てる、もとになった小さな分子に対応する部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 13,
@@ -1339,13 +1419,15 @@
         "高分子・学習:ethylene-propylene-copolymer:structure",
         "高分子・学習:ethylene-propylene-copolymer:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "三重結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "2つの原子が3組の電子対を共有する結合。構造式では3本の線で表す。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222203",
       "appearanceFields": 13,
@@ -1374,13 +1456,15 @@
         "分子・詳細:ethyne#0:title",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "エステル化",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "カルボン酸とアルコールなどから、エステル結合をつくる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 12,
@@ -1405,13 +1489,15 @@
         "反応・分類:エステル化",
         "反応・詳細:polymer:polyethylene-terephthalate-direct-polycondensation:conditionSummary"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ニトロ基",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "窒素1個と酸素2個を含む、−NO₂という分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 12,
@@ -1432,13 +1518,15 @@
         "分子・詳細:nitrobenzene#0:title",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "高分子",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "小さな構成単位がたくさんつながってできた、大きな分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 12,
@@ -1467,13 +1555,15 @@
         "高分子・概要:polychlorotrifluoroethylene",
         "高分子・学習:polyethylene-oxide:applications"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "反復単位",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の鎖の中で、同じ原子の並びが繰り返される基本部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 12,
@@ -1498,13 +1588,15 @@
         "高分子・学習:polystyrene:structure",
         "高分子・学習:polychlorotrifluoroethylene:structure"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ポリエステル",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "エステル結合をくり返し含む高分子の仲間。衣服の繊維や容器などに使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54213201",
       "appearanceFields": 11,
@@ -1533,13 +1625,15 @@
         "高分子・概要:polyethylene-terephthalate",
         "高分子・学習:polyethylene-terephthalate:applications"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "立体規則性",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の鎖に付いた側鎖などが、決まった向きで規則正しく並ぶ性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 11,
@@ -1560,13 +1654,15 @@
         "高分子・学習:polypropylene:property",
         "高分子・学習:polypropylene:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分極",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "電子の分布が偏り、プラス寄りとマイナス寄りの部分ができること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 9,
@@ -1583,13 +1679,15 @@
         "分子・詳細:sulfuric-acid#1:body",
         "分子・詳細:chloroform#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "重縮合",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子の官能基どうしが反応し、水などを取り除きながら段階的に高分子をつくる重合。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 8,
@@ -1606,13 +1704,15 @@
         "高分子・詳細:polylactic-acid#2:body",
         "高分子・詳細:polyglycolic-acid#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "単量体",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "つながって高分子をつくる材料となる小さな分子。モノマーともいう。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 8,
@@ -1641,13 +1741,15 @@
         "高分子・詳細:polyacrylonitrile#2:body",
         "高分子・学習:polyacrylonitrile:applications"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "電子密度",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子のある場所に、電子がどのくらい集まっているかを表す量。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 8,
@@ -1664,13 +1766,15 @@
         "分子・詳細:nitromethane#0:body",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "官能基",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子の性質や反応の仕方を特徴づける、原子の組み合わせ。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54112101",
       "appearanceFields": 7,
@@ -1699,13 +1803,15 @@
         "分子・詳細:succinic-acid#0:body",
         "部品・詳しく:carbon-chain"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "還元",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "物質が電子を受け取る変化。酸素を失ったり水素を受け取ったりする場合もある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43221002",
       "appearanceFields": 7,
@@ -1722,13 +1828,15 @@
         "分子・詳細:succinic-acid#0:body",
         "分子・詳細:cysteine#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アルカン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素と水素だけからなり、炭素どうしが単結合でつながった鎖状の分子の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54115001",
       "appearanceFields": 6,
@@ -1749,13 +1857,15 @@
         "分子・概要:cyclopropane",
         "分子・概要:cyclobutane"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アルキン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素どうしの三重結合を少なくとも一つ持つ、炭素と水素だけの分子の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54117001",
       "appearanceFields": 6,
@@ -1776,13 +1886,15 @@
         "分子・概要:2-butyne",
         "分子・詳細:2-butyne#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ヒドロキシ基",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "酸素1個と水素1個がつながった、−OHという分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 6,
@@ -1807,13 +1919,15 @@
         "高分子・概要:polylactic-acid",
         "高分子・詳細:polylactic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "開環重合",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "輪になった分子の結合を開きながら、次々につないで高分子をつくる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 6,
@@ -1838,13 +1952,15 @@
         "高分子・詳細:polyglycolic-acid#1:body",
         "高分子・詳細:polyglycolic-acid#2:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "双性イオン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "一つの分子の中にプラスとマイナスの電荷を持つ部分があり、全体の電荷は0のもの。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54225201",
       "appearanceFields": 6,
@@ -1861,13 +1977,15 @@
         "分子・詳細:alanine#0:body",
         "分子・詳細:serine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "炭化水素",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素と水素の2種類の元素だけからできた化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54112009",
       "appearanceFields": 6,
@@ -1892,13 +2010,15 @@
         "分子・詳細:ethylene-glycol#0:body",
         "分子・詳細:propionic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ポリエチレン",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "エチレンが多数つながった高分子。袋や容器などに使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54214103",
       "appearanceFields": 5,
@@ -1927,13 +2047,15 @@
         "高分子・詳細:polyethylene#2:body",
         "高分子・学習:polyethylene-adipate:applications"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "加水分解",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "水と反応して結合が切れ、分子が別の物質に分かれる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -1958,13 +2080,15 @@
         "高分子・学習:polyglycolic-acid:limits",
         "反応・分類:加水分解"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "形式電荷",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "結合の電子を原子に半分ずつ分けたと仮定して計算する、原子の見かけの電荷。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -1981,13 +2105,15 @@
         "分子・詳細:nitromethane#1:title",
         "分子・詳細:nitromethane#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "結合角",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "一つの原子から伸びる2本の結合が、どれだけ開いているかを示す角度。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -2004,13 +2130,15 @@
         "分子・詳細:cyclobutane#0:body",
         "分子・詳細:ethylene-oxide#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "置換反応",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子にある原子や原子団が、別の原子や原子団に入れ替わる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54115301",
       "appearanceFields": 5,
@@ -2027,13 +2155,15 @@
         "分子・詳細:acetophenone#0:body",
         "分子・詳細:nitrobenzene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "繰り返し単位",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の鎖の中で、同じ原子の並びが繰り返される基本部分。反復単位ともいう。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -2053,13 +2183,15 @@
         "高分子・概要:polyacrylonitrile",
         "高分子・概要:polyvinylidene-fluoride"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "構造異性体",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子式は同じでも、原子どうしのつながり方が違う分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54113101",
       "appearanceFields": 4,
@@ -2075,13 +2207,15 @@
         "分子・詳細:isobutene#0:body",
         "分子・詳細:propionaldehyde#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸化剤",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "相手から電子を受け取って酸化する物質。自分自身は還元される。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43223001",
       "appearanceFields": 4,
@@ -2097,13 +2231,15 @@
         "分子・詳細:hypochlorous-acid#1:body",
         "分子・詳細:ozone#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸無水物",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "酸から水を取り除いた形の化合物。カルボン酸無水物では、2つの酸の部分が酸素をはさんでつながる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -2127,13 +2263,15 @@
         "部品・詳しく:ester",
         "反応・詳細:normal:complete-01-anhydride-hydrolysis:bondChange"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分子量分布",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子の中に、鎖の長さや分子量が異なるものがどんな割合で混ざっているか。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -2153,13 +2291,15 @@
         "高分子・詳細:polyethylene-oxide#2:body",
         "高分子・学習:polyethylene-terephthalate:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "芳香族性",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "環の中で電子が広がり、特別に安定になる性質。ベンゼン環などに見られる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -2175,13 +2315,15 @@
         "分子・詳細:chlorobenzene#0:body",
         "分子・詳細:furan#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "立体配置",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "原子や原子団の空間での並び方。結合を切らないと変えられない配置を指すことが多い。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -2201,13 +2343,15 @@
         "高分子・学習:polylactic-acid:limits",
         "高分子・学習:polyisoprene:structure"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "π結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "原子どうしを結ぶ軸の横側で、電子軌道が重なってできる結合。二重結合にはσ結合とπ結合がある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54119103",
       "appearanceFields": 4,
@@ -2223,13 +2367,15 @@
         "分子・詳細:propene#0:body",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "カルボニル基",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "炭素と酸素が二重結合した、C=Oという分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -2244,13 +2390,15 @@
         "分子・詳細:benzaldehyde#0:body",
         "分子・詳細:acetophenone#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "キラリティ",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "鏡に映した形と元の形を、回転させても重ねられない性質。右手と左手の違いに似ている。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -2265,13 +2413,15 @@
         "分子・詳細:lactic-acid#0:title",
         "分子・詳細:alanine#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "位置異性体",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子式と基本の骨組みは同じで、官能基などが付く位置が違う異性体。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -2286,13 +2436,15 @@
         "分子・詳細:hydroquinone#0:body",
         "分子・詳細:salicylic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "結合次数",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "2つの原子の結合の数え方。単結合は1、二重結合は2、三重結合は3。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -2311,13 +2463,15 @@
         "分子・詳細:ethyne#0:body",
         "部品・詳しく:vinyl"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸化物",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "酸素と、別の元素が結びついてできた化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "53112402",
       "appearanceFields": 2,
@@ -2335,13 +2489,15 @@
         "分子・詳細:carbon-monoxide#1:body",
         "高分子・詳細:polystyrene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "不斉炭素",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "4つの異なる原子や原子団が結びついた炭素原子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 2,
@@ -2355,13 +2511,15 @@
         "分子・詳細:2-butanol#0:body",
         "分子・詳細:glycine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "付加反応",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子の二重結合などに別の原子や原子団が加わり、一つの生成物になる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54116301",
       "appearanceFields": 2,
@@ -2375,13 +2533,15 @@
         "分子・詳細:propene#0:body",
         "分子・詳細:benzene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分子間力",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子と分子の間に働く引力などの力。液体や固体の性質に関わる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42225001",
       "appearanceFields": 2,
@@ -2395,13 +2555,15 @@
         "分子・詳細:propane#0:body",
         "分子・詳細:isobutane#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "連鎖成長",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "高分子をつくるとき、反応しやすい鎖の先端に単量体が次々と加わって伸びること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 2,
@@ -2415,13 +2577,15 @@
         "高分子・詳細:polyethylene#0:body",
         "高分子・詳細:polypropylene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "σ結合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "原子どうしを結ぶ軸の方向で、電子軌道が重なってできる結合。単結合は通常これに当たる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54119102",
       "appearanceFields": 2,
@@ -2435,13 +2599,15 @@
         "分子・詳細:ethene#0:body",
         "分子・詳細:ethyne#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "カルボニル化合物",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "炭素と酸素の二重結合（C=O）を持つ化合物の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54122001",
       "appearanceFields": 1,
@@ -2454,13 +2620,15 @@
       "examples": [
         "分子・詳細:tert-butanol#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ポリ塩化ビニル",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "塩化ビニルが多数つながった高分子。管や電線の被覆などに使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54214106",
       "appearanceFields": 1,
@@ -2473,13 +2641,15 @@
       "examples": [
         "高分子・概要:polyvinyl-chloride"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "還元剤",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "相手に電子を与えて還元する物質。自分自身は酸化される。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43223002",
       "appearanceFields": 1,
@@ -2492,13 +2662,15 @@
       "examples": [
         "分子・詳細:hydrogen-peroxide#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "極性分子",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子全体で電子の偏りがあり、電気的にプラス寄りとマイナス寄りの部分がある分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42224202",
       "appearanceFields": 1,
@@ -2511,13 +2683,15 @@
       "examples": [
         "分子・詳細:chlorine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸化還元反応",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "一方の物質が電子を渡して酸化され、もう一方が受け取って還元される反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43221003",
       "appearanceFields": 1,
@@ -2530,13 +2704,15 @@
       "examples": [
         "分子・詳細:succinic-acid#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸化数",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "結合の電子を一定の決まりで割り当てたとき、原子が持つと考える電荷の数。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43222001",
       "appearanceFields": 1,
@@ -2549,13 +2725,15 @@
       "examples": [
         "分子・詳細:hypochlorous-acid#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "酸化力",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "ほかの物質から電子を奪い、酸化する働きの強さ。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "43223004",
       "appearanceFields": 1,
@@ -2568,13 +2746,15 @@
       "examples": [
         "分子・詳細:chlorine#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "縮合重合",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子どうしがつながるときに、水などの小さな分子を取り除きながら高分子をつくる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42227010",
       "appearanceFields": 1,
@@ -2587,13 +2767,15 @@
       "examples": [
         "高分子・分類:縮合重合"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "電気陰性度",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "結合している電子を、自分の方へ引き寄せる原子の強さの目安。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42224101",
       "appearanceFields": 1,
@@ -2606,13 +2788,15 @@
       "examples": [
         "分子・詳細:fluoromethane#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "無極性分子",
       "priority": "P0",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "分子全体として電気の偏りがない分子。結合に偏りがあっても、打ち消し合う場合がある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42224201",
       "appearanceFields": 1,
@@ -2625,13 +2809,15 @@
       "examples": [
         "分子・詳細:chlorine#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "立体異性体",
       "priority": "P0",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "原子どうしのつながり方は同じで、空間での並び方が違う分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 1,
@@ -2644,13 +2830,15 @@
       "examples": [
         "分子・詳細:2-butene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "重合",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
-      "meaning": "小さな分子が次々につながり、大きな分子になること。",
+      "meaning": "単量体が次々につながり、高分子などの大きな分子になる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -2693,13 +2881,15 @@
         "分子・詳細:propene#0:body",
         "分子・概要:1-butene"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "酸化",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
-      "meaning": "物質が酸素と結びつくなどして、電子のやり取りが起きる変化。",
+      "meaning": "物質が電子を失う変化。酸素と結びついたり、水素を失ったりする場合もある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -2738,13 +2928,15 @@
         "分子・詳細:carbon-monoxide#1:body",
         "分子・詳細:chlorine#0:title"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "置換",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子にある原子や原子団が、別の原子や原子団に入れ替わること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 39,
@@ -2781,13 +2973,15 @@
         "分子・詳細:p-xylene#0:title",
         "分子・詳細:chloromethane#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "付加",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "二重結合などに別の原子や原子団が加わり、新しい結合ができること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 37,
@@ -2828,13 +3022,15 @@
         "分子・詳細:vinyl-chloride#0:body",
         "分子・詳細:acrylonitrile#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "共重合",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
-      "meaning": "違う種類の小さな分子をつないで高分子をつくること。",
+      "meaning": "2種類以上の異なる単量体をつないで、高分子をつくること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -2873,13 +3069,15 @@
         "分子・概要:isoprene",
         "分子・詳細:isoprene#1:title"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "末端",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子の長い鎖や高分子の、いちばん端にある部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 27,
@@ -2912,13 +3110,15 @@
         "分子・詳細:propyne#0:body",
         "分子・詳細:1-butyne#0:title"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "溶媒",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
       "meaning": "ほかの物質を溶かすために使う液体など。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -2941,13 +3141,15 @@
         "分子・概要:methylcyclohexane",
         "分子・概要:toluene"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "エネルギー",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "ものを動かしたり、温めたり、化学反応を起こしたりできる量。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 24,
@@ -2968,13 +3170,15 @@
         "反応・詳細:normal:complete-04-aspirin-hydrolysis:condition1",
         "反応・詳細:normal:complete-10-ethylene-oxide-basic-cleavage:condition1"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ゴム",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "引っ張ると伸び、力をゆるめると元の形に戻りやすい高分子材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 20,
@@ -3007,13 +3211,15 @@
         "分子・詳細:isoprene#1:body",
         "高分子・学習:ethylene-propylene-copolymer:property"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "カルボン酸",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
       "meaning": "カルボキシ基を持つ、酸の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -3048,13 +3254,15 @@
         "分子・概要:butyric-acid",
         "分子・詳細:butyric-acid#0:body"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "cis",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "シス。二重結合や環をはさんで、比べる原子団が同じ側にある配置。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 16,
@@ -3091,13 +3299,15 @@
         "分子・詳細:1-3-butadiene#0:body",
         "分子・詳細:isoprene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "trans",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "トランス。二重結合や環をはさんで、比べる原子団が反対側にある配置。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 12,
@@ -3130,13 +3340,15 @@
         "分子・詳細:1-3-butadiene#0:body",
         "分子・注釈:stereochemistry"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "アミノ酸",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
       "meaning": "たんぱく質の材料になる小さな分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -3163,13 +3375,15 @@
         "分子・概要:serine",
         "分子・詳細:serine#0:title"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "沸点",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
       "meaning": "液体が沸騰する温度。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -3192,13 +3406,15 @@
         "分子・概要:isobutane",
         "分子・詳細:isobutane#0:body"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "物性",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "ものの硬さ、融点、電気の通しやすさなど、測って確かめられる性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 10,
@@ -3219,13 +3435,15 @@
         "分子・詳細:n-pentane#0:title",
         "分子・詳細:1-butene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "異性体",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子式は同じでも、原子のつながり方や立体的な並び方が違う分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 9,
@@ -3246,13 +3464,15 @@
         "分子・詳細:isobutene#0:body",
         "分子・詳細:p-xylene#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "鎖長",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子の鎖の長さ。高分子では構成単位が何個つながるかなどで表す。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 9,
@@ -3277,13 +3497,15 @@
         "高分子・学習:polychlorotrifluoroethylene:limits",
         "高分子・詳細:polyethylene-terephthalate#2:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "芳香族化合物",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
-      "meaning": "ベンゼンのような特別な輪の構造を持つ物質の仲間。",
+      "meaning": "ベンゼン環など、電子が輪全体に広がって安定した構造を持つ化合物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -3302,13 +3524,15 @@
         "分子・概要:p-xylene",
         "分子・概要:phenol"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "カチオン",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "プラスの電荷を持ったイオン。電子を失うなどしてできる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 6,
@@ -3329,13 +3553,15 @@
         "反応・詳細:polymer:polyisobutylene-cationic:condition0",
         "反応・詳細:polymer:butyl-rubber-cationic:conditionSummary"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "フェノール環",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "ヒドロキシ基（−OH）が直接結びついたベンゼン環。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 6,
@@ -3364,13 +3590,15 @@
         "高分子・学習:phenol-formaldehyde-resin:property",
         "高分子・学習:phenol-formaldehyde-resin:observe"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ポリマー",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "小さな構成単位がたくさんつながってできた高分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 6,
@@ -3395,13 +3623,15 @@
         "分子・詳細:adipic-acid#0:body",
         "分子・概要:glycolic-acid"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "シス",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "二重結合や環をはさんで、比べる原子団が同じ側にある配置。cisとも書く。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -3426,13 +3656,15 @@
         "高分子・詳細:polyisoprene#1:body",
         "高分子・詳細:polyisoprene#2:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "可塑剤",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "プラスチックなどに混ぜて、柔らかく曲がりやすくするための物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -3453,13 +3685,15 @@
         "高分子・学習:polyvinyl-chloride:limits",
         "高分子・学習:nitrile-butadiene-rubber:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "中和",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "酸と塩基が反応して、互いの性質を打ち消し合うこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -3480,13 +3714,15 @@
         "高分子・学習:polyacrylic-acid:applications",
         "高分子・学習:polyacrylic-acid:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分岐",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子の主な鎖から、別の鎖が枝のように伸びること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 5,
@@ -3515,13 +3751,15 @@
         "高分子・詳細:polyethylene#2:body",
         "高分子・学習:phenol-formaldehyde-resin:structure"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "分子式",
       "priority": "P1",
       "coverage": "ポップアップ＋外部リンク",
       "meaning": "分子にどの原子が何個あるかを記号で表したもの。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -3544,13 +3782,15 @@
         "分子・概要:2-butyne",
         "分子・概要:2-butanol"
       ],
-      "action": "外部リンクを補助資料へ変更"
+      "action": "第4段階で外部リンク撤去"
     },
     {
       "term": "エチル基",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "炭素2個と水素5個がまとまった、−C₂H₅という分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -3570,13 +3810,15 @@
         "分子・概要:methyl-ethyl-ether",
         "分子・詳細:diethyl-ether#0:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ハロゲン",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "フッ素・塩素・臭素・ヨウ素など、性質が似た元素の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -3600,13 +3842,15 @@
         "反応・分類:halogenation",
         "反応・詳細:normal:complete-20-hydrogen-chlorination:bondChange"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "硬化",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "材料が固くなること。化学反応で分子がつながって固まる場合もある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -3626,13 +3870,15 @@
         "高分子・学習:phenol-formaldehyde-resin:applications",
         "高分子・学習:phenol-formaldehyde-resin:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "充填材",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "材料に混ぜて、強さや硬さ、量などを調整するための粒や繊維。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -3648,13 +3894,15 @@
         "高分子・学習:polytetrafluoroethylene:limits",
         "高分子・学習:nylon-6-6:limits"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "乳化",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "水と油のように混ざりにくい液体の一方を、細かな粒にしてもう一方に散らすこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 4,
@@ -3674,13 +3922,15 @@
         "高分子・学習:styrene-butadiene-copolymer:applications",
         "高分子・詳細:nitrile-butadiene-rubber#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "水溶液",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "水にほかの物質が溶けて、均一に混ざった液体。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -3699,13 +3949,15 @@
         "分子・詳細:methylamine#0:body",
         "高分子・詳細:polyacrylic-acid#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "脱水",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "物質から水が取り除かれること。化学反応によって水ができて抜ける場合もある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -3724,13 +3976,15 @@
         "反応・分類:脱水",
         "反応・分類:dehydration"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "粘度",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "液体などの流れにくさを表す値。大きいほど、流れるときの抵抗が強い。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 3,
@@ -3749,13 +4003,15 @@
         "高分子・学習:polyisobutylene:applications",
         "高分子・学習:polyethylene-oxide:property"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "トランス",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "二重結合や環をはさんで、比べる原子団が反対側にある配置。transとも書く。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 2,
@@ -3769,13 +4025,15 @@
         "高分子・詳細:polybutadiene#1:body",
         "高分子・詳細:polyisoprene#1:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "ハロゲン化",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "分子にフッ素や塩素などのハロゲン原子を取り入れる反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 2,
@@ -3793,13 +4051,15 @@
         "高分子・学習:butyl-rubber:limits",
         "反応・分類:ハロゲン化"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "結晶性",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "原子や分子の一部が規則正しく並び、結晶をつくりやすい性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 2,
@@ -3817,13 +4077,15 @@
         "高分子・学習:polyethylene-oxide:property",
         "高分子・詳細:polylactic-acid#2:body"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "熱可塑性",
       "priority": "P1",
       "coverage": "未登録",
-      "meaning": null,
+      "meaning": "温めると柔らかくなり、冷やすと再び固くなる性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": null,
       "appearanceFields": 1,
@@ -3836,13 +4098,15 @@
       "examples": [
         "高分子・学習:polytetrafluoroethylene:property"
       ],
-      "action": "アプリ内説明を作成"
+      "action": "第4段階で表示接続"
     },
     {
       "term": "炭素",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "多くの分子の骨組みになる元素。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -3889,13 +4153,15 @@
         "分子・詳細:propane#0:body",
         "分子・概要:n-butane"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "反応",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "物質が別の物質に変わること。",
+      "meaning": "原子のつながり方などが変わり、物質が別の物質へ変化すること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -3942,13 +4208,15 @@
         "分子・概要:nitrogen",
         "分子・詳細:nitrogen#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "原料",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "何かをつくるための、もとになる材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -3979,13 +4247,15 @@
         "分子・概要:ethane",
         "分子・概要:propene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "電子",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "原子にある、とても小さな粒。",
+      "meaning": "マイナスの電荷を持つ、とても小さな粒。原子の周りにもある。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4024,13 +4294,15 @@
         "分子・詳細:ammonia#0:body",
         "分子・詳細:ammonia#1:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "炭素鎖",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "炭素の原子が鎖のようにつながった部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4069,13 +4341,15 @@
         "分子・概要:1-butyne",
         "分子・概要:2-butyne"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "製造",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ものをつくること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4098,13 +4372,15 @@
         "分子・概要:carbon-disulfide",
         "分子・概要:sulfuric-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "由来",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "どこから来たか、何がもとになったか。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4151,13 +4427,15 @@
         "分子・詳細:isoamyl-acetate#0:body",
         "分子・概要:furan"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "原子",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "物質をつくる、とても小さな粒。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4192,13 +4470,15 @@
         "分子・詳細:chlorine#0:body",
         "分子・詳細:phosphine#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "フッ素",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "歯みがき剤や特別な樹脂にも使われる元素。",
+      "meaning": "歯みがき剤のフッ化物や、フッ素樹脂などに使われる元素。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4237,13 +4517,15 @@
         "分子・概要:vinylidene-fluoride",
         "分子・詳細:vinylidene-fluoride#1:title"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "酸素",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "呼吸や燃焼に関わる元素。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4290,13 +4572,15 @@
         "分子・概要:hydrogen-sulfide",
         "分子・概要:hydrogen-peroxide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "性質",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ものがもつ特徴のこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4331,13 +4615,15 @@
         "分子・詳細:hydrogen-sulfide#0:body",
         "分子・詳細:sulfur-trioxide#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "カルボキシ基",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "酸としての働きに関わる、分子の部品。",
+      "meaning": "−COOHで表す、酸としての働きに関わる分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4380,13 +4666,15 @@
         "分子・詳細:oxalic-acid#0:body",
         "分子・詳細:benzoic-acid#0:title"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "樹脂",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "プラスチックなどをつくる材料となる物質。",
+      "meaning": "プラスチックや接着剤などに使われる、高分子を主成分とする材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4425,13 +4713,15 @@
         "分子・概要:methanol",
         "分子・概要:1-butanol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "繊維",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "糸や布になる細長い材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4462,13 +4752,15 @@
         "分子・概要:acetic-acid",
         "分子・概要:acetic-anhydride"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "影響",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "あることが、ほかのことに変化を与えること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4499,13 +4791,15 @@
         "分子・詳細:vinyl-chloride#0:body",
         "分子・詳細:benzaldehyde#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "反応性",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ほかの物質と変化を起こしやすい性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4532,13 +4826,15 @@
         "分子・詳細:ethene#0:body",
         "分子・詳細:propene#0:title"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "化合物",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "違う元素の原子が結びついてできた物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4565,13 +4861,15 @@
         "分子・概要:benzene",
         "分子・概要:toluene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "揮発",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "液体が蒸発して気体になること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4602,13 +4900,15 @@
         "分子・概要:chloroform",
         "分子・概要:2-propanol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "合成",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "材料を組み合わせて、別の物質をつくること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4639,13 +4939,15 @@
         "分子・概要:acetonitrile",
         "分子・概要:anisole"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "分解",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "一つの物質が、別の物質に分かれること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4676,13 +4978,15 @@
         "分子・概要:methanethiol",
         "分子・概要:acetaldehyde"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "工業",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "工場などでたくさんのものをつくる仕事。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4709,13 +5013,15 @@
         "分子・概要:dichloromethane",
         "分子・概要:chloroform"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "医薬品",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "病気の治療などに使う薬。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4742,13 +5048,15 @@
         "分子・概要:methylamine",
         "分子・概要:aniline"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "共重合体",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "違う種類の小さな分子がつながった高分子。",
+      "meaning": "2種類以上の異なる単量体からつくった高分子。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4787,13 +5095,15 @@
         "分子・概要:hexafluoropropylene",
         "高分子・概要:ethylene-propylene-copolymer"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "出発点",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ものごとが始まるところ。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -4816,13 +5126,15 @@
         "反応・詳細:polymer:polychlorotrifluoroethylene-radical:condition0",
         "反応・詳細:polymer:polyacrylonitrile-radical:condition0"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "ひずみ",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "本来の形からずれたり曲がったりしていること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4845,13 +5157,15 @@
         "分子・詳細:cyclobutane#0:title",
         "分子・詳細:cyclobutane#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "圧力",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "ものを押す力の強さ。",
+      "meaning": "ある面積にかかる、押す力の大きさを面積で割ったもの。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4878,13 +5192,15 @@
         "高分子・詳細:polytetrafluoroethylene#1:body",
         "高分子・詳細:nylon-6-6#1:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "主成分",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "その中に特に多く含まれているもの。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4919,13 +5235,15 @@
         "分子・概要:methyl-salicylate",
         "分子・詳細:isoprene#1:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "有毒",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "体に害を与えることがある性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4944,13 +5262,15 @@
         "分子・概要:phosphine",
         "分子・概要:carbon-disulfide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "タンパク質",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "体や筋肉などをつくる、大切な物質。",
+      "meaning": "アミノ酸がたくさんつながった物質。体をつくり、酵素などとしても働く。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -4973,13 +5293,15 @@
         "分子・概要:cysteine",
         "分子・詳細:cysteine#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "揮発性",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "蒸発して気体になりやすい性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5002,13 +5324,15 @@
         "分子・概要:acetone",
         "分子・概要:ethyl-acetate"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "香料",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ものに香りをつける材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5031,13 +5355,15 @@
         "分子・概要:methyl-salicylate",
         "分子・概要:isoamyl-acetate"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "消毒",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ばい菌などの数を減らすこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5064,13 +5390,15 @@
         "分子・詳細:hypochlorous-acid#0:body",
         "分子・概要:ethanol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "代謝",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "体の中で物質をつくったり、分解したりする働き。",
+      "meaning": "生き物の体内で、物質をつくったり分解したりして、生命活動を支える反応。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5093,13 +5421,15 @@
         "分子・概要:methionine",
         "分子・詳細:methionine#0:body"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "アミノ基",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "窒素を含む、分子の部品の一つ。",
+      "meaning": "窒素1個と水素2個からなる、−NH₂という分子の部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5130,13 +5460,15 @@
         "分子・詳細:hexamethylenediamine#0:title",
         "部品・詳しく:amide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "塗料",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "色をつけたり、表面を守ったりする材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5159,13 +5491,15 @@
         "分子・概要:ethyl-acetate",
         "分子・概要:acrylic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "燃焼",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "ものが燃えて、熱や光を出す反応。",
+      "meaning": "物質が酸素などと激しく反応し、熱や光を出すこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5192,13 +5526,15 @@
         "分子・概要:sulfur-dioxide",
         "反応・分類:燃焼"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "共通",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "いくつかのものに同じ特徴があること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5225,13 +5561,15 @@
         "部品・詳しく:carbonyl",
         "反応・分類:other"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "刺激臭",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "鼻や目がツンとするようなにおい。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5250,13 +5588,15 @@
         "分子・概要:methylamine",
         "分子・概要:acrolein"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "中間体",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "別の物質をつくる途中にできる物質。",
+      "meaning": "化学反応の途中ででき、さらに別の物質へと変わっていく物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5279,13 +5619,15 @@
         "分子・詳細:succinic-acid#0:body",
         "分子・概要:2-4-dinitrotoluene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "有機合成",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "炭素を含む物質を、反応を使ってつくること。",
+      "meaning": "おもに炭素を含む化合物を、化学反応を使ってつくること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5304,13 +5646,15 @@
         "分子・概要:anisole",
         "分子・概要:malonic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "抑える",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "増えたり強くなったりしないようにすること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5337,13 +5681,15 @@
         "高分子・詳細:polyisobutylene#0:body",
         "高分子・学習:nitrile-butadiene-rubber:property"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "厳重",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "十分に気をつけて、しっかり行うこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5361,13 +5707,15 @@
         "分子・概要:ethylene-oxide",
         "分子・概要:hydrogen-cyanide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "細胞",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "生き物の体をつくる、とても小さな単位。",
+      "meaning": "生き物の体や働きを支える、基本となる小さな単位。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5385,13 +5733,15 @@
         "分子・概要:hydrogen-cyanide",
         "分子・概要:serine"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "周囲",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "そのもののまわり。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5421,13 +5771,15 @@
         "部品・詳しく:alkyne",
         "高分子・学習:polytetrafluoroethylene:structure"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "炭素骨格",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "炭素の原子がつながってできる、分子の土台。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5449,13 +5801,15 @@
         "分子・概要:malonic-acid",
         "部品・詳しく:nitrile"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "半導体",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "電気の流れやすさを調節できる材料。",
+      "meaning": "電気の流れやすさが、光や温度、混ぜた物質などで大きく変わる材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5477,13 +5831,15 @@
         "分子・概要:fluoromethane",
         "高分子・学習:polychlorotrifluoroethylene:applications"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "肥料",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "植物を育てるために土などへ加える栄養。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5501,13 +5857,15 @@
         "分子・概要:sulfuric-acid",
         "分子・概要:urea"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "油脂",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "油や脂肪のこと。",
+      "meaning": "油や脂肪の主成分。多くはグリセリンと脂肪酸が結びついてできている。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5533,13 +5891,15 @@
         "分子・概要:acrolein",
         "部品・概要:ester"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "元素",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "原子の種類のこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5564,13 +5924,15 @@
         "分子・詳細:hydrogen-sulfide#0:body",
         "部品・詳しく:nitrile"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "高温",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "温度がとても高いこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5587,13 +5949,15 @@
         "分子・概要:ethyne",
         "分子・概要:acrolein"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "循環",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ぐるぐる巡って、また戻ってくること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5610,13 +5974,15 @@
         "分子・概要:carbonyl-sulfide",
         "分子・概要:dimethyl-sulfide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "水素イオン",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "水素の原子が電子を失ってできる、小さな粒。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5637,13 +6003,15 @@
         "分子・詳細:sulfuric-acid#1:body",
         "部品・概要:amino"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "糖",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "砂糖やブドウ糖などの仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -5664,13 +6032,15 @@
         "分子・概要:pyruvic-acid",
         "部品・概要:hydroxyl"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "発泡材",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "小さな泡をたくさん含んだ材料。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5687,13 +6057,15 @@
         "分子・概要:cyclopentane",
         "分子・概要:ethylbenzene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "シクロアルカン",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "炭素の原子が輪になった分子の仲間。",
+      "meaning": "炭素が輪になり、炭素どうしがすべて単結合でつながった炭化水素の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5709,13 +6081,15 @@
         "分子・概要:cyclopropane",
         "分子・概要:cyclobutane"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "角質",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "皮ふの表面を守る、かたい部分。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5731,13 +6105,15 @@
         "分子・概要:salicylic-acid",
         "分子・概要:glycolic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "血液",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "体の中を流れ、酸素や栄養を運ぶ液体。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5753,13 +6129,15 @@
         "分子・概要:carbon-monoxide",
         "分子・概要:carbonic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "占める",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "全体の中で、その部分がどれくらいあるかを表す言い方。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5775,13 +6153,15 @@
         "分子・概要:oxygen",
         "分子・概要:nitrogen"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "抽出",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "混ざったものの中から、ほしい成分を取り出すこと。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5797,13 +6177,15 @@
         "分子・概要:n-hexane",
         "分子・概要:diethyl-ether"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "発酵",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "微生物の働きで、物質が別のものに変わること。",
+      "meaning": "微生物が糖などを分解し、アルコールや酸などをつくる働き。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5819,13 +6201,15 @@
         "分子・概要:ethanol",
         "分子・概要:lactic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "微生物",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "目に見えないほど小さな生き物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5841,13 +6225,15 @@
         "分子・概要:methane",
         "分子・概要:trimethylamine"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "保存料",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "食べ物などが傷みにくくなるように加えるもの。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5863,13 +6249,15 @@
         "分子・概要:propionic-acid",
         "分子・概要:benzoic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "妨げる",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "うまく進むのをじゃますること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5885,13 +6273,15 @@
         "分子・概要:carbon-monoxide",
         "分子・概要:hydrogen-cyanide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "防御",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "攻撃や害から身を守ること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5907,13 +6297,15 @@
         "分子・概要:formic-acid",
         "分子・概要:salicylic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "麻酔",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "痛みなどを感じにくくする医療の方法。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5929,13 +6321,15 @@
         "分子・概要:chloroform",
         "分子・概要:diethyl-ether"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "有害",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "体や環境に悪い影響があること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5951,13 +6345,15 @@
         "分子・概要:vinyl-chloride",
         "分子・概要:phenol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "有機酸",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "炭素を含む酸の仲間。",
+      "meaning": "酢酸やクエン酸など、有機化合物に属する酸の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5973,13 +6369,15 @@
         "分子・概要:lactic-acid",
         "分子・概要:malic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "冷媒",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "熱を運んで、ものを冷やすための物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -5995,13 +6393,15 @@
         "分子・概要:isobutane",
         "分子・概要:difluoromethane"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "アセチル化剤",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "分子に新しい部品を付けるために使う物質。",
+      "meaning": "分子にアセチル基（−COCH₃）を付けるために使う物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6016,13 +6416,15 @@
       "examples": [
         "分子・概要:acetic-anhydride"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "クエン酸回路",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "体の中で栄養からエネルギーを取り出す反応の輪。",
+      "meaning": "細胞内で栄養由来の物質を分解し、エネルギーの受け渡しに使う分子をつくる反応の輪。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6037,13 +6439,15 @@
       "examples": [
         "分子・概要:succinic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "たんぱく質",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "体や筋肉などをつくる、大切な物質。",
+      "meaning": "アミノ酸がたくさんつながった物質。体をつくり、酵素などとしても働く。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -6058,13 +6462,15 @@
       "examples": [
         "部品・概要:thiol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "液化",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "気体が液体になること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6079,13 +6485,15 @@
       "examples": [
         "分子・概要:propane"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "柑橘類",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ミカンやレモンなどの果物の仲間。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6100,13 +6508,15 @@
       "examples": [
         "分子・概要:citric-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "光合成",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "植物が光の力を使って、栄養をつくること。",
+      "meaning": "植物などが光のエネルギーを使い、二酸化炭素と水から糖などをつくる働き。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6121,13 +6531,15 @@
       "examples": [
         "分子・概要:carbon-dioxide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "酸性雨",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "空気中の物質の影響で、酸性が強くなった雨。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6142,13 +6554,15 @@
       "examples": [
         "分子・概要:sulfur-dioxide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "植物ホルモン",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "植物の育ち方などを調節する物質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6163,13 +6577,15 @@
       "examples": [
         "分子・概要:ethene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "腸内細菌",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "腸の中で生きている小さな生き物。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6184,13 +6600,15 @@
       "examples": [
         "分子・概要:butyric-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "調節",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ちょうどよい状態に整えること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6205,13 +6623,15 @@
       "examples": [
         "分子・概要:carbonic-acid"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "尿素",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "体の中ででき、尿にも含まれる物質。肥料にも使われる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "部品・概要"
       ],
@@ -6226,13 +6646,15 @@
       "examples": [
         "部品・概要:carbamoyl"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "燃料電池",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "燃料の力を使って、電気をつくる装置。",
+      "meaning": "水素などの燃料と酸素の化学反応を利用して、電気を直接つくる装置。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6247,13 +6669,15 @@
       "examples": [
         "分子・概要:hydrogen"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "濃度",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "あるものが、どのくらいの割合で混ざっているか。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6268,13 +6692,15 @@
       "examples": [
         "分子・概要:formaldehyde"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "発がん性",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "がんの原因になる可能性がある性質。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6289,13 +6715,15 @@
       "examples": [
         "分子・概要:benzene"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "微量",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "ほんの少しの量。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6310,13 +6738,15 @@
       "examples": [
         "分子・概要:phosphine"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "不完全燃焼",
       "priority": "P2",
       "coverage": "ポップアップのみ",
-      "meaning": "ものが十分に燃えきらないこと。",
+      "meaning": "酸素が足りないなどして燃料が十分に燃えず、一酸化炭素やすすなどができる燃焼。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6331,13 +6761,15 @@
       "examples": [
         "分子・概要:carbon-monoxide"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "不凍液",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "水が凍りにくくなるように使う液体。車の冷却装置などに入れる。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6352,13 +6784,15 @@
       "examples": [
         "分子・概要:ethylene-glycol"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "溶接",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "金属を熱などでつなぎ合わせること。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6373,13 +6807,15 @@
       "examples": [
         "分子・概要:ethyne"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "立体構造",
       "priority": "P2",
       "coverage": "ポップアップのみ",
       "meaning": "分子が空間の中でどんな形をしているか。",
+      "disposition": "採用（現行本文で使用）",
+      "definitionReady": true,
       "popupAreas": [
         "分子・概要／部品・概要"
       ],
@@ -6394,91 +6830,105 @@
       "examples": [
         "分子・概要:cysteine"
       ],
-      "action": "各図鑑への適用範囲を統一"
+      "action": "第4段階で表示範囲を統一"
     },
     {
       "term": "シス-トランス異性体",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "原子のつながり方は同じで、二重結合や環のために置換基の向きが違う異性体。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54113202",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "共有結合",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "原子どうしが電子を共有してできる結合。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222001",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "共有電子対",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "2つの原子が共有し、共有結合をつくっている電子の組。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222103",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "混成軌道",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "一つの原子の電子軌道を組み合わせて考えた軌道。結合の向きや分子の形を説明するのに使う。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "54119101",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "配位結合",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "結合に使う電子対を、はじめは片方の原子だけが出してつくる共有結合。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42223001",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "非共有電子対",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "結合には使われず、一つの原子の周りにある電子の組。孤立電子対ともいう。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222104",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     },
     {
       "term": "不対電子",
       "priority": "P3",
       "coverage": "外部リンクのみ",
-      "meaning": null,
+      "meaning": "同じ軌道に組になる相手がいない電子。反応に関わりやすい。",
+      "disposition": "保留（現行本文で未使用）",
+      "definitionReady": true,
       "popupAreas": [],
       "externalPageId": "42222102",
       "appearanceFields": 0,
       "areas": [],
       "examples": [],
-      "action": "現行文で未使用・採用時に再確認"
+      "action": "現在は表示不要・本文で採用時に再確認"
     }
   ]
 }
