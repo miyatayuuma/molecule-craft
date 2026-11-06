@@ -13,6 +13,18 @@ const STYLE=`
 function ensureStyles(doc){if(doc.getElementById(STYLE_ID))return;const style=doc.createElement('style');style.id=STYLE_ID;style.textContent=STYLE;doc.head?.append(style);}
 const elem=(doc,tag,className,text)=>{const node=doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+export const COMPARISON_MODE_LABELS=Object.freeze({graph:'樹形図',compare:'くらべる'});
+export const COMPARISON_MODE_ACCESSIBLE_LABEL='分子図鑑の表示';
+const ruby=(doc,text,reading)=>{const node=doc.createElement('ruby'),rt=doc.createElement('rt');node.append(doc.createTextNode(text));rt.textContent=reading;node.append(rt);return node;};
+export function appendComparisonModeLabel(button,mode){
+  button.replaceChildren();if(mode==='graph')button.append(ruby(button.ownerDocument,'樹形図','じゅけいず'));
+  else button.textContent=COMPARISON_MODE_LABELS[mode];
+  return button;
+}
+function appendAxisLabel(button,axis){
+  if(axis==='molarMass')button.append('モル',ruby(button.ownerDocument,'質量','しつりょう'));
+  else button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
+}
 
 export function renderEncyclopediaComparison({
   host,records,discoveredIds=new Set(),axis='molarMass',focusId=null,
@@ -24,7 +36,7 @@ export function renderEncyclopediaComparison({
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
-    const button=elem(doc,'button',null,definition.label);button.type='button';button.dataset.compareAxis=key;
+    const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
   controls.append(elem(doc,'span','compare-axis-note','間隔は数値差を圧縮して表示'));

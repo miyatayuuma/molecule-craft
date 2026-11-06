@@ -16,13 +16,14 @@ const server=createServer(async(req,res)=>{try{
   res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream'}).end(await readFile(file));
 }catch{res.writeHead(404).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
-const chrome=['chromium','google-chrome','chromium-browser'].map(name=>spawnSync('which',[name],{encoding:'utf8'})).find(result=>result.status===0)?.stdout.trim();
+const chrome=['google-chrome','chromium','chromium-browser'].map(name=>spawnSync('which',[name],{encoding:'utf8'})).find(result=>result.status===0)?.stdout.trim();
 assert(chrome,'Chromium is needed for the limited visual interaction check');
 const profile=await mkdtemp(join(tmpdir(),'molecule-compare-'));let child=null,socket=null;
 const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 try{
-  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,'--remote-debugging-port=0','about:blank'],{stdio:['ignore','ignore','ignore']});
-  let websocketUrl='';for(let i=0;i<100;i++){try{const content=await readFile(join(profile,'DevToolsActivePort'),'utf8');const port=Number(content.split('\n')[0]);const tabs=await(await fetch(`http://127.0.0.1:${port}/json/list`)).json();websocketUrl=tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl;if(websocketUrl)break;}catch{}await pause(100);}
+  const debugPort=9249;
+  child=spawn(chrome,['--headless=new','--no-sandbox','--disable-gpu','--disable-background-networking',`--user-data-dir=${profile}`,`--remote-debugging-port=${debugPort}`,'about:blank'],{stdio:['ignore','ignore','ignore']});
+  let websocketUrl='';for(let i=0;i<100;i++){try{const tabs=await(await fetch(`http://127.0.0.1:${debugPort}/json/list`)).json();websocketUrl=tabs.find(tab=>tab.type==='page')?.webSocketDebuggerUrl;if(websocketUrl)break;}catch{}await pause(100);}
   assert(websocketUrl,'Browser debugger should start');socket=new WebSocket(websocketUrl);await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
   let next=0;const waiting=new Map();socket.addEventListener('message',event=>{const result=JSON.parse(event.data);if(waiting.has(result.id)){const resolve=waiting.get(result.id);waiting.delete(result.id);resolve(result);}});
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
