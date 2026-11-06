@@ -345,6 +345,18 @@ dialog{color:inherit;background:#132232;border:1px solid #385266;padding:0;overs
 #collection-dialog .reaction-book button:has(ruby),#collection-dialog .detail-extras button:has(ruby){line-height:1.8}
 #collection-dialog rt{font-size:.58em;line-height:1;font-weight:500;color:#b5d6d5}
 
+/* Molecular facts are derived from the canonical atom list, not stored in a
+   second copy of the chemical catalog. Keep the table readable on phones. */
+#collection-dialog .molecule-basic-data{margin:18px 0 22px}
+#collection-dialog .molecule-basic-data h4{margin:0 0 10px;color:#bce7df;font-size:14px}
+#collection-dialog .molecule-basic-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:13px;line-height:1.8}
+#collection-dialog .molecule-basic-table th,#collection-dialog .molecule-basic-table td{padding:9px 10px;border-bottom:1px solid #345061;vertical-align:top;text-align:left}
+#collection-dialog .molecule-basic-table th{width:39%;color:#a7c1d0;font-weight:600}
+#collection-dialog .molecule-basic-table td{color:#e5f5f5;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#collection-dialog .molecule-basic-composition{display:flex;flex-wrap:wrap;gap:5px}
+#collection-dialog .molecule-basic-composition span{display:inline-block;padding:1px 7px;border:1px solid #365b69;border-radius:7px;background:#183849;white-space:nowrap}
+#collection-dialog .molecule-basic-data .molecule-basic-note{margin:10px 0 0;color:#a8becb;font-size:12px;line-height:1.9}
+
 /* The whole feed head is the molecule preview. The formula occupies only its lower-right corner. */
 .reaction-lab-slot{position:relative;height:80px;display:block;padding:3px;isolation:isolate}
 .reaction-lab-slot-socket{position:absolute;inset:3px;min-height:0;margin:0;border:0;border-radius:0;background:transparent;overflow:hidden}

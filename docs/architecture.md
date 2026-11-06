@@ -148,6 +148,7 @@ FIELD expansion proposal map は `scripts/field-expansion-proposal-data.mjs` が
 ## 図鑑とデータ
 
 - `src/collection-ui.js`：図鑑DOM、データfetch、模型の遅延読込。
+- `src/molecule-basic-properties.js`：構造DBの原子配列から原子数・元素別個数・モル質量（CIAAW 2024の概算原子量）を決定論的に算出する共通の化学基本データ。分子図鑑「くわしく」内の表に使用し、後続の比較図鑑でも再利用する。独立した保存・ゲーム性能データは持たない。
 - `src/encyclopedia-term-catalog.js`：4図鑑で使う224語の解説原稿と出典確認用の参考ID（画面上の外部リンクには使用しない）の正本。`src/encyclopedia-terms.js` は本文中の語を検出し、最大語数と複合語の優先順位を制御。`src/collection-ui.js` が分子・部品・反応・高分子のすべてで同じアプリ内ポップアップを描画する。旧外部リンク専用モジュールは廃止済み。
 - `docs/encyclopedia-term-ledger.md`：上記辞書と本文の出現箇所を突き合わせた生成台帳。`node scripts/build-encyclopedia-term-ledger.mjs --check` で整合性を確認する。
 - `src/reaction-model-layout.js`：反応式54経路の固定水平軸と全模型共通尺度。`scripts/build-reaction-model-assets.mjs` は既存分子SVGと承認済み高分子構成単位から `assets/reaction-models/` / `generated/reaction-model-metrics.js` を生成する。3D詳細・化学authorityとは独立。`tests/reaction-equation-layout.test.mjs` が尺度と記号の非重複を検証する。
