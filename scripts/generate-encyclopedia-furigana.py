@@ -16,9 +16,19 @@ ROOT = Path(__file__).resolve().parents[1]
 KANJI = re.compile(r'[一-龯々]+')
 PIECES = re.compile(r'[一-龯々]+|[^一-龯々]+')
 GLOSSARY_ENTRY = re.compile(
-    r'^\s*\{term:("(?:\\.|[^"\\])*"),meaning:("(?:\\.|[^"\\])*"),summaryScope:"(?:both|parts)"',
+    r'^\s*\{term:("(?:\\.|[^"\\])*"),meaning:("(?:\\.|[^"\\])*"),summaryScope:(?:"(?:both|parts)"|null)',
     re.MULTILINE,
 )
+
+# Chemistry compounds require fixed, contextual readings: e.g. standalone
+# 鎖（くさり）is different from 主鎖（しゅさ）and 側鎖（そくさ）.
+GLOSSARY_PHRASE_READINGS = {
+    '主鎖': 'しゅさ',
+    '側鎖': 'そくさ',
+    '鎖状': 'さじょう',
+    '酸無水物': 'さんむすいぶつ',
+    '一組': 'ひとくみ',
+}
 
 
 def to_hiragana(value):
@@ -91,6 +101,11 @@ def annotate(text, tokenizer, context):
                 reading = 'シツ'
             if surface == '黄' and text.startswith('黄緑色', offset):
                 reading = 'オウ'
+            # Janome can interpret the suffix of フッ化物 as the word 化物（ばけもの）.
+            if surface == '化物' and text[:offset].endswith('フッ'):
+                reading = 'カブツ'
+            if surface == '土' and text.startswith('土などへ', offset):
+                reading = 'ツチ'
             # The glossary treats 肥料 as an individually tappable term.
             if surface == '窒素肥料':
                 annotations.extend([[offset, '窒素', 'ちっそ'], [offset + 2, '肥料', 'ひりょう']])
@@ -101,6 +116,16 @@ def annotate(text, tokenizer, context):
             append_kanji_readings(annotations, offset, surface, reading, context)
         offset += len(surface)
     assert offset == len(text), context
+    if context.startswith('glossary:'):
+        # Whole terms may be split into unrelated everyday readings by Janome.
+        # Replace those spans with a single Kanji-only ruby at the exact offset.
+        for surface, reading in GLOSSARY_PHRASE_READINGS.items():
+            for match in re.finditer(re.escape(surface), text):
+                start, finish = match.span()
+                annotations = [item for item in annotations
+                               if item[0] + len(item[1]) <= start or item[0] >= finish]
+                annotations.append([start, surface, reading])
+        annotations.sort(key=lambda item: item[0])
     return annotations
 
 

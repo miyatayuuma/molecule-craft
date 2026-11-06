@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {moleculeSummaryGlossarySegments} from '../src/encyclopedia-glossary.js';
+import {moleculeSummaryGlossarySegments} from '../src/encyclopedia-terms.js';
 
 const summary=(segments)=>segments.map(segment=>segment.text).join('');
 const terms=(segments)=>segments.filter(segment=>segment.kind==='term');
