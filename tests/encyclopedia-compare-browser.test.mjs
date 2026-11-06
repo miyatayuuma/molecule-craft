@@ -30,7 +30,7 @@ try{
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__?comparePhysics=1`});await pause(150);
+  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__`});await pause(150);
   const ready=await evaluate(`(async()=>{
     const chemistry=await import('/src/chemistry.js'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return false;
     const ids=['water','methane','ethanol'],data=new Map(),save={schemaVersion:3,discoveredMolecules:ids.map((id,i)=>({id,at:i+1,order:i+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};

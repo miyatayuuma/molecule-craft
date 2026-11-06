@@ -1,6 +1,6 @@
-# MC-COMPARE-01 P1-R1 — opt-in physical instrument preview
+# MC-COMPARE-01 P1-R1 — physical instrument
 
-Preview entrypoint: `/?comparePhysics=1` (or `/molecule-craft/?comparePhysics=1` on GitHub Pages). Open **図鑑 → 分子 → くらべる**. The normal encyclopedia is unchanged without the query parameter.
+Entrypoint: `/` (or `/molecule-craft/` on GitHub Pages). Open **図鑑 → 分子 → くらべる**. The physical instrument is the default, and `?comparePhysics=0` selects the previous nonphysical comparison as a reversible fallback.
 
 ## Interaction contract
 
@@ -8,7 +8,7 @@ Preview entrypoint: `/?comparePhysics=1` (or `/molecule-craft/?comparePhysics=1`
 - The strand uses Verlet integration with gravity, distance constraints, weak bend resistance and local bead contact. Each gap contains four rope segments; two descending sides are visible. The visible rope is a lit Three.js three-ply tube, not a decorative SVG connector.
 - When WebGL is unavailable, the same physical state is rendered on a 2D canvas with a static Blender render of the same CC-BY pedestal. The fallback image is produced by `scripts/prepare-compare-pedestal.py` from the original `.blend`, not a newly modeled asset.
 - The central display reads the focused molecule's molar mass or atom count. Equal values intentionally show equal readouts; their beads remain separate. Unknown molecules never reveal their identity, image or physical value.
-- This remains an **opt-in visual prototype** pending real-device visual approval. The BlendSwap `Scifi pedestal turntable` has now replaced the temporary CC0 hologram projector; the authored mesh, UVs and mapped surfaces are preserved. The underlying rope dynamics and control scheme are unchanged.
+- The BlendSwap `Scifi pedestal turntable` replaces the temporary CC0 hologram projector; the authored mesh, UVs and mapped surfaces are preserved. The underlying rope dynamics and control scheme are unchanged.
 
 ## Asset/license sources
 
@@ -17,6 +17,6 @@ Preview entrypoint: `/?comparePhysics=1` (or `/molecule-craft/?comparePhysics=1`
 - Rope dynamics and twisted-strand visual ideas: Codevember 2026, day 04 (Tangle), by mrdoob, https://github.com/mrdoob/codevember-2026/tree/main/04 — MIT; our implementation is a browser/DOM-oriented adaptation, not a copy of the WebGPU engine.
 - GLTFLoader and BufferGeometryUtils: Three.js r180, MIT (see `vendor/three/LICENSE`).
 
-## Acceptance remains open
+## Visual evaluation
 
-Before changing the default compare view, verify visual rope, stage fit, touch control, inertia, discovery masking, gamepad, mobile performance and selected final asset in a real browser. The page being accessible is not by itself approval of the visual quality.
+Continue evaluating visual rope, stage fit, touch control, inertia, discovery masking, gamepad, and mobile performance on real devices. The legacy comparison remains accessible with `?comparePhysics=0` if a regression is found.
