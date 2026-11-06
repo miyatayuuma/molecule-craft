@@ -4,10 +4,10 @@ Entrypoint: `/` (or `/molecule-craft/` on GitHub Pages). Open **図鑑 → 分�
 
 ## Interaction contract
 
-- Drag the beads left or right to pull a continuous material coordinate across the central support; release to snap to a molecule. Keyboard arrows and gamepad remain available.
+- Pull any bead freely in two dimensions; the string follows and sways. The two tails spread toward the left and right instead of dangling vertically. Releasing anywhere automatically draws the bead closest to the analyser onto its central support, without a narrow drop target. Background horizontal drags, keyboard arrows and gamepad remain available.
 - The strand uses Verlet integration with gravity, distance constraints, weak bend resistance and local bead contact. Each gap contains four rope segments; two descending sides are visible. The visible rope is a lit Three.js three-ply tube, not a decorative SVG connector.
 - When WebGL is unavailable, the same physical state is rendered on a 2D canvas with a static Blender render of the same CC-BY pedestal. The fallback image is produced by `scripts/prepare-compare-pedestal.py` from the original `.blend`, not a newly modeled asset.
-- The central display reads the focused molecule's molar mass or atom count. Equal values intentionally show equal readouts; their beads remain separate. Unknown molecules never reveal their identity, image or physical value.
+- A fixed, high-contrast instrument readout separates the property label, large tabular digits, unit and measurement status, without covering the pedestal or the focused bead. Equal values intentionally show equal readouts; their beads remain separate. Unknown molecules never reveal their identity, image or physical value.
 - The BlendSwap `Scifi pedestal turntable` replaces the temporary CC0 hologram projector; the authored mesh, UVs and mapped surfaces are preserved. The underlying rope dynamics and control scheme are unchanged.
 
 ## Asset/license sources
