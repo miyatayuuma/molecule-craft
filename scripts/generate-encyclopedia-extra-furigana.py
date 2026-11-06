@@ -52,6 +52,9 @@ COMPOUNDS = {
     '次亜塩素酸': 'ジアエンソサン',
     '一組': 'ヒトクミ',
     '反応物': 'ハンノウブツ',
+    # Everyday examples in polymer leads also need contextual readings.
+    '縫い糸': 'ヌイイト',
+    '靴底': 'クツゾコ',
     # These compounds describe a stage or location in a process (チュウ),
     # unlike the ordinary noun 鎖の中 (ナカ).
     '構造中': 'コウゾウチュウ',
@@ -205,7 +208,9 @@ def append_kanji_readings(result, offset, surface, katakana, full):
         raise ValueError(f'Cannot split okurigana: {full}, {offset}, {surface}, {reading}')
     # In Japanese inflections the trailing kana is normally a suffix; with
     # repeated kana such as 低く=ひくく prefer the longest Kanji reading.
-    selected = max(options, key=lambda spans: tuple(len(r) for _, r in spans))
+    # 縫い糸 is different: 縫=ぬ, い is okurigana, and 糸=いと.
+    chooser = min if surface == '縫い糸' else max
+    selected = chooser(options, key=lambda spans: tuple(len(r) for _, r in spans))
     cursor = 0
     for piece in pieces:
         if generator.KANJI.fullmatch(piece):
