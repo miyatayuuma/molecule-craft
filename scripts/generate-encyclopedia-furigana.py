@@ -15,7 +15,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 KANJI = re.compile(r'[一-龯々]+')
 PIECES = re.compile(r'[一-龯々]+|[^一-龯々]+')
-GLOSSARY_ENTRY = re.compile(r"^\s*\['([^']+)','([^']+)',[12]\],?$", re.MULTILINE)
+GLOSSARY_ENTRY = re.compile(
+    r'^\s*\{term:("(?:\\.|[^"\\])*"),meaning:("(?:\\.|[^"\\])*"),summaryScope:"(?:both|parts)"',
+    re.MULTILINE,
+)
 
 
 def to_hiragana(value):
@@ -121,8 +124,8 @@ def generate():
         for entry_id, entry in encyclopedia[kind].items():
             result[kind][entry_id] = annotate(entry['description'], tokenizer, entry_id)
 
-    source = (ROOT / 'src/encyclopedia-glossary.js').read_text(encoding='utf-8')
-    definitions = GLOSSARY_ENTRY.findall(source)
+    source = (ROOT / 'src/encyclopedia-term-catalog.js').read_text(encoding='utf-8')
+    definitions = [(json.loads(word), json.loads(meaning)) for word, meaning in GLOSSARY_ENTRY.findall(source)]
     if not definitions:
         raise ValueError('No glossary entries found')
     for word, meaning in definitions:

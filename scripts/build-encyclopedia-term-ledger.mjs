@@ -1,30 +1,12 @@
 import {readFile,writeFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 import {resolve,dirname} from 'node:path';
-import {MOLECULE_GLOSSARY_DEFINITIONS,PART_GLOSSARY_DEFINITIONS} from '../src/encyclopedia-glossary.js';
-import {HAMAJIMA_TERM_REFERENCES} from '../src/hamajima-term-reference.js';
+import {ENCYCLOPEDIA_TERM_CATALOG,HAMAJIMA_TERM_REFERENCES} from '../src/encyclopedia-terms.js';
 import {createReactionCatalogAuthority} from '../src/reaction-catalog-authority.js';
 import {reactionDetailInfo} from '../src/reaction-encyclopedia.js';
 import {GROUP_PREVIEW_SPECS} from '../src/reaction-book-visual.js';
 
-// This is an audit inventory, not a second production glossary. Existing meanings
-// and references are imported from the runtime; only missing candidates live here.
-// Add candidates after verifying that they appear in current player-facing prose.
-const FIRST_WAVE=[
-  '触媒','結合次数','電荷','形式電荷','局在','共役','芳香族性','位置異性体',
-  '立体異性体','キラリティ','不斉炭素','立体配置','置換基','メチル基',
-  'カルボニル基','ヒドロキシ基','ニトロ基','アミド結合','酸無水物',
-  '高分子','単量体','構成単位','反復単位','繰り返し単位','主鎖','側鎖',
-  '架橋','結晶','分子量','分子量分布','連鎖成長','開環重合','ラジカル',
-  'イオン','芳香環','縮合','酸性','塩基性','加水分解','エステル化',
-  '重縮合','立体規則性','配位触媒','結晶化','電子密度','分極','結合角',
-];
-const SECOND_WAVE=[
-  'エチル基','フェノール環','ハロゲン','分岐','結晶性','カチオン','硬化',
-  '熱可塑性','水溶液','中和','粘度','鎖長','末端','付加','置換','脱水',
-  'ハロゲン化','エネルギー','乳化','ゴム','充填材','可塑剤','ポリマー',
-  '物性','シス','トランス','cis','trans','異性体',
-];
+// The catalog is the sole source for existing meanings, links, and pending candidates.
 
 const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const json=async path=>JSON.parse(await readFile(resolve(ROOT,path),'utf8'));
@@ -74,18 +56,14 @@ const get=term=>{
   if(!terms.has(term))terms.set(term,{term,popupMeanings:[],popupAreas:[],reference:null,candidateWave:null});
   return terms.get(term);
 };
-for(const [term,meaning]of MOLECULE_GLOSSARY_DEFINITIONS){
-  const item=get(term);item.popupMeanings.push(meaning);item.popupAreas.push('分子・概要／部品・概要');
-}
-for(const [term,meaning]of PART_GLOSSARY_DEFINITIONS){
-  const item=get(term);item.popupMeanings.push(meaning);item.popupAreas.push('部品・概要');
-}
-for(const [term,reference]of Object.entries(HAMAJIMA_TERM_REFERENCES))get(term).reference=reference;
-for(const [wave,words]of [[1,FIRST_WAVE],[2,SECOND_WAVE]]){
-  for(const term of words){
-    if(!term||term.trim()!==term)throw Error(`Invalid candidate term: ${term}`);
-    const item=get(term);item.candidateWave=Math.min(item.candidateWave??wave,wave);
+for(const entry of ENCYCLOPEDIA_TERM_CATALOG){
+  const item=get(entry.term);
+  if(entry.meaning){
+    item.popupMeanings.push(entry.meaning);
+    item.popupAreas.push(entry.summaryScope==='parts'?'部品・概要':'分子・概要／部品・概要');
   }
+  if(entry.referencePageId)item.reference=HAMAJIMA_TERM_REFERENCES[entry.term];
+  item.candidateWave=entry.candidateWave;
 }
 
 const scopeOrder=['分子・概要','分子・詳細','分子・注釈','部品・概要','部品・詳しく','反応・分類','反応・詳細','高分子・分類','高分子・概要','高分子・詳細','高分子・学習','高分子・工程'];
@@ -109,18 +87,18 @@ entries.sort((a,b)=>a.priority.localeCompare(b.priority)||b.appearanceFields-a.a
 if(entries.length!==new Set(entries.map(row=>row.term)).size)throw Error('Duplicate term');
 const counts=Object.fromEntries(['P0','P1','P2','P3'].map(p=>[p,entries.filter(row=>row.priority===p).length]));
 const coverageCounts=Object.fromEntries(['ポップアップ＋外部リンク','ポップアップのみ','外部リンクのみ','未登録'].map(x=>[x,entries.filter(row=>row.coverage===x).length]));
-const inventory={schemaVersion:1,source:'Current production glossaries + 4 encyclopedia sections + reviewed occurrence candidates',reactionPaths:authority.count(),proseFields:corpus.length,counts,coverageCounts,entries};
+const inventory={schemaVersion:1,source:'Unified encyclopedia term catalog + 4 encyclopedia sections',reactionPaths:authority.count(),proseFields:corpus.length,counts,coverageCounts,entries};
 const ledgerJSON=JSON.stringify(inventory,null,2)+'\n';
 const escapeCell=value=>String(value??'—').replaceAll('|','\\|').replaceAll('\n',' ');
 const ledgerMD=[
   '# Molecule Craft 用語台帳（図鑑4区分）',
   '',
-  '> 自動生成ファイル。用語の採否・意味の編集は、実装時に一元化する辞書と `scripts/build-encyclopedia-term-ledger.mjs` の候補リストで管理する。',
+  '> 自動生成ファイル。用語の採否・意味・外部参考ID・未説明候補は `src/encyclopedia-term-catalog.js` で一元管理し、本文中の出現実績をこの台帳へ反映する。',
   '',
   '## 対象と読み方',
   '',
   '- 対象：分子142件、部品（概要と官能基説明）、反応54経路、高分子25件の実際の表示説明文。反応の分類ラベル、高分子の学習欄・工程欄・分類ラベルも含む。',
-  '- 既存の短い意味は `src/encyclopedia-glossary.js`、外部参考リンクは `src/hamajima-term-reference.js` から取得。二つの辞書はまだ統合されていない。',
+  '- 短い意味・外部参考リンク・未説明候補は `src/encyclopedia-term-catalog.js` に統合済み。旧2モジュールは既存API互換のための入口のみ。',
   '- **ポップアップあり**は主に概要欄で使えるという意味。全出現箇所に説明が出るという意味ではない。現行仕様は概要内最大3語を選択する。',
   '- **未登録**は候補語のうち、実際の説明文で出現を確認した語。全日本語名詞の網羅ではなく、科学・材料分野で説明が必要と判断した候補の監査リスト。',
   '- 「出現欄数」は単純な部分文字列検索で、同じ欄の複数回出現は1欄。複合語中の一致を含むため、実装時の語境界・文脈確認が必要。',
