@@ -13,7 +13,7 @@ const server=createServer(async(req,res)=>{try{
   const pathname=decodeURIComponent(new URL(req.url,'http://localhost').pathname);
   if(pathname==='/__compare_fixture__'){res.writeHead(200,{'content-type':'text/html'}).end(html);return;}
   const file=normalize(join(root,pathname.replace(/^\/+/,'')));if(!file.startsWith(root)){res.writeHead(403).end();return;}
-  res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream'}).end(await readFile(file));
+  const bytes=await readFile(file);res.writeHead(200,{'content-type':types[extname(file)]??'application/octet-stream'}).end(bytes);
 }catch{res.writeHead(404).end();}});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const chrome=['google-chrome','chromium','chromium-browser'].map(name=>spawnSync('which',[name],{encoding:'utf8'})).find(result=>result.status===0)?.stdout.trim();
@@ -30,7 +30,7 @@ try{
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
   await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__`});await pause(150);
+  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__?comparePhysics=1`});await pause(150);
   const ready=await evaluate(`(async()=>{
     const chemistry=await import('/src/chemistry.js'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return false;
     const ids=['water','methane','ethanol'],data=new Map(),save={schemaVersion:3,discoveredMolecules:ids.map((id,i)=>({id,at:i+1,order:i+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
@@ -41,11 +41,11 @@ try{
   })()`);assert.equal(ready,true);
   assert.equal(await evaluate(`!!document.querySelector('.graph-stage:not(.compare-stage)')`),true,'Existing graph remains the default');
   await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);await pause(100);
-  const first=await evaluate(`(()=>({stage:!!document.querySelector('.compare-stage'),count:document.querySelector('.compare-count')?.textContent,buttons:document.querySelectorAll('.compare-bead').length,focus:document.querySelector('.compare-bead.focus')?.dataset.graphId,unit:document.querySelector('.compare-summary')?.textContent,overflow:document.documentElement.scrollWidth>innerWidth+1,secret:[...document.querySelectorAll('.compare-bead.unknown')].every(button=>button.textContent.trim()==='?'&&!button.querySelector('img')&&!button.dataset.graphId&&!button.getAttribute('aria-label').includes('g/mol'))}))()`);
+  const first=await evaluate(`(()=>({stage:!!document.querySelector('.compare-stage'),count:document.querySelector('.compare-count')?.textContent,buttons:document.querySelectorAll('.compare-bead').length,focus:document.querySelector('.compare-bead.focus')?.dataset.graphId,unit:document.querySelector('.compare-instrument-value')?.textContent,ropeCanvas:!!document.querySelector('.compare-physics-canvas'),overflow:document.documentElement.scrollWidth>innerWidth+1,secret:[...document.querySelectorAll('.compare-bead.unknown')].every(button=>button.textContent.trim()==='?'&&!button.querySelector('img')&&!button.dataset.graphId&&!button.getAttribute('aria-label').includes('g/mol'))}))()`);
   assert(first.stage&&first.count.includes('142')&&first.buttons>1&&first.buttons<20,'Mobile view virtualizes 142 beads');
-  assert.equal(first.focus,'ethanol');assert(first.unit.includes('g/mol'));assert.equal(first.overflow,false);assert.equal(first.secret,true,'Undiscovered beads must not expose name, model, ID or properties in the UI');
+  assert.equal(first.focus,'ethanol');assert(first.unit.includes('g/mol'));assert.equal(first.ropeCanvas,true);assert.equal(first.overflow,false);assert.equal(first.secret,true,'Undiscovered beads must not expose name, model, ID or properties in the UI');
   await evaluate(`document.querySelector('[data-compare-axis="atomCount"]').click()`);await pause(80);
-  assert.equal(await evaluate(`document.querySelector('.compare-summary')?.textContent.includes('個')`),true,'Axis changes but the focused molecule remains');
+  assert.equal(await evaluate(`document.querySelector('.compare-instrument-value')?.textContent.includes('個')`),true,'Axis changes but the focused molecule remains');
   assert.equal(await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId`),'ethanol');
   await evaluate(`document.querySelector('[data-compare-axis="molarMass"]').click()`);await pause(80);
   const unknown=await evaluate(`(async()=>{
@@ -60,7 +60,7 @@ try{
   assert.equal(await evaluate(`document.querySelector('#collection-detail').hidden`),true,'Unknown A-button cannot open details');
   const beforeSave=await evaluate(`window.__save.get('molecule-craft.collection.v1')`);
   await evaluate(`window.__collection.registerDiscoveredMolecule(${JSON.stringify(unknown.target)},{at:100})`);await pause(100);
-  const revealed=await evaluate(`(()=>({index:Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex),id:document.querySelector('.compare-bead.focus')?.dataset.graphId,unit:document.querySelector('.compare-summary')?.textContent,changed:window.__save.get('molecule-craft.collection.v1')!==${JSON.stringify(beforeSave)}}))()`);
+  const revealed=await evaluate(`(()=>({index:Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex),id:document.querySelector('.compare-bead.focus')?.dataset.graphId,unit:document.querySelector('.compare-instrument-value')?.textContent,changed:window.__save.get('molecule-craft.collection.v1')!==${JSON.stringify(beforeSave)}}))()`);
   assert.equal(revealed.index,unknown.index,'Discovery preserves the position');assert.equal(revealed.id,unknown.target);assert(revealed.unit.includes('g/mol'));assert.equal(revealed.changed,true);
   await evaluate(`document.querySelector('[data-comparison-mode="graph"]').click()`);await pause(90);
   assert.equal(await evaluate(`!!document.querySelector('.graph-stage:not(.compare-stage)')`),true,'Graph return remains available');
