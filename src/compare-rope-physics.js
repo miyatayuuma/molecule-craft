@@ -139,9 +139,11 @@ export class ComparisonRopePhysics {
 
   solve(iterations = 8) {
     const p = this.points;
-    // Exactly one physical bead is pinned at rest. During manipulation its
-    // temporary hand/magnet attachment replaces the pedestal attachment.
-    const held=this.grabbed??this.docking??{index:this.nearestBeadIndex(),x:this.x,y:this.y};
+    // The focused bead remains supported when a different bead is pulled.
+    // The hand then acts as a soft force (not a second impossible hard pin).
+    // Docking transfers the single anchor to the new bead in motion.
+    const focused=this.nearestBeadIndex();
+    const held=this.docking??(this.grabbed?.index===focused?this.grabbed:null)??{index:focused,x:this.x,y:this.y};
     const fixed=held.index*this.steps;
     for (let iteration = 0; iteration < iterations; iteration++) {
       const bead=p[fixed];bead.x=held.x;bead.y=held.y;
@@ -227,6 +229,15 @@ export class ComparisonRopePhysics {
         held.x+=dx/distance*delta;
         held.y+=dy/distance*delta;
       }
+      if(held.index!==this.nearestBeadIndex()){
+        const bead=this.beadPosition(held.index);
+        const pullX=held.x-bead.x,pullY=held.y-bead.y;
+        const distance=Math.hypot(pullX,pullY);
+        if(distance>.01){
+          const pull=Math.min(distance*.42,20);
+          bead.x+=pullX/distance*pull;bead.y+=pullY/distance*pull;
+        }
+      }
     }
     const step2 = FIXED_STEP * FIXED_STEP;
     const near = this.nearestBeadIndex(), radius = this.steps * 11;
@@ -258,12 +269,12 @@ export class ComparisonRopePhysics {
       const strength=free?1:.3;
       // Both sides share a broad, soft air pocket. No particle is attracted
       // to a slot computed from its molecule value or its bead index.
-      const sidePocket=side*120;
-      const sideways=side*.04+(sidePocket-distanceX)*.005;
+      const sidePocket=side*Math.min(240,this.width*.62);
+      const sideways=side*.06+(sidePocket-distanceX)*.0035;
       point.x+=strength*(sideways+Math.sin(phase)*.065-Math.sign(distanceX)*outer*.0014);
       // This vertical force is shared by the whole strand, not a separate
       // prescribed height for each bead.
-      point.y+=strength*((this.y+35-point.y)*.0035+Math.cos(phase*.8)*.03);
+      point.y+=strength*((this.y-20-point.y)*.004+Math.cos(phase*.8)*.03);
     }
     if(this.docking){
       const magnet=this.docking;
