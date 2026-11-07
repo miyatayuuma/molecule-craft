@@ -53,8 +53,8 @@ export class ComparisonRopeScene {
     return true;
   }
 
-  updateBoiling(physics,snapshots,indexById,dt,activeId){
-    this.boilingVisual?.update(physics,snapshots,indexById,dt,activeId);
+  updateBoiling(physics,snapshots,indexById,dt,activeId,phaseAppearanceById){
+    this.boilingVisual?.update(physics,snapshots,indexById,dt,activeId,phaseAppearanceById);
   }
 
   resize(width, height) {
