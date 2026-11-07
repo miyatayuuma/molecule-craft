@@ -44,7 +44,10 @@ export class ComparisonRopeScene {
     this.boilingVisual = null;
     this.platformHeat = 0;
     this.platformEmissive = [];
+    this.platformHeatOverlays = [];
     this.hotEmissive = new THREE.Color('#ff672d');
+    this.heaterLight = new THREE.PointLight(0xff6b21, 0, 2.6);
+    this.scene.add(this.heaterLight);
   }
 
   async enableBoiling(){
@@ -68,6 +71,7 @@ export class ComparisonRopeScene {
     this.camera.bottom = -height / 200;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    this.heaterLight.position.set(0, height * .07 / 100 - .06, .35);
     if (this.model) this.positionModel();
   }
 
@@ -120,6 +124,28 @@ export class ComparisonRopeScene {
     this.platformEmissive = [...glowing].map(material => ({
       material, neutral: material.emissive.clone(), intensity: material.emissiveIntensity,
     }));
+    // Emissive PBR pixels washed out against the white lamp texture under
+    // filmic tone mapping. A second mesh uses the *same authored emissive UV*
+    // but stays tone-map-free, so the hot arcs remain unmistakably orange.
+    const heatedMeshes = [];
+    base.traverse(object => {
+      if (!object.isMesh || Array.isArray(object.material) || !object.material?.emissiveMap) return;
+      heatedMeshes.push(object);
+    });
+    for (const mesh of heatedMeshes) {
+      const overlay = mesh.clone(false);
+      overlay.name = 'compare-heater-emission-overlay';
+      overlay.material = new THREE.MeshBasicMaterial({
+        map: mesh.material.emissiveMap, color: 0xff4c14,
+        transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
+        depthTest: true, depthWrite: false, side: THREE.DoubleSide,
+        polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+        toneMapped: false,
+      });
+      overlay.renderOrder = mesh.renderOrder + 1;
+      mesh.parent.add(overlay);
+      this.platformHeatOverlays.push(overlay);
+    }
     this.applyPlatformHeat();
     base.updateMatrixWorld(true);
     const box = new THREE.Box3().makeEmpty();
@@ -146,8 +172,11 @@ export class ComparisonRopeScene {
     const warmth = THREE.MathUtils.smoothstep(this.platformHeat, 0.03, 0.95);
     for (const {material, neutral, intensity} of this.platformEmissive) {
       material.emissive.copy(neutral).lerp(this.hotEmissive, warmth);
-      material.emissiveIntensity = intensity * (1 + warmth * 0.65);
+      // Reduce the original neutral-white lamp so it cannot dilute the overlay.
+      material.emissiveIntensity = intensity * (1 - warmth * 0.72);
     }
+    for (const overlay of this.platformHeatOverlays) overlay.material.opacity = warmth * 0.97;
+    this.heaterLight.intensity = 6 * warmth;
   }
 
   setBoilingHeat(target, dt = 1 / 60) {
@@ -232,7 +261,11 @@ export class ComparisonRopeCanvas {
     this.platform.alt = '';
     this.platform.src = new URL('../assets/compare/pedestal-preview.png', import.meta.url).href;
     this.platformHeat = 0;
-    stage.prepend(this.platform);
+    this.platformHeatImage = this.platform.cloneNode(false);
+    this.platformHeatImage.classList.add('compare-pedestal-heated');
+    this.platformHeatImage.style.opacity = '0';
+    this.platformHeatImage.style.filter = 'sepia(1) saturate(8) hue-rotate(-35deg) contrast(1.18) brightness(1.1) drop-shadow(0 0 12px #ff5822)';
+    stage.prepend(this.platform, this.platformHeatImage);
     stage.prepend(this.canvas);
   }
 
@@ -250,8 +283,7 @@ export class ComparisonRopeCanvas {
     const desired = Math.max(0, Math.min(1, target || 0));
     const speed = desired > this.platformHeat ? 8 : 2.8;
     this.platformHeat += (desired - this.platformHeat) * (1 - Math.exp(-speed * Math.max(0, Math.min(.05, dt))));
-    const heat = this.platformHeat.toFixed(3);
-    this.platform.style.filter = `drop-shadow(0 8px 16px #000a) sepia(${heat}) saturate(${(1 + this.platformHeat * 2).toFixed(3)}) hue-rotate(${Math.round(-this.platformHeat * 18)}deg)`;
+    this.platformHeatImage.style.opacity = Math.min(1, this.platformHeat * 1.2).toFixed(3);
   }
 
   draw(physics, focusIndex) {
@@ -281,5 +313,5 @@ export class ComparisonRopeCanvas {
     ctx.shadowBlur = 0;
   }
 
-  dispose() { this.canvas.remove(); this.platform.remove(); }
+  dispose() { this.canvas.remove(); this.platform.remove(); this.platformHeatImage.remove(); }
 }
