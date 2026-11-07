@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import {ComparisonRopePhysics,ROPE_SUBDIVISIONS} from '../src/compare-rope-physics.js';
 
-test('the flexible rope spreads sideways, swings freely and returns to the analyser',()=>{
+test('only the focused bead remains on the support as the strand floats',()=>{
   const arc=[0,78,156,237,320],physics=new ComparisonRopePhysics(arc,{width:390,height:400,center:156});
   assert.equal(physics.count,(arc.length-1)*ROPE_SUBDIVISIONS+1);
   assert.equal(physics.lengths[0],(arc[1]-arc[0])*2/ROPE_SUBDIVISIONS,'the strand has twice the available rope per bead interval');
@@ -11,7 +11,7 @@ test('the flexible rope spreads sideways, swings freely and returns to the analy
   assert(Math.abs(selected.x-195)<1&&Math.abs(selected.y-172)<1,'central bead stays on the support');
   assert(physics.beadPosition(1).x<selected.x-60,'left strand fans out across the stage');
   assert(physics.beadPosition(3).x>selected.x+60,'right strand fans out across the stage');
-  assert(physics.beadPosition(1).y<selected.y+55&&physics.beadPosition(3).y<selected.y+55,'tails remain a shallow arc rather than hanging vertically');
+  assert(physics.beadPosition(1).y<physics.height+20&&physics.beadPosition(3).y<physics.height+20,'nearby beads remain inside the drifting stage band');
   physics.grab(3,275,92);
   for(let i=0;i<30;i++)physics.advance(1/60);
   assert(Math.abs(physics.beadPosition(3).x-275)<1&&Math.abs(physics.beadPosition(3).y-92)<1,'bead can be displaced freely in two dimensions');
@@ -21,6 +21,24 @@ test('the flexible rope spreads sideways, swings freely and returns to the analy
   physics.setCenter(183);for(let i=0;i<220;i++)physics.advance(1/60);
   assert(Math.abs(physics.beadPosition(3).y-before)>4,'pulling changes the suspended geometry');
   assert(physics.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.z)));
+});
+
+test('floating beads have irregular separations and independent motion without positional slots',()=>{
+  const arc=Array.from({length:24},(_,index)=>index*80);
+  const rope=new ComparisonRopePhysics(arc,{width:390,height:400,center:arc[10]});
+  const near=Array.from({length:11},(_,index)=>index+5);
+  const snapshot=()=>near.map(index=>({...rope.beadPosition(index)}));
+  const before=snapshot();
+  for(let frame=0;frame<160;frame++)rope.advance(1/60);
+  const after=snapshot();
+  const gaps=after.slice(1).map((p,i)=>Math.hypot(p.x-after[i].x,p.y-after[i].y));
+  assert(Math.max(...gaps)-Math.min(...gaps)>45,'beads do not arrange into equal-distance slots');
+  const centre=rope.beadPosition(10);
+  assert.equal(centre.x,rope.x);assert.equal(centre.y,rope.y,'the focused bead alone is fixed exactly to the pedestal');
+  const moved=[9,11].map(index=>Math.hypot(after[index-5].x-before[index-5].x,after[index-5].y-before[index-5].y));
+  assert(moved.every(distance=>distance>5),'both free sides continue drifting even without pointer input');
+  const relative=after.map((point,i)=>[point.x-before[i].x,point.y-before[i].y]);
+  assert(Math.hypot(relative[4][0]-relative[6][0],relative[4][1]-relative[6][1])>5,'neighbouring beads are not moved by a shared translation');
 });
 
 test('a pulled bead transmits flexible motion through the strand instead of moving every bead rigidly',()=>{

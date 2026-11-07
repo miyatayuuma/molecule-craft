@@ -6,18 +6,28 @@ on:
       - '.github/workflows/compare-visual-gate.yml'
       - 'src/encyclopedia-compare.js'
       - 'src/encyclopedia-compare-view.js'
+      - 'src/encyclopedia-compare-physics-view.js'
+      - 'src/compare-rope-physics.js'
+      - 'src/compare-rope-scene.js'
+      - 'src/encyclopedia-bead-material.js'
       - 'src/collection-ui.js'
       - 'styles.css'
       - 'tests/encyclopedia-compare*.test.mjs'
+      - 'tests/compare-rope-physics.test.mjs'
   push:
     branches: [main]
     paths:
       - '.github/workflows/compare-visual-gate.yml'
       - 'src/encyclopedia-compare.js'
       - 'src/encyclopedia-compare-view.js'
+      - 'src/encyclopedia-compare-physics-view.js'
+      - 'src/compare-rope-physics.js'
+      - 'src/compare-rope-scene.js'
+      - 'src/encyclopedia-bead-material.js'
       - 'src/collection-ui.js'
       - 'styles.css'
       - 'tests/encyclopedia-compare*.test.mjs'
+      - 'tests/compare-rope-physics.test.mjs'
 permissions:
   contents: read
 jobs:
@@ -29,5 +39,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test tests/encyclopedia-compare.test.mjs tests/encyclopedia-graph-ui.test.mjs
+      - run: node --test tests/encyclopedia-compare.test.mjs tests/encyclopedia-graph-ui.test.mjs tests/compare-rope-physics.test.mjs
       - run: node tests/encyclopedia-compare-browser.test.mjs
