@@ -1098,6 +1098,36 @@
         "ILO-WHO International Chemical Safety Cards (ICSCs)",
         "PAC Chemical Database, U.S. Department of Energy"
       ]
+    },
+    "cyclobutane": {
+      "celsius": 12.6,
+      "pubchemCid": 9250,
+      "sourceNames": ["NIST Chemistry WebBook SRD 69"],
+      "nistUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C287230&Type=TBOIL"
+    },
+    "difluoromethane": {
+      "celsius": -51.6,
+      "pubchemCid": 6345,
+      "sourceNames": ["NIST Chemistry WebBook SRD 69"],
+      "nistUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C75105&Mask=E"
+    },
+    "1-butyne": {
+      "celsius": 8.1,
+      "pubchemCid": 7846,
+      "sourceNames": ["NIST Chemistry WebBook SRD 69"],
+      "nistUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C107006&Type=TBOIL"
+    },
+    "2-butyne": {
+      "celsius": 27,
+      "pubchemCid": 10419,
+      "sourceNames": ["NIST Chemistry WebBook SRD 69"],
+      "nistUrl": "https://webbook.nist.gov/cgi/cbook.cgi?ID=C503173&Type=TBOIL"
+    },
+    "catechol": {
+      "celsius": 245.5,
+      "pubchemCid": 289,
+      "sourceNames": ["ILO-WHO International Chemical Safety Cards (ICSCs)", "Hazardous Substances Data Bank (HSDB)"],
+      "sourceUrl": "https://inchem.org/documents/icsc/icsc/eics0411.htm"
     }
   }
 }

@@ -10,6 +10,19 @@ const between=(x,a,b)=>smooth((x-a)/(b-a));
 export function boilingMorph(snapshot){
   if(!snapshot)return {pearl:0,liquid:0,bubbles:0,vapor:0,dish:0,condensation:0};
   const {phase,time=0,opacity=1,recovery=0,recoveryFrom=1}=snapshot;
+  // Subliming solids skip the liquid vessel entirely. At 1 atm there is no
+  // liquid phase for these entries, even while the bead heats on its pedestal.
+  if(snapshot.transition?.kind==='sublimation'){
+    if(phase==='heating')return {pearl:1,liquid:0,bubbles:0,vapor:0,dish:0,condensation:0};
+    if(phase==='subliming'){
+      const t=clamp(time/BOILING_TIMING.boiling);
+      return {pearl:1-between(t,.08,1),liquid:0,bubbles:0,
+        vapor:between(t,.03,.18)*(1-between(t,.90,1.04)),dish:0,condensation:0};
+    }
+    if(phase==='evaporated')return {pearl:0,liquid:0,bubbles:0,vapor:0,dish:0,condensation:0};
+    if(phase==='recovering')return {pearl:clamp(recoveryFrom+(1-recoveryFrom)*between(recovery/BOILING_TIMING.recovery,.36,1)),
+      liquid:0,bubbles:0,vapor:0,dish:0,condensation:0};
+  }
   if(phase==='heating'){
     const t=clamp(time/BOILING_TIMING.warmup);
     const liquefied=between(t,.07,.48);

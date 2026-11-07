@@ -57,11 +57,12 @@ test('unknown samples cannot be measured or animated',()=>{
   assert.equal(cycle.reading(),null);assert.equal(cycle.snapshot('water'),null);
 });
 
-test('full boiling catalog is sorted without exposing undiscovered molecules or inventing absent values',()=>{
+test('full phase comparison is sorted without exposing undiscovered molecules or inventing missing values',()=>{
   const records=['water','ethanol','n-butane','methane','carbon-dioxide'].map(id=>({id}));
   const {rows,missing}=buildComparisonRows(records,{axis:'boilingPoint',discoveredIds:new Set(['water'])});
-  assert.deepEqual(rows.map(row=>row.id),['methane','n-butane','ethanol','water']);
-  assert.deepEqual(missing,['carbon-dioxide'],'sublimation cannot be shown as atmospheric boiling');
+  assert.deepEqual(rows.map(row=>row.id),['methane','carbon-dioxide','n-butane','ethanol','water']);
+  assert.deepEqual(missing,[]);
   assert.equal(rows[0].discovered,false);
-  assert.equal(comparisonValueLabel(rows[3].value,'boilingPoint'),'100.0 °C');
+  assert.equal(comparisonValueLabel(rows[4].value,'boilingPoint'),'100.0 °C');
+  assert.equal(comparisonValueLabel(rows[1].value,'boilingPoint',rows[1].transition),'-78.5 °C（昇華）');
 });

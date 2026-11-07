@@ -78,5 +78,20 @@ try{
   await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);await pause(110);
   const desktop=await evaluate(`(()=>({stage:document.querySelector('.compare-stage')?.getBoundingClientRect().height,controls:!!document.querySelector('.compare-axis'),beads:document.querySelectorAll('.compare-bead').length,scroll:document.documentElement.scrollWidth>innerWidth+1}))()`);
   assert(desktop.stage>300&&desktop.controls&&desktop.beads<25&&!desktop.scroll,'Desktop comparison stays within one viewport');
+  const exceptions=await evaluate(`(async()=>{
+    const {renderEncyclopediaComparison}=await import('/src/encyclopedia-compare-physics-view.js');
+    const host=document.createElement('div');document.body.append(host);
+    const controller=renderEncyclopediaComparison({host,records:['carbon-dioxide','2-butene','water'].map(id=>({id,nameJa:id})),
+      discoveredIds:new Set(['carbon-dioxide','2-butene']),axis:'boilingPoint',focusId:'carbon-dioxide'});
+    const first={title:host.querySelector('.compare-instrument-name')?.textContent,
+      note:host.querySelector('.compare-instrument-note')?.textContent,
+      summary:host.querySelector('.compare-summary')?.textContent};
+    controller.focusIdDirect('2-butene');
+    const second={note:host.querySelector('.compare-instrument-note')?.textContent,
+      value:host.querySelector('.compare-instrument-value')?.textContent};
+    controller.destroy();host.remove();return {first,second};
+  })()`);
+  assert(exceptions.first.title.includes('昇華点')&&exceptions.first.note.includes('固体から気体'),'Sublimation has an explicit label and no boiling claim');
+  assert(exceptions.second.note.includes('異性体')&&exceptions.second.value.includes('〜'),'Range readout displays all documented values without false precision');
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});}
 console.log('MC-COMPARE-01 browser check passed: mobile/desktop, graph switching, axes, undiscovered secret, discovery reveal, save, gamepad A.');

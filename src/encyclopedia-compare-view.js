@@ -58,7 +58,7 @@ export function renderEncyclopediaComparison({
     if(!row.discovered){summary.append(elem(doc,'strong','compare-summary-unknown','？ 未知の分子'));}
     else{
       const heading=elem(doc,'strong');appendMoleculeNameFurigana(heading,moleculeDisplayName(row.record));
-      summary.append(heading,elem(doc,'small',null,comparisonValueLabel(row.value,axis)));
+      summary.append(heading,elem(doc,'small',null,comparisonValueLabel(row.value,axis,row.transition)));
       const ties=rows.filter(item=>item.value===row.value).length;
       if(ties>1)summary.append(elem(doc,'small',null,`同じ値の分子：${ties}個`));
     }
@@ -70,7 +70,7 @@ export function renderEncyclopediaComparison({
   };
   const bead=(index)=>{
     const row=rows[index],button=elem(doc,'button',`graph-node compare-bead ${row.discovered?'registered':'unknown'}`);button.type='button';
-    button.setAttribute('aria-label',row.discovered?`${moleculeDisplayName(row.record)}、${comparisonValueLabel(row.value,axis)}`:'未知の分子');
+    button.setAttribute('aria-label',row.discovered?`${moleculeDisplayName(row.record)}、${comparisonValueLabel(row.value,axis,row.transition)}`:'未知の分子');
     button.setAttribute('aria-pressed','false');button.dataset.compareIndex=String(index);
     if(row.discovered){
       button.dataset.graphId=row.id;const img=elem(doc,'img','graph-focus-thumbnail');img.src=new URL(`../assets/models/molecule-${row.id}.svg`,import.meta.url).href;img.alt='';img.decoding='async';img.addEventListener('error',()=>{img.remove();button.classList.add('thumbnail-unavailable');},{once:true});button.append(img);
