@@ -3,6 +3,8 @@ import {
   BatchedRenderer, ParticleSystem, SphereEmitter, IntervalValue,
   ConstantValue, ConstantColor, ForceOverLife, Vector4, RenderMode,
 } from '../vendor/quarks/three.quarks-v0.16.0.mjs';
+import {boilingMorph} from './compare-boiling-morph.js';
+import {ComparisonLiquidSpecimen} from './compare-boiling-liquid-surface.js';
 
 // Small CPU particle counts, GPU-instanced sprites, and translucent glass:
 // the visual is a *bulk liquid specimen*, not an individual H2O molecule.
@@ -44,24 +46,11 @@ export class ComparisonBoilingVisual {
   constructor(ropeScene){
     this.host=ropeScene;this.scene=ropeScene.scene;this.disposed=false;
     this.geometry=new THREE.SphereGeometry(.38,40,28);
-    this.innerGeometry=new THREE.SphereGeometry(.32,32,24);
     this.glass=new THREE.MeshPhysicalMaterial({
       color:0xeaf3f7,metalness:.04,roughness:.12,transmission:.38,
       thickness:.9,clearcoat:1,clearcoatRoughness:.08,
       iridescence:.32,iridescenceIOR:1.31,
       transparent:true,opacity:.86,depthWrite:false,side:THREE.FrontSide,
-      emissive:0x104851,emissiveIntensity:.28,
-    });
-    this.liquid=new THREE.ShaderMaterial({
-      uniforms:{uTime:{value:0},uHeat:{value:0},uOpacity:{value:1},uLiquidTint:{value:new THREE.Color('#eaf3f7')}},
-      transparent:true,depthWrite:false,side:THREE.FrontSide,
-      vertexShader:`varying vec3 vNormal;varying vec3 vP;void main(){vNormal=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:`precision mediump float;uniform float uTime;uniform float uHeat;uniform float uOpacity;uniform vec3 uLiquidTint;varying vec3 vNormal;varying vec3 vP;
-        void main(){float sw=sin(vP.y*19.+sin(vP.x*12.+uTime*.8)*.8+uTime*1.4)*.5+.5;
-          float ed=pow(1.-abs(normalize(vNormal).z),2.);
-          vec3 deep=mix(uLiquidTint*.25,uLiquidTint*.67,sw*.62);
-          vec3 col=mix(deep,uLiquidTint,sw*.12+uHeat*.17)+ed*vec3(.18,.26,.30);
-          gl_FragColor=vec4(col,uOpacity*(.67+ed*.2));}`,
     });
     this.texture=glowTexture(ropeScene.stage.ownerDocument);
     this.bubbles=particleSystem({texture:this.texture,kind:'bubble'});
@@ -77,11 +66,15 @@ export class ComparisonBoilingVisual {
     if(this.orbs.has(id))return this.orbs.get(id);
     const group=new THREE.Group();
     const outside=new THREE.Mesh(this.geometry,this.glass.clone());
-    const inside=new THREE.Mesh(this.innerGeometry,this.liquid.clone());
-    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:this.texture,color:0x75dfdf,transparent:true,opacity:.10,depthWrite:false,blending:THREE.AdditiveBlending}));
-    halo.scale.set(1.0,1.0,1);halo.position.z=-.12;
-    group.add(halo,inside,outside);this.scene.add(group);
-    const orb={group,outside,inside,halo};this.orbs.set(id,orb);return orb;
+    const liquid=new ComparisonLiquidSpecimen();
+    const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:this.texture,color:0xb2e7ee,transparent:true,opacity:.10,depthWrite:false,blending:THREE.AdditiveBlending}));
+    halo.scale.set(.85,.85,1);halo.position.z=-.12;
+    const dropletMaterial=new THREE.MeshPhysicalMaterial({color:0xe8f9fb,roughness:.12,
+      transmission:.45,transparent:true,opacity:.68,depthWrite:false});
+    const droplets=new THREE.InstancedMesh(this.geometry,dropletMaterial,12);
+    droplets.count=0;droplets.frustumCulled=false;
+    group.add(halo,liquid.group,outside,droplets);this.scene.add(group);
+    const orb={group,outside,liquid,halo,droplets};this.orbs.set(id,orb);return orb;
   }
 
   update(physics,snapshots,indexById,dt,activeId,phaseAppearanceById=new Map()){
@@ -92,27 +85,45 @@ export class ComparisonBoilingVisual {
       const index=indexById.get(id);if(index===undefined)continue;
       const orb=this.orb(id),point=this.host.toWorld(physics.beadPosition(index));
       const appearance=phaseAppearanceById.get(id);
-      orb.inside.material.uniforms.uLiquidTint.value.set(appearance?.liquid?.renderColor??'#eaf3f7');
+      const morph=boilingMorph(snapshot);
       // All phase changes are local to the visual; no physics node teleports.
       orb.group.position.copy(point);orb.group.position.z+=.39;
-      orb.group.visible=snapshot.opacity>.005;
-      orb.outside.material.opacity=snapshot.opacity*.86;
-      orb.inside.material.uniforms.uOpacity.value=snapshot.opacity;
-      orb.inside.material.uniforms.uHeat.value=snapshot.phase==='heating'?.25+snapshot.time*.32:1;
-      orb.inside.material.uniforms.uTime.value+=dt;
-      orb.halo.material.opacity=snapshot.opacity*.12;
-      orb.group.scale.setScalar(snapshot.phase==='boiling'?1+Math.sin(snapshot.time*19)*.014:1);
-      if(id===activeId)active={snapshot,position:orb.group.position};
+      orb.group.visible=morph.pearl>.002||morph.dish>.002||morph.condensation>.002;
+      orb.outside.visible=morph.pearl>.005;
+      orb.outside.material.opacity=.86*Math.min(1,morph.pearl*1.35);
+      orb.outside.scale.setScalar(.24+.76*morph.pearl);
+      orb.outside.position.y=-.19*(1-morph.pearl);
+      orb.liquid.update(morph,appearance?.liquid?.renderColor??'#eaf3f7',dt);
+      orb.halo.material.opacity=morph.condensation*.36+morph.pearl*.08;
+      orb.halo.scale.setScalar(.7+morph.condensation*.4);
+      const dropletCount=morph.condensation>.005?12:0;
+      orb.droplets.count=dropletCount;
+      if(dropletCount){
+        const dummy=new THREE.Object3D();
+        for(let i=0;i<dropletCount;i++){
+          const theta=i*Math.PI*(3-Math.sqrt(5));
+          const radial=(.11+.22*Math.sqrt((i+.5)/dropletCount))*(1-morph.pearl);
+          dummy.position.set(Math.cos(theta)*radial,Math.sin(theta)*radial,.05+i*.001);
+          dummy.scale.setScalar((.055+(i%4)*.012)*morph.condensation);
+          dummy.updateMatrix();orb.droplets.setMatrixAt(i,dummy.matrix);
+        }
+        orb.droplets.instanceMatrix.needsUpdate=true;
+      }
+      if(id===activeId)active={snapshot,morph,position:orb.group.position};
     }
     for(const [id,orb] of this.orbs)if(!snapshots.has(id))orb.group.visible=false;
-    const phase=active?.snapshot.phase;
     this.vapor.material.color.set(phaseAppearanceById.get(activeId)?.gas?.renderColor??'#f6f9fc');
-    this.bubbles.emission.value=phase==='boiling'?78:phase==='heating'&&active.snapshot.time>1.35?8:0;
-    this.vapor.emission.value=phase==='boiling'?Math.min(110,24+active.snapshot.time*30):0;
+    // Internal bubbles are rendered in the liquid itself; Quarks adds only
+    // the brief surface spray and upward plume at the boiling point.
+    this.bubbles.emission.value=active?Math.round(active.morph.bubbles*16):0;
+    this.vapor.emission.value=active?Math.round(active.morph.vapor*88):0;
     if(active){
       this.bubbles.system.emitter.position.copy(active.position);
+      this.bubbles.system.emitter.position.y-=.23;
+      this.bubbles.system.emitter.position.z+=.05;
       this.vapor.system.emitter.position.copy(active.position);
-      this.vapor.system.emitter.position.y+=.14;
+      this.vapor.system.emitter.position.y-=.18;
+      this.vapor.system.emitter.position.z+=.05;
     }
     this.bubbles.system.emitter.updateMatrixWorld(true);
     this.vapor.system.emitter.updateMatrixWorld(true);
@@ -122,7 +133,8 @@ export class ComparisonBoilingVisual {
   dispose(){
     if(this.disposed)return;this.disposed=true;
     for(const orb of this.orbs.values()){
-      orb.group.removeFromParent();orb.outside.material.dispose();orb.inside.material.dispose();orb.halo.material.dispose();
+      orb.group.removeFromParent();orb.liquid.dispose();orb.outside.material.dispose();
+      orb.halo.material.dispose();orb.droplets.material.dispose();
     }
     this.orbs.clear();
     for(const layer of [this.bubbles,this.vapor]){
@@ -130,7 +142,7 @@ export class ComparisonBoilingVisual {
       layer.system.dispose();layer.material.dispose();
     }
     for(const batch of this.batch.batches)batch.dispose();
-    this.batch.removeFromParent();this.geometry.dispose();this.innerGeometry.dispose();
-    this.glass.dispose();this.liquid.dispose();this.texture.dispose();
+    this.batch.removeFromParent();this.geometry.dispose();
+    this.glass.dispose();this.texture.dispose();
   }
 }
