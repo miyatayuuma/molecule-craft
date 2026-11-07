@@ -66,7 +66,7 @@ export function renderEncyclopediaComparison({
   stage.append(instrument,docking);
   const waiting=elem(doc,'span','compare-platform-waiting','3D台座の素材待ち');stage.append(waiting);
   wrapper.append(stage);
-  const summary=elem(doc,'div','compare-summary'),tip=elem(doc,'p','compare-tip','珠を自由に動かして離すと、いちばん近い珠が分析台に吸着します');
+  const summary=elem(doc,'div','compare-summary'),tip=elem(doc,'p','compare-tip','珠を引くと紐全体がついてきます。離すと近い珠が吸着。背景を払って送ることもできます');
   wrapper.append(summary,tip);host.className='encyclopedia-graph-host encyclopedia-compare-host';host.replaceChildren(wrapper);
   const visible=new Map();
   let currentIndex=indexById.get(focusId)??0,center=positions[currentIndex]??0,drag=null,animation=0,disposed=false,lastDragAt=0,hasTransition=!!transitionRects.size;
@@ -148,10 +148,11 @@ export function renderEncyclopediaComparison({
     animation=win.requestAnimationFrame(frame);
   };
   const snap=()=>focusIndex(nearest());
-  const nearestOnPlatform=()=>{
+  const nearestOnPlatform=(grabbedIndex=currentIndex)=>{
     if(!physics)return -1;
-    const around=physics.nearestBeadIndex();let chosen=around,best=Infinity;
-    for(let index=Math.max(0,around-6);index<=Math.min(rows.length-1,around+6);index++){
+    let chosen=-1,best=Infinity;
+    const low=Math.max(0,Math.min(currentIndex,grabbedIndex)-8),high=Math.min(rows.length-1,Math.max(currentIndex,grabbedIndex)+8);
+    for(let index=low;index<=high;index++){
       const point=physics.beadPosition(index);
       const distance=Math.hypot(point.x-physics.x,(point.y-physics.y)*1.15);
       if(distance<best){best=distance;chosen=index;}
@@ -162,29 +163,42 @@ export function renderEncyclopediaComparison({
     if(event.button!==undefined&&event.button!==0)return;
     stop();stage.classList.remove('is-dock-locked');
     const beadTarget=event.target.closest?.('.compare-bead');
-    drag={pointerId:event.pointerId,x:event.clientX,y:event.clientY,travel:0,
-      index:beadTarget?Number(beadTarget.dataset.compareIndex):null};
+    const index=beadTarget?Number(beadTarget.dataset.compareIndex):null;
+    const rect=stage.getBoundingClientRect(),point=index!==null?physics?.beadPosition(index):null;
+    drag={pointerId:event.pointerId,x:event.clientX,y:event.clientY,travel:0,time:win.performance.now(),vx:0,vy:0,
+      offsetX:point?point.x-(event.clientX-rect.left):0,offsetY:point?point.y-(event.clientY-rect.top):0,index};
     stage.classList.add('is-dragging');
     try{(beadTarget??stage).setPointerCapture(event.pointerId);}catch{}
   });
   stage.addEventListener('pointermove',event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     const dx=event.clientX-drag.x,dy=event.clientY-drag.y;
-    drag.x=event.clientX;drag.y=event.clientY;drag.travel+=Math.hypot(dx,dy);
+    const now=win.performance.now(),dt=Math.max(8,now-drag.time);
+    drag.vx=drag.vx*.35+(dx*1000/dt)*.65;
+    drag.vy=drag.vy*.35+(dy*1000/dt)*.65;
+    drag.x=event.clientX;drag.y=event.clientY;drag.time=now;drag.travel+=Math.hypot(dx,dy);
     if(drag.travel<=6)return;
     if(drag.index!==null&&physics){
       const rect=stage.getBoundingClientRect();
-      physics.grab(drag.index,event.clientX-rect.left,event.clientY-rect.top);
+      physics.grab(drag.index,event.clientX-rect.left+drag.offsetX,event.clientY-rect.top+drag.offsetY);
       stage.classList.add('is-bead-dragging');
-    }
-    setCenter(center-dx*(drag.index===null?1:.65));
+      draw();
+    }else setCenter(center-dx);
   });
   const endDrag=event=>{
     if(!drag||event.pointerId!==drag.pointerId)return;
     const moved=drag.travel>6;
-    const target=moved?nearestOnPlatform():-1;
+    const wasBead=drag.index!==null;
+    const target=moved&&wasBead?nearestOnPlatform(drag.index):-1;
     if(moved)lastDragAt=win.performance.now();
-    physics?.release();drag=null;
+    physics?.release({vx:drag.vx,vy:drag.vy});
+    if(moved&&!wasBead){
+      // Flicking the empty stage moves the material coordinate under the
+      // sensor; a small capped coast adds tactile continuity to the swipe.
+      const coast=clamp(-drag.vx*.13,-140,140);
+      focusIndex(nearestComparisonIndex(positions,clamp(center+coast,positions[0],positions.at(-1))));
+    }
+    drag=null;
     stage.classList.remove('is-dragging','is-bead-dragging');
     if(moved&&target>=0){
       stage.classList.add('is-dock-locked');focusIndex(target);
