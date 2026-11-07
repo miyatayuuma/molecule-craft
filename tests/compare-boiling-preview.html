@@ -13,7 +13,7 @@
     .graph-stage{position:relative;height:100%;min-height:0;overflow:hidden;border:1px solid #285466;border-radius:23px;isolation:isolate}
     .graph-node{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;border-radius:50%;cursor:pointer}
     .graph-focus-thumbnail{position:absolute;object-fit:contain}.compare-axis{position:absolute;z-index:8;top:12px;left:10px}
-    .compare-summary{min-height:38px}.preview-note{font-size:12px;color:#9fbdc1;margin:8px 4px}
+    .compare-summary{min-height:38px}
     @media(max-width:650px){main{padding:8px}#preview{height:min(77dvh,620px);min-height:400px}}
   </style>
 </head>
@@ -21,7 +21,6 @@
   <main>
     <h1>沸騰観察｜3分子・描画試作</h1>
     <div id="preview"></div>
-    <p class="preview-note">珠を左右へ動かすと再凝集します。実験中の温度は台座の計器に表示されます。</p>
   </main>
   <script type="module">
     import {renderEncyclopediaComparison} from '../src/encyclopedia-compare-physics-view.js';

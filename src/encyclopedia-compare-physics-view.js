@@ -247,7 +247,12 @@ export function renderEncyclopediaComparison({
       stage.classList.toggle('is-boiling',boilingCycle.snapshot(row?.id)?.phase==='boiling');
       if(boilingVisualReady){
         const snapshots=new Map([...boilingCycle.entries].map(([id])=>[id,boilingCycle.snapshot(id)]));
-        scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId);
+        try{scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId);}
+        catch(error){
+          console.error('Boiling VFX stopped; restoring accessible bead controls',error);
+          boilingVisualReady=false;
+          scene?.boilingVisual?.dispose();scene.boilingVisual=null;
+        }
       }
     }
     draw();
