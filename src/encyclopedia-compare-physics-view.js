@@ -6,14 +6,14 @@ import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js'
 
 const STYLE_ID='molecule-craft-compare-physics-style';
 const STYLE=`
-.compare-graph{position:relative}.compare-axis{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;padding:0 4px}.compare-axis button{min-height:38px;padding:6px 12px;border:1px solid #456979;border-radius:12px;background:#132e3e;color:#a9cbd3;font-size:12px}.compare-axis button[aria-pressed=true]{border-color:#76d9c8;background:#285550;color:#f2fffb}.compare-axis-note{font-size:10px;color:#8daebd}
+.compare-graph{position:relative}.compare-axis{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;padding:0 4px}.compare-axis button{min-height:38px;padding:6px 12px;border:1px solid #456979;border-radius:12px;background:#132e3e;color:#a9cbd3;font-size:12px}.compare-axis button[aria-pressed=true]{border-color:#76d9c8;background:#285550;color:#f2fffb}
 .compare-stage{position:relative;touch-action:pan-y;user-select:none;cursor:grab;background:radial-gradient(ellipse at 50% 43%,#23445a 0,#102a3c 34%,#071724 78%,#06111d 100%)}.compare-stage.is-dragging{cursor:grabbing}.compare-stage.is-bead-dragging{touch-action:none}.compare-physics-canvas{position:absolute;inset:0;display:block;z-index:1;width:100%;height:100%;pointer-events:none}.compare-pedestal-fallback{position:absolute;z-index:0;left:50%;top:calc(43% + 60px);transform:translate(-50%,-50%);width:min(95%,480px);height:auto;pointer-events:none;filter:drop-shadow(0 8px 16px #000a)}
-.compare-instrument{position:absolute;z-index:7;top:min(calc(43% + 128px),calc(100% - 145px));left:50%;transform:translateX(-50%);display:grid;gap:9px;width:clamp(250px,29vw,330px);padding:13px 17px 14px;border:1px solid #78cbd274;border-radius:14px;background:linear-gradient(152deg,#193549f7,#0b1f2beb 53%,#071521f7);box-shadow:inset 0 1px 0 #bbffff22,inset 0 -12px 28px #020b1533,0 14px 35px #0008;pointer-events:none;color:#e5ffff;text-align:left}.compare-instrument::before{content:'';position:absolute;left:0;top:17px;bottom:17px;width:3px;border-radius:3px;background:linear-gradient(#90fff3,#258caa);box-shadow:0 0 15px #61e6d3a0}.compare-instrument-header{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:9px;font-weight:700;letter-spacing:.14em;color:#86b9c6}.compare-instrument-status{display:flex;align-items:center;gap:5px;color:#8ee4cd;letter-spacing:.08em}.compare-instrument-status::before{content:'';width:5px;height:5px;border-radius:50%;background:#65e5cc;box-shadow:0 0 8px #65e5cc}.compare-instrument-name{font-size:13px;font-weight:700;color:#cce9ed;letter-spacing:.03em}.compare-instrument-reading{display:flex;align-items:baseline;gap:7px;min-height:42px;border-bottom:1px solid #7dc3c328;padding-bottom:5px}.compare-instrument-value{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:720;font-size:clamp(30px,3.2vw,42px);line-height:1.1;letter-spacing:-.035em;white-space:nowrap;font-variant-numeric:tabular-nums;text-shadow:0 0 20px #64ecda50}.compare-instrument-unit{font-size:12px;font-weight:650;color:#9cc4ce;white-space:nowrap}.compare-instrument-value.undiscovered{letter-spacing:.06em;color:#7097ab;text-shadow:none}.compare-instrument-foot{display:flex;justify-content:space-between;gap:8px;font-size:9px;letter-spacing:.09em;color:#7da7b3}.compare-platform-waiting{position:absolute;z-index:2;left:50%;top:calc(43% + 43px);transform:translateX(-50%);color:#718f9f;font-size:9px;pointer-events:none}.compare-platform-waiting.provisional{top:calc(43% + 156px);color:#8bafc0}
-.compare-docking{position:absolute;left:50%;top:43%;z-index:3;width:142px;height:142px;transform:translate(-50%,-50%) scale(.85);border:2px solid #75e9d500;border-radius:50%;box-shadow:0 0 0 10px #52d7cf00,inset 0 0 26px #58d2c900;opacity:0;transition:transform 160ms ease,opacity 160ms ease,border-color 160ms ease,box-shadow 160ms ease;pointer-events:none}.compare-docking span{position:absolute;top:-26px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:4px 9px;border:1px solid #84e5d899;border-radius:20px;background:#082332e8;color:#d2fff6;font-weight:750;font-size:11px;opacity:0}.compare-stage.is-bead-dragging .compare-docking{opacity:.62;transform:translate(-50%,-50%) scale(1);border-color:#6dc5caad;box-shadow:0 0 0 8px #5adacb16,inset 0 0 30px #56cfc91c}.compare-stage.is-bead-dragging .compare-docking span{opacity:1}.compare-stage.is-dock-locked .compare-docking{animation:compare-dock-pulse 350ms ease-out}@keyframes compare-dock-pulse{from{opacity:1;transform:translate(-50%,-50%) scale(.76);border-color:#d7fff8;box-shadow:0 0 0 3px #adfff765}to{opacity:0;transform:translate(-50%,-50%) scale(1.25);box-shadow:0 0 0 20px #a4fff200}}
-.compare-bead.graph-node{z-index:4;width:56px;height:56px;min-height:56px;padding:3px;overflow:visible;touch-action:none;transition:border-color 140ms ease;background:radial-gradient(circle at 29% 20%,#3e8390 0,#205263 40%,#0c2335 83%);border:2px solid #8bc9d4;box-shadow:inset -8px -9px 12px #0815269c,inset 3px 3px 7px #d5fff02f,0 8px 19px #0008}.compare-bead.graph-node.focus{width:82px;height:82px;min-height:82px;padding:6px;z-index:5;box-shadow:inset -10px -10px 14px #09192999,inset 4px 4px 9px #d5fff04c,0 0 22px #65e4d73c,0 13px 28px #000b}.compare-bead.graph-node .graph-focus-thumbnail{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.compare-bead.graph-node.focus .graph-focus-thumbnail{inset:5px;width:calc(100% - 10px);height:calc(100% - 10px)}.compare-bead.graph-node.unknown{background:radial-gradient(circle at 29% 20%,#376075 0,#172e45 54%,#081724 100%);border:2px dashed #769db3;color:#9ab4c4}.compare-bead.graph-node.unknown:before{display:none}.compare-bead.graph-node.unknown .compare-question{font-size:26px;line-height:1;color:#9fc3d5;font-weight:700}.compare-bead.graph-node.unknown.focus .compare-question{font-size:37px;color:#c0dce8}
-.compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-tip{margin:0;text-align:center;color:#8ba5b6;font-size:10px}.compare-count{color:#85a7b6;font-size:10px}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
-@media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto auto}#collection-dialog .compare-axis{position:absolute;top:18px;left:12px;z-index:8;background:#0b1e2bdc;border-radius:13px;padding:4px;max-width:44%}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}#collection-dialog .compare-tip{grid-row:3}}
-@media(max-width:650px){.compare-axis{padding:0 5px}.compare-axis button{min-height:36px}.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 110px),calc(100% - 112px));width:min(262px,74vw);gap:6px;padding:10px 12px 11px}.compare-instrument-header{font-size:8px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:31px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}.compare-instrument-foot{font-size:8px}.compare-tip{line-height:1.5}}
+.compare-instrument{position:absolute;z-index:7;top:min(calc(43% + 128px),calc(100% - 112px));left:50%;transform:translateX(-50%);display:grid;gap:4px;width:clamp(208px,24vw,260px);padding:12px 16px;border:1px solid #8db6c33b;border-radius:12px;background:linear-gradient(155deg,#152b3bdd,#081b2aea);box-shadow:inset 0 1px 0 #dfffff13,0 9px 24px #0006;pointer-events:none;color:#e5ffff;text-align:left}.compare-instrument-name{font-size:12px;font-weight:600;color:#a9c8ce;letter-spacing:.02em}.compare-instrument-reading{display:flex;align-items:baseline;gap:8px;min-height:40px}.compare-instrument-value{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:640;font-size:clamp(29px,3.2vw,40px);line-height:1.12;letter-spacing:-.035em;white-space:nowrap;font-variant-numeric:tabular-nums}.compare-instrument-unit{font-size:12px;font-weight:600;color:#9cc4ce;white-space:nowrap}.compare-instrument-value.undiscovered{letter-spacing:.06em;color:#7097ab}
+.compare-docking{position:absolute;left:50%;top:43%;z-index:3;width:100px;height:100px;transform:translate(-50%,-50%);border:1px solid #75e9d500;border-radius:50%;opacity:0;pointer-events:none}.compare-stage.is-docking .compare-docking{opacity:.38;border-color:#8de9d366;box-shadow:0 0 20px #65dec329}.compare-stage.is-dock-locked .compare-docking{animation:compare-dock-pulse 430ms ease-out}@keyframes compare-dock-pulse{from{opacity:.75;transform:translate(-50%,-50%) scale(.88);border-color:#b8fff2}to{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
+.compare-bead.graph-node{z-index:4;width:56px;height:56px;min-height:56px;padding:2px;overflow:visible;touch-action:none;transition:box-shadow 160ms ease;background:radial-gradient(circle at 28% 19%,#76b5ba 0,#387a88 22%,#195061 58%,#091d2e 100%);border:1px solid #c5eeec38;box-shadow:inset 3px 4px 7px #e6fff321,inset -8px -11px 14px #020e1db0,0 5px 10px #0008}.compare-bead.graph-node.focus{width:82px;height:82px;min-height:82px;padding:3px;z-index:5;box-shadow:inset 4px 5px 8px #e6fff32e,inset -12px -15px 20px #020e1dc0,0 0 15px #64cfc727,0 9px 18px #0009}.compare-bead.graph-node .graph-focus-thumbnail{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}.compare-bead.graph-node.focus .graph-focus-thumbnail{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.compare-bead.graph-node.unknown{background:radial-gradient(circle at 28% 20%,#6a91a8 0,#344f6b 31%,#152b43 66%,#071729 100%);border:1px solid #b3d1e234;color:#afc7d5}.compare-bead.graph-node.unknown:before{display:none}.compare-bead.graph-node.unknown .compare-question{font-size:24px;line-height:1;color:#a6bfd0;font-weight:550}.compare-bead.graph-node.unknown.focus .compare-question{font-size:34px;color:#d1e1ed}
+.compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
+@media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto}#collection-dialog .compare-axis{position:absolute;top:18px;left:12px;z-index:8;background:#0b1e2bdc;border-radius:13px;padding:4px;max-width:44%}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}}
+@media(max-width:650px){.compare-axis{padding:0 5px}.compare-axis button{min-height:36px}.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 112px),calc(100% - 92px));width:min(232px,69vw);gap:3px;padding:9px 12px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:28px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.compare-bead.graph-node{transition:none}}
 `;
 
@@ -38,7 +38,7 @@ export function renderEncyclopediaComparison({
   onFocus=()=>{},onDetail=()=>{},onAxis=()=>{},transitionRects=new Map(),win=globalThis.window,
 }={}){
   const doc=host.ownerDocument??globalThis.document;ensureStyles(doc);
-  const {rows,missing}=buildComparisonRows(records,{axis,discoveredIds}),{positions}=layoutComparisonRows(rows,axis);
+  const {rows}=buildComparisonRows(records,{axis,discoveredIds}),{positions}=layoutComparisonRows(rows,axis);
   const indexById=new Map(rows.map((row,index)=>[row.id,index]));
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
@@ -46,28 +46,20 @@ export function renderEncyclopediaComparison({
     const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
-  controls.append(elem(doc,'span','compare-axis-note','間隔は数値差を圧縮して表示'));
   wrapper.append(controls);
   const stage=elem(doc,'div','graph-stage compare-stage');stage.tabIndex=0;stage.setAttribute('role','group');stage.setAttribute('aria-label','くらべる図鑑。左右に動かして分子を比較');
   const instrument=elem(doc,'div','compare-instrument');
-  const readoutHead=elem(doc,'div','compare-instrument-header');
-  readoutHead.append(elem(doc,'span',null,'ANALYZER / 01'));
-  const instrumentStatus=elem(doc,'span','compare-instrument-status','READY');readoutHead.append(instrumentStatus);
   const instrumentName=elem(doc,'span','compare-instrument-name','モル質量');
   const reading=elem(doc,'div','compare-instrument-reading');reading.setAttribute('aria-live','polite');
   const instrumentValue=elem(doc,'strong','compare-instrument-value','— —');
   const instrumentUnit=elem(doc,'span','compare-instrument-unit','g/mol');
   reading.append(instrumentValue,instrumentUnit);
-  const instrumentFoot=elem(doc,'div','compare-instrument-foot');
-  instrumentFoot.append(elem(doc,'span',null,'MOLECULAR PROPERTY'),elem(doc,'span',null,'01 / 02'));
-  instrument.append(readoutHead,instrumentName,reading,instrumentFoot);
+  instrument.append(instrumentName,reading);
   const docking=elem(doc,'div','compare-docking');docking.setAttribute('aria-hidden','true');
-  docking.append(elem(doc,'span',null,'離すと近くの珠が吸着'));
   stage.append(instrument,docking);
-  const waiting=elem(doc,'span','compare-platform-waiting','3D台座の素材待ち');stage.append(waiting);
   wrapper.append(stage);
-  const summary=elem(doc,'div','compare-summary'),tip=elem(doc,'p','compare-tip','珠を引くと紐全体がついてきます。離すと近い珠が吸着。背景を払って送ることもできます');
-  wrapper.append(summary,tip);host.className='encyclopedia-graph-host encyclopedia-compare-host';host.replaceChildren(wrapper);
+  const summary=elem(doc,'div','compare-summary');
+  wrapper.append(summary);host.className='encyclopedia-graph-host encyclopedia-compare-host';host.replaceChildren(wrapper);
   const visible=new Map();
   let currentIndex=indexById.get(focusId)??0,center=positions[currentIndex]??0,drag=null,animation=0,disposed=false,lastDragAt=0,hasTransition=!!transitionRects.size;
   const stageWidth=()=>Math.max(240,stage.clientWidth||host.clientWidth||360);
@@ -80,12 +72,10 @@ export function renderEncyclopediaComparison({
       // Preferred pedestal was converted from the author's BlendSwap source.
       scene.loadPlatform(new URL('../assets/compare/scifi-pedestal.glb',import.meta.url).href,
         new URL('../assets/compare/hologram-projector-cc0.glb',import.meta.url).href)
-        .then(loaded=>{if(disposed)return;if(loaded==='preferred')waiting.remove();else if(loaded==='provisional'){waiting.textContent='台座は仮素材（CC0）';waiting.classList.add('provisional');}})
         .catch(error=>{console.info('Compare analyzer model not yet available',error);});
     }catch(error){
       console.info('Using physical Canvas rope because WebGL is unavailable',error);
       scene=new ComparisonRopeCanvas(stage);scene.resize(stageWidth(),stageHeight());
-      waiting.remove();
     }
   }
   const nearest=()=>nearestComparisonIndex(positions,center);
@@ -95,14 +85,12 @@ export function renderEncyclopediaComparison({
     instrumentName.textContent=axis==='molarMass'?'モル質量':'原子数';
     instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):String(row.value)):'— —';
     instrumentUnit.textContent=axis==='molarMass'?'g/mol':'個';
-    instrumentStatus.textContent=row.discovered?'MEASURED':'UNIDENTIFIED';
     instrumentValue.classList.toggle('undiscovered',!row.discovered);
     if(!row.discovered){summary.append(elem(doc,'strong','compare-summary-unknown','？ 未知の分子'));}
     else{
       const heading=elem(doc,'strong');appendMoleculeNameFurigana(heading,moleculeDisplayName(row.record));
       summary.append(heading);
     }
-    summary.append(elem(doc,'span','compare-count',`全${rows.length}珠${missing.length?` ／ 数値なし${missing.length}件`:''}`));
   };
   const showFocus=()=>{
     const next=nearest();if(next<0||next===currentIndex)return;
@@ -115,13 +103,13 @@ export function renderEncyclopediaComparison({
     if(row.discovered){
       button.dataset.graphId=row.id;const img=elem(doc,'img','graph-focus-thumbnail');img.src=new URL(`../assets/models/molecule-${row.id}.svg`,import.meta.url).href;img.alt='';img.decoding='async';img.addEventListener('error',()=>{img.remove();button.classList.add('thumbnail-unavailable');},{once:true});button.append(img);
     }else button.append(elem(doc,'span','compare-question','?'));
-    button.addEventListener('click',()=>{if(win.performance.now()-lastDragAt<240)return;if(index===currentIndex&&row.discovered)onDetail(row.id,button);else focusIndex(index);});
+    button.addEventListener('click',()=>{if(win.performance.now()-lastDragAt<240)return;if(index===currentIndex&&row.discovered)onDetail(row.id,button);else beginDock(index);});
     stage.append(button);
     return button;
   };
   const draw=()=>{
     if(disposed)return;
-    const width=stageWidth(),grabbedIndex=physics?.grabbed?.index??currentIndex;
+    const width=stageWidth(),grabbedIndex=physics?.grabbed?.index??physics?.docking?.index??currentIndex;
     const from=Math.max(0,Math.min(currentIndex,grabbedIndex)-5),to=Math.min(rows.length-1,Math.max(currentIndex,grabbedIndex)+5),used=new Set();
     for(let i=from;i<=to;i++){
       const {x,y}=physics.beadPosition(i);if(x< -110||x>width+110||y>stageHeight()+110)continue;
@@ -139,7 +127,7 @@ export function renderEncyclopediaComparison({
     hasTransition=false;
   };
   const stop=()=>{if(animation){win.cancelAnimationFrame?.(animation);animation=0;}};
-  const setCenter=(value)=>{center=clamp(value,positions[0]??0,positions.at(-1)??0);physics?.setCenter(center);showFocus();draw();};
+  const setCenter=(value)=>{center=clamp(value,positions[0]??0,positions.at(-1)??0);if(physics?.docking)stage.classList.remove('is-docking');physics?.setCenter(center);showFocus();draw();};
   const focusIndex=(index,{instant=false}={})=>{
     if(index<0||index>=rows.length)return;stop();const target=positions[index];
     if(reduced||instant||Math.abs(center-target)<.5){setCenter(target);return;}
@@ -147,7 +135,12 @@ export function renderEncyclopediaComparison({
     const frame=now=>{const t=clamp((now-began)/duration,0,1),ease=1-(1-t)**3;setCenter(start+(target-start)*ease);if(t<1)animation=win.requestAnimationFrame(frame);else{animation=0;setCenter(target);}};
     animation=win.requestAnimationFrame(frame);
   };
-  const snap=()=>focusIndex(nearest());
+  const beginDock=index=>{
+    if(!physics||index<0||index>=rows.length)return;
+    stop();physics.dock(index);
+    stage.classList.remove('is-dock-locked');stage.classList.add('is-docking');
+  };
+  const snap=()=>beginDock(nearest());
   const nearestOnPlatform=(grabbedIndex=currentIndex)=>{
     if(!physics)return -1;
     let chosen=-1,best=Infinity;
@@ -161,7 +154,7 @@ export function renderEncyclopediaComparison({
   };
   stage.addEventListener('pointerdown',event=>{
     if(event.button!==undefined&&event.button!==0)return;
-    stop();stage.classList.remove('is-dock-locked');
+    stop();physics?.cancelDock();stage.classList.remove('is-dock-locked','is-docking');
     const beadTarget=event.target.closest?.('.compare-bead');
     const index=beadTarget?Number(beadTarget.dataset.compareIndex):null;
     const rect=stage.getBoundingClientRect(),point=index!==null?physics?.beadPosition(index):null;
@@ -196,13 +189,11 @@ export function renderEncyclopediaComparison({
       // Flicking the empty stage moves the material coordinate under the
       // sensor; a small capped coast adds tactile continuity to the swipe.
       const coast=clamp(-drag.vx*.13,-140,140);
-      focusIndex(nearestComparisonIndex(positions,clamp(center+coast,positions[0],positions.at(-1))));
+      beginDock(nearestComparisonIndex(positions,clamp(center+coast,positions[0],positions.at(-1))));
     }
     drag=null;
     stage.classList.remove('is-dragging','is-bead-dragging');
-    if(moved&&target>=0){
-      stage.classList.add('is-dock-locked');focusIndex(target);
-    }
+    if(moved&&target>=0)beginDock(target);
   };
   stage.addEventListener('pointerup',endDrag);stage.addEventListener('pointercancel',endDrag);
   stage.addEventListener('keydown',event=>{if(event.target!==stage)return;if(event.key==='ArrowRight'||event.key==='ArrowLeft'){event.preventDefault();focusIndex(clamp(currentIndex+(event.key==='ArrowRight'?1:-1),0,rows.length-1));}else if(event.key==='Enter'&&rows[currentIndex]?.discovered){event.preventDefault();onDetail(rows[currentIndex].id,visible.get(currentIndex));}});
@@ -219,7 +210,13 @@ export function renderEncyclopediaComparison({
   const physicsTick=now=>{
     if(disposed)return;
     const elapsed=lastPhysicsAt?Math.min((now-lastPhysicsAt)/1000,.05):1/60;
-    lastPhysicsAt=now;physics?.advance(elapsed);draw();
+    lastPhysicsAt=now;physics?.advance(elapsed);
+    if(physics?.completedDock!==null&&physics?.completedDock!==undefined){
+      const index=physics.completedDock;physics.completedDock=null;
+      center=positions[index];showFocus();
+      stage.classList.remove('is-docking');stage.classList.add('is-dock-locked');
+    }
+    draw();
     physicsFrame=win.requestAnimationFrame(physicsTick);
   };
   if(physics)physicsFrame=win.requestAnimationFrame(physicsTick);

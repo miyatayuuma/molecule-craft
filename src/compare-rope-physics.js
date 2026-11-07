@@ -31,6 +31,8 @@ export class ComparisonRopePhysics {
     this.height = height;
     this.center = center;
     this.grabbed = null;
+    this.docking = null;
+    this.completedDock = null;
     this.supportStrength = 1;
     this.clock = 0;
     this.accumulator = 0;
@@ -67,11 +69,28 @@ export class ComparisonRopePhysics {
   }
 
   setCenter(value) {
+    if(this.docking){this.docking=null;this.supportStrength=0.3;}
     this.center = clamp(value, this.arc[0], this.arc[this.count - 1]);
+  }
+
+  // A release nominates a bead, but does not switch the instrument's reading.
+  // The bead travels into the socket under a damped attraction, and only then
+  // becomes the supported material point. Nearby beads are left free.
+  dock(index) {
+    if(!Number.isInteger(index)||index<0||index>=this.arcPositions.length)return;
+    this.docking={index,elapsed:0,stable:0};
+    this.completedDock=null;
+    this.supportStrength=0;
+  }
+
+  cancelDock() {
+    if(this.docking){this.docking=null;this.supportStrength=this.grabbed?0:0.25;}
+    this.completedDock=null;
   }
 
   grab(index, x, y) {
     if (!Number.isInteger(index) || index < 0 || index >= this.arcPositions.length) return;
+    this.cancelDock();
     const heldIndex=index*this.steps,held=this.points[heldIndex];
     const dx=x-held.x,dy=y-held.y;
     // This is a floating strand: moving one bead takes the other beads with
@@ -98,6 +117,9 @@ export class ComparisonRopePhysics {
       const held = this.grabbed.index * this.steps;
       const impulseX = clamp(vx / 90 * 0.44, -7, 7);
       const impulseY = clamp(vy / 90 * 0.44, -7, 7);
+      // The hand has been moving the entire rope kinematically. Discard
+      // solver-side pseudo-velocities before applying the real release fling.
+      for(const point of this.points){point.px=point.x;point.py=point.y;}
       for (let i = Math.max(0, held - this.steps * 2); i <= Math.min(this.count - 1, held + this.steps * 2); i++) {
         const influence = Math.exp(-Math.abs(i - held) / (this.steps * 0.75));
         this.points[i].px = this.points[i].x - impulseX * influence;
@@ -133,7 +155,7 @@ export class ComparisonRopePhysics {
   }
 
   pinSupport() {
-    if (this.grabbed || this.supportStrength <= 0) return;
+    if (this.grabbed || this.docking || this.supportStrength <= 0) return;
     const { a, b, fraction } = this.support(), p = this.points;
     const wa = 1 - fraction, wb = fraction;
     const denominator = wa * wa + wb * wb;
@@ -172,20 +194,37 @@ export class ComparisonRopePhysics {
         b.x += ((a.x + c.x) / 2 - b.x) * 0.006;
         b.y += ((a.y + c.y) / 2 - b.y) * 0.006;
       }
-      // Contact between the nearby large beads; intermediate yarn particles
-      // are intentionally exempt from this much larger collision radius.
+      // Beads are solid. Adjacent beads also repel one another when the rope
+      // folds, so only the bead being pulled into the socket can occupy it.
       const nearest = this.nearestBeadIndex();
-      for (let i = Math.max(0, nearest - 8); i <= Math.min(this.arcPositions.length - 1, nearest + 8); i++) {
-        for (let j = i + 2; j <= Math.min(this.arcPositions.length - 1, nearest + 8); j++) {
+      const around=this.docking?.index??nearest;
+      for (let i = Math.max(0, around - 8); i <= Math.min(this.arcPositions.length - 1, around + 8); i++) {
+        for (let j = i + 1; j <= Math.min(this.arcPositions.length - 1, around + 8); j++) {
           const a = p[i * this.steps], b = p[j * this.steps];
           const dx = b.x - a.x, dy = b.y - a.y;
           const distance = Math.hypot(dx, dy) || 1e-8;
-          if (distance >= 52) continue;
+          const minimum=j===i+1?68:56;
+          if (distance >= minimum) continue;
           const wa=i*this.steps===fixed?0:1,wb=j*this.steps===fixed?0:1;
-          const correction = (52 - distance) / distance * 0.58 / (wa+wb);
+          const correction = (minimum - distance) / distance * 0.58 / (wa+wb);
           a.x -= dx * correction * wa; a.y -= dy * correction * wa;
           b.x += dx * correction * wb; b.y += dy * correction * wb;
         }
+      }
+    }
+    // Contact and bending projections introduce small distance errors. Finish
+    // with short, alternating distance-only passes so they never show up as
+    // visibly elastic gaps when a long strand starts moving.
+    for(let iteration=0;iteration<8;iteration++){
+      const forwards=iteration%2===0;
+      for(let j=0;j<this.lengths.length;j++){
+        const i=forwards?j:this.lengths.length-1-j;
+        const a=p[i],b=p[i+1],dx=b.x-a.x,dy=b.y-a.y;
+        const distance=Math.hypot(dx,dy)||1e-8;
+        const wa=i===fixed?0:1,wb=i+1===fixed?0:1;
+        const scale=(distance-this.lengths[i])/(distance*(wa+wb));
+        a.x+=dx*scale*wa;a.y+=dy*scale*wa;
+        b.x-=dx*scale*wb;b.y-=dy*scale*wb;
       }
     }
     // The pin is already satisfied on each iteration's first pass. In
@@ -212,8 +251,9 @@ export class ComparisonRopePhysics {
     this.clock += FIXED_STEP;
     const step2 = FIXED_STEP * FIXED_STEP;
     const near = this.nearestBeadIndex(), radius = this.steps * 11;
-    const first = Math.max(0, near * this.steps - radius);
-    const last = Math.min(this.count - 1, near * this.steps + radius);
+    const around=this.docking?.index??near;
+    const first = Math.max(0, Math.min(near,around) * this.steps - radius);
+    const last = Math.min(this.count - 1, Math.max(near,around) * this.steps + radius);
     for (let i = first; i <= last; i++) {
       const point = this.points[i];
       const vx = clamp((point.x - point.px) * 0.981, -18, 18);
@@ -226,7 +266,7 @@ export class ComparisonRopePhysics {
     // as a stiff positional rail seven times inside the constraint solver.
     // While held, the rope is free to follow the hand without being stretched
     // between an invisible guide and a second pin at the pointer.
-    const influence=this.grabbed?0.0003:0.0014;
+    const influence=(this.grabbed||this.docking)?0.0003:0.0014;
     for (let i=first;i<=last;i++) {
       if (this.grabbed?.index*this.steps===i) continue;
       const target=this.guide(i),point=this.points[i];
@@ -234,16 +274,46 @@ export class ComparisonRopePhysics {
       point.y+=(target.y-point.y)*influence;
       // Low-amplitude coherent air currents keep the *whole* floating strand
       // gently alive, rather than animating only the bead under the finger.
-      if (!this.grabbed) {
+      if (!this.grabbed&&!this.docking) {
         const phase=this.clock*1.2+this.arc[i]*0.012;
         point.x+=Math.sin(phase)*0.028;
         point.y+=Math.cos(phase*0.8)*0.032;
       }
     }
-    if (!this.grabbed) this.supportStrength=Math.min(1,this.supportStrength+0.055);
+    if(this.docking){
+      const target=this.beadPosition(this.docking.index);
+      const vx=target.x-target.px,vy=target.y-target.py;
+      const desiredX=clamp((this.x-target.x)*0.13,-7,7);
+      const desiredY=clamp((this.y-target.y)*0.13,-7,7);
+      // Velocity steering, not positional teleportation: the momentum travels
+      // through the length-constrained rope and settles as it approaches.
+      const motionX=clamp((desiredX-vx)*0.35,-2.5,2.5);
+      const motionY=clamp((desiredY-vy)*0.35,-2.5,2.5);
+      const held=this.docking.index*this.steps;
+      for(let i=0;i<this.count;i++){
+        const weight=0.78+0.22*Math.exp(-Math.abs(i-held)/24);
+        const point=this.points[i],dx=motionX*weight,dy=motionY*weight;
+        point.x+=dx;point.y+=dy;
+        point.px+=dx*0.65;point.py+=dy*0.65;
+      }
+      this.docking.elapsed+=FIXED_STEP;
+    }else if (!this.grabbed) this.supportStrength=Math.min(1,this.supportStrength+0.055);
     // Solve every segment from its constant rest length, including the ones
     // adjacent to the grabbed bead. The input pin participates in the solver.
-    this.solve(this.grabbed?18:11);
+    this.solve(this.grabbed||this.docking?20:11);
+    if(this.docking){
+      const target=this.beadPosition(this.docking.index);
+      const distance=Math.hypot(target.x-this.x,target.y-this.y);
+      const speed=Math.hypot(target.x-target.px,target.y-target.py);
+      this.docking.stable=distance<5&&speed<1.8?this.docking.stable+1:0;
+      if(this.docking.stable>=8||(this.docking.elapsed>2.2&&distance<11)){
+        const index=this.docking.index;
+        this.docking=null;
+        this.center=this.arcPositions[index];
+        this.supportStrength=0.12;
+        this.completedDock=index;
+      }
+    }
   }
 
   advance(seconds) {

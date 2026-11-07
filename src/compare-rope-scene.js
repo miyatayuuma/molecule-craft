@@ -120,7 +120,7 @@ export class ComparisonRopeScene {
 
   draw(physics, focusIndex) {
     if (this.disposed || !this.width || !this.height) return;
-    const grabbedIndex = physics.grabbed?.index ?? focusIndex;
+    const grabbedIndex = physics.grabbed?.index ?? physics.docking?.index ?? focusIndex;
     const from = Math.max(0, Math.min(focusIndex, grabbedIndex) - 5);
     const to = Math.min(physics.arcPositions.length - 1, Math.max(focusIndex, grabbedIndex) + 5);
     const points = physics.ropePoints(from, to).map(point => this.toWorld(point));
@@ -202,7 +202,7 @@ export class ComparisonRopeCanvas {
     const ctx = this.context;
     if (!this.width || !this.height) return;
     ctx.clearRect(0, 0, this.width, this.height);
-    const grabbedIndex = physics.grabbed?.index ?? focusIndex;
+    const grabbedIndex = physics.grabbed?.index ?? physics.docking?.index ?? focusIndex;
     const points = physics.ropePoints(Math.max(0, Math.min(focusIndex, grabbedIndex) - 5), Math.min(physics.arcPositions.length - 1, Math.max(focusIndex, grabbedIndex) + 5));
     if (points.length < 2) return;
     const colors = ['#87c6c8', '#489ba8', '#c0efe1'];

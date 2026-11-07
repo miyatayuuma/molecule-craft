@@ -45,3 +45,31 @@ test('a sudden two-axis pull moves the entire strand without stretching an isola
   assert(maxStretch()<0.02,'after release the strand keeps its rest lengths');
   assert(Math.abs(physics.beadPosition(11).x-heldX)>20,'the strand continues gliding into its magnetic support after release');
 });
+
+test('a released bead eases into the socket while neighbouring beads stay apart',()=>{
+  const arc=Array.from({length:18},(_,i)=>i*80);
+  const rope=new ComparisonRopePhysics(arc,{width:390,height:400,center:arc[5]});
+  for(let i=0;i<160;i++)rope.advance(1/60);
+  rope.grab(6,330,110);rope.release();rope.dock(6);
+  const separation=()=>Math.hypot(rope.beadPosition(6).x-rope.x,rope.beadPosition(6).y-rope.y);
+  const firstDistance=separation();
+  assert(firstDistance>90,'the selected bead starts away from the socket');
+  assert.equal(rope.completedDock,null,'the reading does not change immediately at release');
+  let maxStretch=0,completedAt=-1;
+  for(let frame=0;frame<250;frame++){
+    rope.advance(1/90);
+    for(let i=0;i<rope.lengths.length;i++){
+      const a=rope.points[i],b=rope.points[i+1];
+      maxStretch=Math.max(maxStretch,Math.abs(Math.hypot(a.x-b.x,a.y-b.y)/rope.lengths[i]-1));
+    }
+    if(frame===4)assert(separation()<firstDistance-8&&separation()>15,'the bead approaches over multiple frames without teleporting');
+    if(rope.completedDock!==null){completedAt=frame;break;}
+  }
+  assert(completedAt>=15&&completedAt<240,'the dock completes after visible settling');
+  assert(separation()<11,'the nominated bead is at the socket before the reading changes');
+  assert(maxStretch<0.03,`the moving rope maintains a near-fixed rest length (max relative error ${maxStretch})`);
+  const neighbours=[5,7].map(index=>Math.hypot(rope.beadPosition(index).x-rope.x,rope.beadPosition(index).y-rope.y));
+  assert(neighbours.every(distance=>distance>45),'non-selected beads do not stack on the socket');
+  rope.grab(7,260,155);
+  assert.equal(rope.completedDock,null,'new manipulation clears the previous docking result');
+});
