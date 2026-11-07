@@ -1,4 +1,5 @@
 import * as THREE from '../vendor/three/three.module.min.js';
+import {temperatureIndicatorColor,temperatureIndicatorWeights} from './compare-temperature-color.js';
 
 const COLORS = [0x9fd8d5, 0x569da7, 0xc9e8df];
 const ropeRadius = 0.015;
@@ -45,8 +46,8 @@ export class ComparisonRopeScene {
     this.platformHeat = 0;
     this.platformEmissive = [];
     this.platformHeatOverlays = [];
-    this.hotEmissive = new THREE.Color('#ff672d');
-    this.heaterLight = new THREE.PointLight(0xff6b21, 0, 2.6);
+    this.platformHeatColor = new THREE.Color('#e8f0ee');
+    this.heaterLight = new THREE.PointLight('#e8f0ee', 0, 2.6);
     this.scene.add(this.heaterLight);
   }
 
@@ -126,7 +127,7 @@ export class ComparisonRopeScene {
     }));
     // Emissive PBR pixels washed out against the white lamp texture under
     // filmic tone mapping. A second mesh uses the *same authored emissive UV*
-    // but stays tone-map-free, so the hot arcs remain unmistakably orange.
+    // but stays tone-map-free, so temperature-dependent colors remain clear.
     const heatedMeshes = [];
     base.traverse(object => {
       if (!object.isMesh || Array.isArray(object.material) || !object.material?.emissiveMap) return;
@@ -136,7 +137,7 @@ export class ComparisonRopeScene {
       const overlay = mesh.clone(false);
       overlay.name = 'compare-heater-emission-overlay';
       overlay.material = new THREE.MeshBasicMaterial({
-        map: mesh.material.emissiveMap, color: 0xff4c14,
+        map: mesh.material.emissiveMap, color: '#e8f0ee',
         transparent: true, opacity: 0, blending: THREE.AdditiveBlending,
         depthTest: true, depthWrite: false, side: THREE.DoubleSide,
         polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
@@ -169,21 +170,27 @@ export class ComparisonRopeScene {
   }
 
   applyPlatformHeat() {
-    const warmth = THREE.MathUtils.smoothstep(this.platformHeat, 0.03, 0.95);
+    const brightness = THREE.MathUtils.smoothstep(this.platformHeat, 0.03, 0.95);
     for (const {material, neutral, intensity} of this.platformEmissive) {
-      material.emissive.copy(neutral).lerp(this.hotEmissive, warmth);
+      material.emissive.copy(neutral).lerp(this.platformHeatColor, brightness);
       // Reduce the original neutral-white lamp so it cannot dilute the overlay.
-      material.emissiveIntensity = intensity * (1 - warmth * 0.72);
+      material.emissiveIntensity = intensity * (1 - brightness * 0.72);
     }
-    for (const overlay of this.platformHeatOverlays) overlay.material.opacity = warmth * 0.97;
-    this.heaterLight.intensity = 6 * warmth;
+    for (const overlay of this.platformHeatOverlays) {
+      overlay.material.color.copy(this.platformHeatColor);
+      overlay.material.opacity = brightness * 0.97;
+    }
+    this.heaterLight.color.copy(this.platformHeatColor);
+    this.heaterLight.intensity = 6 * brightness;
   }
 
-  setBoilingHeat(target, dt = 1 / 60) {
-    const desired = THREE.MathUtils.clamp(target || 0, 0, 1);
+  setBoilingHeat({temperature,phase,progress} = {}, dt = 1 / 60) {
+    const active = Number.isFinite(temperature) && (phase === 'heating' || phase === 'boiling');
+    const desired = active ? THREE.MathUtils.clamp(0.25 + 0.75 * (progress || 0), 0, 1) : 0;
     const rate = desired > this.platformHeat ? 8 : 2.8;
     const fraction = 1 - Math.exp(-rate * THREE.MathUtils.clamp(dt, 0, 0.05));
     this.platformHeat += (desired - this.platformHeat) * fraction;
+    if (active) this.platformHeatColor.lerp(new THREE.Color(temperatureIndicatorColor(temperature)), fraction);
     this.applyPlatformHeat();
   }
 
@@ -261,11 +268,16 @@ export class ComparisonRopeCanvas {
     this.platform.alt = '';
     this.platform.src = new URL('../assets/compare/pedestal-preview.png', import.meta.url).href;
     this.platformHeat = 0;
+    this.platformTemperature = 25;
+    this.platformColdImage = this.platform.cloneNode(false);
+    this.platformColdImage.classList.add('compare-pedestal-heated');
+    this.platformColdImage.style.opacity = '0';
+    this.platformColdImage.style.filter = 'sepia(1) saturate(7) hue-rotate(148deg) contrast(1.2) brightness(1.1) drop-shadow(0 0 12px #35bdfc)';
     this.platformHeatImage = this.platform.cloneNode(false);
     this.platformHeatImage.classList.add('compare-pedestal-heated');
     this.platformHeatImage.style.opacity = '0';
     this.platformHeatImage.style.filter = 'sepia(1) saturate(8) hue-rotate(-35deg) contrast(1.18) brightness(1.1) drop-shadow(0 0 12px #ff5822)';
-    stage.prepend(this.platform, this.platformHeatImage);
+    stage.prepend(this.platform, this.platformColdImage, this.platformHeatImage);
     stage.prepend(this.canvas);
   }
 
@@ -279,11 +291,16 @@ export class ComparisonRopeCanvas {
 
   async loadPlatform() { return 'preferred'; }
 
-  setBoilingHeat(target, dt = 1 / 60) {
-    const desired = Math.max(0, Math.min(1, target || 0));
+  setBoilingHeat({temperature,phase,progress} = {}, dt = 1 / 60) {
+    const active = Number.isFinite(temperature) && (phase === 'heating' || phase === 'boiling');
+    const desired = active ? Math.max(0, Math.min(1, .25 + .75 * (progress || 0))) : 0;
     const speed = desired > this.platformHeat ? 8 : 2.8;
-    this.platformHeat += (desired - this.platformHeat) * (1 - Math.exp(-speed * Math.max(0, Math.min(.05, dt))));
-    this.platformHeatImage.style.opacity = Math.min(1, this.platformHeat * 1.2).toFixed(3);
+    const fraction = 1 - Math.exp(-speed * Math.max(0, Math.min(.05, dt)));
+    this.platformHeat += (desired - this.platformHeat) * fraction;
+    if (active) this.platformTemperature += (temperature - this.platformTemperature) * fraction;
+    const {cold,warm} = temperatureIndicatorWeights(this.platformTemperature);
+    this.platformColdImage.style.opacity = Math.min(1, this.platformHeat * cold * 1.2).toFixed(3);
+    this.platformHeatImage.style.opacity = Math.min(1, this.platformHeat * warm * 1.2).toFixed(3);
   }
 
   draw(physics, focusIndex) {
@@ -313,5 +330,5 @@ export class ComparisonRopeCanvas {
     ctx.shadowBlur = 0;
   }
 
-  dispose() { this.canvas.remove(); this.platform.remove(); this.platformHeatImage.remove(); }
+  dispose() { this.canvas.remove(); this.platform.remove(); this.platformColdImage.remove(); this.platformHeatImage.remove(); }
 }

@@ -251,7 +251,11 @@ export function renderEncyclopediaComparison({
       if(row?.discovered&&Number.isFinite(temperature))instrumentValue.textContent=temperature.toFixed(1);
       const activeSnapshot=boilingCycle.snapshot(row?.id);
       stage.classList.toggle('is-boiling',activeSnapshot?.phase==='boiling');
-      scene?.setBoilingHeat?.(boilingHeatLevel(activeSnapshot),elapsed);
+      scene?.setBoilingHeat?.({
+        temperature,
+        phase:activeSnapshot?.phase,
+        progress:boilingHeatLevel(activeSnapshot),
+      },elapsed);
       if(boilingVisualReady){
         const snapshots=new Map([...boilingCycle.entries].map(([id])=>[id,boilingCycle.snapshot(id)]));
         try{scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId,phaseAppearanceById);}
