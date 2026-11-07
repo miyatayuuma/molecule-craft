@@ -1,8 +1,8 @@
 // Rope constraint design adapted for the encyclopedia from mrdoob's Tangle
 // (Codevember 2026/04, MIT): https://github.com/mrdoob/codevember-2026
 // Unlike a spring-drawn graph, every gap has simulated intermediate particles.
-// The central instrument supports an arbitrary material position along the
-// strand, so pulling a bead over it never teleports the next bead into place.
+// Only the focused bead is held by the central instrument. Every other
+// particle floats under rope tension and a weak lateral current.
 
 export const ROPE_SUBDIVISIONS = 4;
 const FIXED_STEP = 1 / 90;
@@ -35,37 +35,39 @@ export class ComparisonRopePhysics {
     this.grabbed = null;
     this.docking = null;
     this.completedDock = null;
-    this.supportStrength = 1;
     this.clock = 0;
     this.accumulator = 0;
     this.settlePosition();
+    // Begin with a relaxed-looking floating strand, without spending the first
+    // visible second pulling a ruler-straight initial layout into shape.
+    for(let frame=0;frame<22;frame++)this.step();
   }
 
   get x() { return this.width / 2; }
   get y() { return this.height * 0.43; }
 
-  // A faint buoyant field prevents the rope from dangling off the instrument.
-  // Its preferred shape is slack, NOT an almost-straight taut string; the
-  // distance constraints, not these guide coordinates, set its actual length.
-  guide(index) {
+  // A deliberately irregular starting fold. This is only an initial condition:
+  // the simulation never pulls the beads back to these material coordinates.
+  initialPoint(index) {
     const distance = this.arc[index] - this.center;
     const extent = Math.abs(distance);
     const substep=index%this.steps;
     const beadIndex=Math.floor(index/this.steps);
     const span=this.arcPositions[Math.min(beadIndex+1,this.arcPositions.length-1)]-this.arcPositions[beadIndex];
-    const fold=Math.min(substep,this.steps-substep)*span*.46;
+    const fold=Math.min(substep,this.steps-substep)*span*.38;
+    const wave=Math.sin(this.arc[index]*.031)*20+Math.sin(this.arc[index]*.012+1.8)*13;
     return {
-      x: this.x + distance * 0.77,
-      y: this.y + Math.min(72, Math.sqrt(extent) * 3.5)+fold,
+      x: this.x + distance * .72 + wave,
+      y: this.y + Math.min(54, Math.sqrt(extent)*2.7)+fold+Math.cos(this.arc[index]*.019)*26,
     };
   }
 
   settlePosition() {
     for (let i = 0; i < this.count; i++) {
       const point = this.points[i];
-      const guide = this.guide(i);
-      point.x = guide.x;
-      point.y = guide.y;
+      const initial = this.initialPoint(i);
+      point.x = initial.x;
+      point.y = initial.y;
       point.z = 0;
       point.px = point.x;
       point.py = point.y;
@@ -75,7 +77,7 @@ export class ComparisonRopePhysics {
   }
 
   setCenter(value) {
-    if(this.docking){this.docking=null;this.supportStrength=0.3;}
+    if(this.docking)this.docking=null;
     this.center = clamp(value, this.arc[0], this.arc[this.count - 1]);
   }
 
@@ -87,11 +89,10 @@ export class ComparisonRopePhysics {
     const bead=this.beadPosition(index);
     this.docking={index,elapsed:0,stable:0,x:bead.x,y:bead.y,vx:0,vy:0};
     this.completedDock=null;
-    this.supportStrength=0;
   }
 
   cancelDock() {
-    if(this.docking){this.docking=null;this.supportStrength=this.grabbed?0:0.25;}
+    if(this.docking)this.docking=null;
     this.completedDock=null;
   }
 
@@ -105,7 +106,6 @@ export class ComparisonRopePhysics {
       this.grabbed.targetX=x;
       this.grabbed.targetY=y;
     }
-    this.supportStrength = 0;
     // Only the held material point is driven. Constraints propagate motion
     // down the rope over subsequent frames; there is no whole-strand shift.
   }
@@ -137,44 +137,14 @@ export class ComparisonRopePhysics {
     this.height = height;
   }
 
-  // This is a travelling, frictionless instrument support, not a bead index.
-  // Its material position moves continuously as the user pulls the string.
-  support() {
-    const arc = this.arc, x = this.center;
-    let low = 0, high = arc.length - 1;
-    while (low < high) {
-      const middle = (low + high) >>> 1;
-      if (arc[middle] < x) low = middle + 1;
-      else high = middle;
-    }
-    const b = low, a = Math.max(0, b - 1);
-    const fraction = b === a ? 0 : clamp((x - arc[a]) / (arc[b] - arc[a]), 0, 1);
-    return { a, b, fraction };
-  }
-
-  pinSupport() {
-    if (this.grabbed || this.docking || this.supportStrength <= 0) return;
-    const { a, b, fraction } = this.support(), p = this.points;
-    const wa = 1 - fraction, wb = fraction;
-    const denominator = wa * wa + wb * wb;
-    const deltaX = this.x - p[a].x * wa - p[b].x * wb;
-    const deltaY = this.y - p[a].y * wa - p[b].y * wb;
-    const aa = wa / denominator, bb = wb / denominator;
-    p[a].x += deltaX * aa * this.supportStrength; p[a].y += deltaY * aa * this.supportStrength;
-    if (a !== b) {
-      p[b].x += deltaX * bb * this.supportStrength; p[b].y += deltaY * bb * this.supportStrength;
-    }
-  }
-
   solve(iterations = 8) {
     const p = this.points;
-    const held=this.grabbed??this.docking;
-    const fixed=held?held.index*this.steps:-1;
+    // Exactly one physical bead is pinned at rest. During manipulation its
+    // temporary hand/magnet attachment replaces the pedestal attachment.
+    const held=this.grabbed??this.docking??{index:this.nearestBeadIndex(),x:this.x,y:this.y};
+    const fixed=held.index*this.steps;
     for (let iteration = 0; iteration < iterations; iteration++) {
-      if (fixed < 0) this.pinSupport();
-      else {
-        const bead=p[fixed];bead.x=held.x;bead.y=held.y;
-      }
+      const bead=p[fixed];bead.x=held.x;bead.y=held.y;
       const forwards = iteration % 2 === 0;
       for (let j = 0; j < this.lengths.length; j++) {
         const i = forwards ? j : this.lengths.length - 1 - j;
@@ -228,9 +198,7 @@ export class ComparisonRopePhysics {
     }
     // The pin is already satisfied on each iteration's first pass. In
     // particular, NEVER move the grabbed bead after the length projection.
-    if (fixed >= 0) {
-      const bead=p[fixed];bead.x=held.x;bead.y=held.y;
-    }
+    const bead=p[fixed];bead.x=held.x;bead.y=held.y;
   }
 
   nearestBeadIndex() {
@@ -273,23 +241,29 @@ export class ComparisonRopePhysics {
       point.x += vx;
       point.y += vy + 115 * step2;
     }
-    // A diffuse stabilising field is applied as a *force* once per step, not
-    // as a stiff positional rail seven times inside the constraint solver.
-    // While held, the rope is free to follow the hand without being stretched
-    // between an invisible guide and a second pin at the pointer.
-    const influence=(this.grabbed||this.docking)?0.0005:0.008;
+    // No per-bead position targets. Slow, opposing lateral currents spread
+    // the two sides while buoyancy and wandering air keep their shapes alive.
+    // A wide soft boundary discourages the visible section from escaping;
+    // actual bead spacing emerges solely from the constant-length rope.
+    const free=!(this.grabbed||this.docking);
+    const anchorArc=this.arcPositions[near];
+    const visibleRadius=Math.max(280,this.width*.87);
     for (let i=first;i<=last;i++) {
       if (this.grabbed?.index*this.steps===i) continue;
-      const target=this.guide(i),point=this.points[i];
-      point.x+=(target.x-point.x)*influence;
-      point.y+=(target.y-point.y)*influence;
-      // Low-amplitude coherent air currents keep the *whole* floating strand
-      // gently alive, rather than animating only the bead under the finger.
-      if (!this.grabbed&&!this.docking) {
-        const phase=this.clock*1.2+this.arc[i]*0.012;
-        point.x+=Math.sin(phase)*0.028;
-        point.y+=Math.cos(phase*0.8)*0.032;
-      }
+      const point=this.points[i];
+      const side=Math.sign(this.arc[i]-anchorArc);
+      const distanceX=point.x-this.x;
+      const outer=Math.max(0,Math.abs(distanceX)-visibleRadius);
+      const phase=this.clock*.68+this.arc[i]*.009;
+      const strength=free?1:.3;
+      // Both sides share a broad, soft air pocket. No particle is attracted
+      // to a slot computed from its molecule value or its bead index.
+      const sidePocket=side*120;
+      const sideways=side*.04+(sidePocket-distanceX)*.005;
+      point.x+=strength*(sideways+Math.sin(phase)*.065-Math.sign(distanceX)*outer*.0014);
+      // This vertical force is shared by the whole strand, not a separate
+      // prescribed height for each bead.
+      point.y+=strength*((this.y+35-point.y)*.0035+Math.cos(phase*.8)*.03);
     }
     if(this.docking){
       const magnet=this.docking;
@@ -299,7 +273,7 @@ export class ComparisonRopePhysics {
       magnet.vy=clamp((magnet.vy+(this.y-magnet.y)*.045)*.78,-6,6);
       magnet.x+=magnet.vx;magnet.y+=magnet.vy;
       this.docking.elapsed+=FIXED_STEP;
-    }else if (!this.grabbed) this.supportStrength=Math.min(1,this.supportStrength+0.055);
+    }
     // Solve every segment from its constant rest length, including the ones
     // adjacent to the grabbed bead. The input pin participates in the solver.
     this.solve(this.grabbed||this.docking?20:11);
@@ -312,7 +286,6 @@ export class ComparisonRopePhysics {
         const index=this.docking.index;
         this.docking=null;
         this.center=this.arcPositions[index];
-        this.supportStrength=0.12;
         this.completedDock=index;
       }
     }
