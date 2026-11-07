@@ -49,14 +49,16 @@ try{
   assert(released.moving&&released.follows&&released.docking&&released.released,'two-axis drag takes neighbouring rope particles with it, then begins gradual docking');
   let locked=false;for(let i=0;i<35;i++){await pause(100);locked=await evaluate(`document.querySelector('.compare-stage')?.classList.contains('is-dock-locked')`);if(locked)break;}
   assert.equal(locked,true,'one bead reaches the socket under a gradual, bounded attraction');
+  const selectedId=await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId??null`);
   await evaluate(`document.querySelector('[data-compare-axis="atomCount"]').click()`);await pause(80);
   assert.equal(await evaluate(`document.querySelector('.compare-instrument-reading')?.textContent.includes('個')`),true,'Axis changes but the focused molecule remains');
-  assert.equal(await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId`),'ethanol');
+  assert.equal(await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId??null`),selectedId,'Axis change keeps the bead chosen by the physical release');
   await evaluate(`document.querySelector('[data-compare-axis="molarMass"]').click()`);await pause(80);
   const unknown=await evaluate(`(async()=>{
     const {buildComparisonRows}=await import('/src/encyclopedia-compare.js');const records=(await(await fetch('/data/molecules.json')).json());const order=buildComparisonRows(records).rows;
-    const index=order.findIndex(row=>row.id==='ethanol');const target=index+1<order.length?index+1:index-1;const stage=document.querySelector('.compare-stage');
-    stage.focus();stage.dispatchEvent(new KeyboardEvent('keydown',{key:target>index?'ArrowRight':'ArrowLeft',bubbles:true}));
+    const index=Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex);
+    const target=index+1<order.length&&!["water","methane","ethanol"].includes(order[index+1].id)?index+1:index-1;
+    const stage=document.querySelector('.compare-stage');stage.focus();stage.dispatchEvent(new KeyboardEvent('keydown',{key:target>index?'ArrowRight':'ArrowLeft',bubbles:true}));
     return{target:order[target].id,index:target};
   })()`);await pause(650);
   const hidden=await evaluate(`(()=>({index:Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex),name:document.querySelector('.compare-summary')?.textContent,secret:!!document.querySelector('.compare-bead.focus.unknown'),detail:document.querySelector('#collection-detail').hidden}))()`);
