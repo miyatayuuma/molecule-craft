@@ -22,6 +22,14 @@
     "iupacNameEn": "Dihydrogen",
     "commonNameJa": "水素",
     "commonNameEn": "Hydrogen",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -88,6 +96,17 @@
     "iupacNameEn": "Dioxygen",
     "commonNameJa": "酸素",
     "commonNameEn": "Oxygen",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#a2c8f4",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/977"
+      },
+      "gas": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/977"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -154,6 +173,14 @@
     "iupacNameEn": "Dinitrogen",
     "commonNameJa": "窒素",
     "commonNameEn": "Nitrogen",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -223,6 +250,15 @@
     "iupacNameEn": "Oxidane",
     "commonNameJa": "水",
     "commonNameEn": "Water",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/962"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -296,6 +332,14 @@
     "formula": "CO2",
     "category": "basic-inorganic",
     "iupacNameEn": "Carbon dioxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -363,6 +407,14 @@
     "category": "basic-inorganic",
     "formula": "CO",
     "iupacNameEn": "Carbon monoxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -438,6 +490,14 @@
     "iupacNameEn": "Azane",
     "commonNameJa": "アンモニア",
     "commonNameEn": "Ammonia",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -519,6 +579,14 @@
     "iupacNameEn": "Sulfane",
     "commonNameJa": "硫化水素",
     "commonNameEn": "Hydrogen sulfide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -586,6 +654,14 @@
     "formula": "HCl",
     "category": "basic-inorganic",
     "iupacNameEn": "Hydrogen chloride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -647,6 +723,14 @@
     "formula": "HF",
     "category": "basic-inorganic",
     "iupacNameEn": "Hydrogen fluoride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -713,6 +797,18 @@
     "iupacNameEn": "Dichlorine",
     "commonNameJa": "塩素",
     "commonNameEn": "Chlorine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#d9a344",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24526"
+      },
+      "gas": {
+        "kind": "colored",
+        "renderColor": "#c1d864",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24526"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -780,6 +876,14 @@
     "formula": "SO2",
     "category": "basic-inorganic",
     "iupacNameEn": "Sulfur dioxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -859,6 +963,14 @@
     "formula": "SO3",
     "category": "basic-inorganic",
     "iupacNameEn": "Sulfur trioxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -946,6 +1058,14 @@
     "iupacNameEn": "Phosphane",
     "commonNameJa": "ホスフィン",
     "commonNameEn": "Phosphine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1031,6 +1151,14 @@
     "formula": "PCl3",
     "category": "basic-inorganic",
     "iupacNameEn": "Phosphorus trichloride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1128,6 +1256,14 @@
     "formula": "PCl5",
     "category": "basic-inorganic",
     "iupacNameEn": "Phosphorus pentachloride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1219,6 +1355,14 @@
     "formula": "CS2",
     "category": "basic-inorganic",
     "iupacNameEn": "Carbon disulfide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1292,6 +1436,14 @@
     "formula": "COS",
     "category": "basic-inorganic",
     "iupacNameEn": "Carbonyl sulfide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1395,6 +1547,14 @@
     "formula": "H3PO4",
     "category": "basic-inorganic",
     "iupacNameEn": "Phosphoric acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1522,6 +1682,14 @@
     "formula": "H2SO4",
     "category": "basic-inorganic",
     "iupacNameEn": "Sulfuric acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1625,6 +1793,14 @@
     "formula": "H2O2",
     "category": "basic-inorganic",
     "iupacNameEn": "Hydrogen peroxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1704,6 +1880,14 @@
     "formula": "HClO",
     "category": "basic-inorganic",
     "iupacNameEn": "Hypochlorous acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1795,6 +1979,14 @@
     "formula": "H2CO3",
     "category": "basic-inorganic",
     "iupacNameEn": "Carbonic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -1898,6 +2090,14 @@
     "formula": "CH4",
     "category": "hydrocarbon",
     "iupacNameEn": "Methane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -2013,6 +2213,14 @@
     "formula": "C2H6",
     "category": "hydrocarbon",
     "iupacNameEn": "Ethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -2164,6 +2372,14 @@
     "formula": "C3H8",
     "category": "hydrocarbon",
     "iupacNameEn": "Propane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -2356,6 +2572,14 @@
     "iupacNameEn": "Butane",
     "commonNameJa": "n-ブタン",
     "commonNameEn": "n-Butane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -2566,6 +2790,14 @@
     "iupacNameEn": "2-Methylpropane",
     "commonNameJa": "イソブタン",
     "commonNameEn": "Isobutane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -2794,6 +3026,14 @@
     "iupacNameEn": "Pentane",
     "commonNameJa": "n-ペンタン",
     "commonNameEn": "n-Pentane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3058,6 +3298,14 @@
     "iupacNameEn": "Hexane",
     "commonNameJa": "n-ヘキサン",
     "commonNameEn": "n-Hexane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3256,6 +3504,14 @@
     "iupacNameEn": "Ethene",
     "commonNameJa": "エチレン",
     "commonNameEn": "Ethene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3388,6 +3644,14 @@
     "iupacNameEn": "Propene",
     "commonNameJa": "プロピレン",
     "commonNameEn": "Propene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3551,6 +3815,14 @@
     "formula": "C4H8",
     "category": "hydrocarbon",
     "iupacNameEn": "But-1-ene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3732,6 +4004,14 @@
     "formula": "C4H8",
     "category": "hydrocarbon",
     "iupacNameEn": "But-2-ene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -3918,6 +4198,14 @@
     "iupacNameEn": "2-Methylprop-1-ene",
     "commonNameJa": "イソブテン",
     "commonNameEn": "Isobutene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4092,6 +4380,14 @@
     "iupacNameEn": "Buta-1,3-diene",
     "commonNameJa": "1,3-ブタジエン",
     "commonNameEn": "1,3-Butadiene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4272,6 +4568,14 @@
     "iupacNameEn": "2-Methylbuta-1,3-diene",
     "commonNameJa": "イソプレン",
     "commonNameEn": "Isoprene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4429,6 +4733,14 @@
     "iupacNameEn": "1,1-Difluoroethene",
     "commonNameJa": "フッ化ビニリデン",
     "commonNameEn": "Vinylidene fluoride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4561,6 +4873,14 @@
     "iupacNameEn": "1,1,2,3,3,3-Hexafluoroprop-1-ene",
     "commonNameJa": "ヘキサフルオロプロピレン",
     "commonNameEn": "Hexafluoropropylene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4693,6 +5013,14 @@
     "iupacNameEn": "1,1,2,2-Tetrafluoroethene",
     "commonNameJa": "テトラフルオロエチレン",
     "commonNameEn": "Tetrafluoroethylene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -4916,6 +5244,14 @@
     "iupacNameEn": "Hexane-1,6-diamine",
     "commonNameJa": "ヘキサメチレンジアミン",
     "commonNameEn": "Hexamethylenediamine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5126,6 +5462,14 @@
     "iupacNameEn": "Ethyne",
     "commonNameJa": "アセチレン",
     "commonNameEn": "Ethyne",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5229,6 +5573,14 @@
     "formula": "C3H4",
     "category": "hydrocarbon",
     "iupacNameEn": "Propyne",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5368,6 +5720,14 @@
     "formula": "C4H6",
     "category": "hydrocarbon",
     "iupacNameEn": "But-1-yne",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5525,6 +5885,14 @@
     "formula": "C4H6",
     "category": "hydrocarbon",
     "iupacNameEn": "But-2-yne",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5681,6 +6049,14 @@
     "formula": "C3H6",
     "category": "hydrocarbon",
     "iupacNameEn": "Cyclopropane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -5849,6 +6225,14 @@
     "formula": "C4H8",
     "category": "hydrocarbon",
     "iupacNameEn": "Cyclobutane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -6053,6 +6437,14 @@
     "formula": "C5H10",
     "category": "hydrocarbon",
     "iupacNameEn": "Cyclopentane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -6293,6 +6685,14 @@
     "formula": "C6H12",
     "category": "hydrocarbon",
     "iupacNameEn": "Cyclohexane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -6569,6 +6969,14 @@
     "formula": "C7H14",
     "category": "hydrocarbon",
     "iupacNameEn": "Methylcyclohexane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -6809,6 +7217,15 @@
     "formula": "C6H6",
     "category": "aromatic",
     "iupacNameEn": "Benzene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/241"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -7018,6 +7435,14 @@
     "iupacNameEn": "Methylbenzene",
     "commonNameJa": "トルエン",
     "commonNameEn": "Toluene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -7258,6 +7683,14 @@
     "formula": "C8H10",
     "category": "aromatic",
     "iupacNameEn": "Ethylbenzene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -7518,6 +7951,14 @@
     "iupacNameEn": "1,4-Dimethylbenzene",
     "commonNameJa": "p-キシレン",
     "commonNameEn": "p-Xylene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -7769,6 +8210,14 @@
     "iupacNameEn": "Ethenylbenzene",
     "commonNameJa": "スチレン",
     "commonNameEn": "Styrene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -7932,6 +8381,14 @@
     "formula": "CH3Cl",
     "category": "halogenated-hydrocarbon",
     "iupacNameEn": "Chloromethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8029,6 +8486,14 @@
     "formula": "CH2Cl2",
     "category": "halogenated-hydrocarbon",
     "iupacNameEn": "Dichloromethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8128,6 +8593,14 @@
     "iupacNameEn": "Trichloromethane",
     "commonNameJa": "クロロホルム",
     "commonNameEn": "Chloroform",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8227,6 +8700,14 @@
     "iupacNameEn": "Tetrachloromethane",
     "commonNameJa": "四塩化炭素",
     "commonNameEn": "Carbon tetrachloride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8324,6 +8805,14 @@
     "formula": "CH3F",
     "category": "halogenated-hydrocarbon",
     "iupacNameEn": "Fluoromethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8421,6 +8910,14 @@
     "formula": "CH2F2",
     "category": "halogenated-hydrocarbon",
     "iupacNameEn": "Difluoromethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8536,6 +9033,14 @@
     "formula": "C2H4Cl2",
     "category": "halogenated-hydrocarbon",
     "iupacNameEn": "1,2-Dichloroethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8659,6 +9164,14 @@
     "iupacNameEn": "Chloroethene",
     "commonNameJa": "塩化ビニル",
     "commonNameEn": "Vinyl chloride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8773,6 +9286,14 @@
     "iupacNameEn": "1-Chloro-1,2,2-trifluoroethene",
     "commonNameJa": "クロロトリフルオロエチレン",
     "commonNameEn": "Chlorotrifluoroethylene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -8923,6 +9444,14 @@
     "formula": "C6H5Cl",
     "category": "halogenated-aromatic",
     "iupacNameEn": "Chlorobenzene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9068,6 +9597,14 @@
     "formula": "CH4O",
     "category": "alcohol",
     "iupacNameEn": "Methanol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9195,6 +9732,15 @@
     "formula": "C2H6O",
     "category": "alcohol",
     "iupacNameEn": "Ethanol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/702"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9361,6 +9907,14 @@
     "formula": "C3H8O",
     "category": "alcohol",
     "iupacNameEn": "Propan-2-ol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9560,6 +10114,15 @@
     "formula": "C4H10O",
     "category": "alcohol",
     "iupacNameEn": "Butan-1-ol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/263"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9777,6 +10340,14 @@
     "formula": "C4H10O",
     "category": "alcohol",
     "iupacNameEn": "Butan-2-ol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -9997,6 +10568,14 @@
     "formula": "C4H10O",
     "category": "alcohol",
     "iupacNameEn": "2-Methylpropan-2-ol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -10189,6 +10768,14 @@
     "iupacNameEn": "Ethane-1,2-diol",
     "commonNameJa": "エチレングリコール",
     "commonNameEn": "Ethylene glycol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -10375,6 +10962,14 @@
     "iupacNameEn": "Propane-1,2,3-triol",
     "commonNameJa": "グリセリン",
     "commonNameEn": "Glycerol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -10615,6 +11210,14 @@
     "formula": "C6H12O",
     "category": "alcohol",
     "iupacNameEn": "Cyclohexanol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -10822,6 +11425,14 @@
     "iupacNameEn": "Methoxymethane",
     "commonNameJa": "ジメチルエーテル",
     "commonNameEn": "Dimethyl ether",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -10990,6 +11601,14 @@
     "iupacNameEn": "Methoxyethane",
     "commonNameJa": "メチルエチルエーテル",
     "commonNameEn": "Methyl ethyl ether",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11194,6 +11813,14 @@
     "iupacNameEn": "Ethoxyethane",
     "commonNameJa": "ジエチルエーテル",
     "commonNameEn": "Diethyl ether",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11409,6 +12036,14 @@
     "iupacNameEn": "Oxolane",
     "commonNameJa": "テトラヒドロフラン",
     "commonNameEn": "Tetrahydrofuran",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11576,6 +12211,14 @@
     "iupacNameEn": "Oxirane",
     "commonNameJa": "エチレンオキシド",
     "commonNameEn": "Ethylene oxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11691,6 +12334,14 @@
     "formula": "CH4S",
     "category": "thiol",
     "iupacNameEn": "Methanethiol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11820,6 +12471,14 @@
     "iupacNameEn": "Methylsulfanylmethane",
     "commonNameJa": "硫化ジメチル",
     "commonNameEn": "Dimethyl sulfide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -11940,6 +12599,14 @@
     "iupacNameEn": "Methanal",
     "commonNameJa": "ホルムアルデヒド",
     "commonNameEn": "Formaldehyde",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12048,6 +12715,14 @@
     "iupacNameEn": "Ethanal",
     "commonNameJa": "アセトアルデヒド",
     "commonNameEn": "Acetaldehyde",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12192,6 +12867,14 @@
     "iupacNameEn": "Propanal",
     "commonNameJa": "プロピオンアルデヒド",
     "commonNameEn": "Propionaldehyde",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12378,6 +13061,14 @@
     "formula": "C7H6O",
     "category": "aldehyde",
     "iupacNameEn": "Benzaldehyde",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12564,6 +13255,14 @@
     "iupacNameEn": "Propan-2-one",
     "commonNameJa": "アセトン",
     "commonNameEn": "Acetone",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12742,6 +13441,14 @@
     "formula": "C4H8O",
     "category": "ketone",
     "iupacNameEn": "Butan-2-one",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -12964,6 +13671,14 @@
     "formula": "C6H10O",
     "category": "ketone",
     "iupacNameEn": "Cyclohexanone",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13138,6 +13853,14 @@
     "iupacNameEn": "Methanoic acid",
     "commonNameJa": "ギ酸",
     "commonNameEn": "Formic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13258,6 +13981,14 @@
     "iupacNameEn": "Ethanoic acid",
     "commonNameJa": "酢酸",
     "commonNameEn": "Acetic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13414,6 +14145,14 @@
     "iupacNameEn": "Propanoic acid",
     "commonNameJa": "プロピオン酸",
     "commonNameEn": "Propionic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13606,6 +14345,14 @@
     "iupacNameEn": "Butanoic acid",
     "commonNameJa": "酪酸",
     "commonNameEn": "Butyric acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13780,6 +14527,14 @@
     "iupacNameEn": "Ethanedioic acid",
     "commonNameJa": "シュウ酸",
     "commonNameEn": "Oxalic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -13942,6 +14697,14 @@
     "iupacNameEn": "2-Hydroxypropanoic acid",
     "commonNameJa": "乳酸",
     "commonNameEn": "Lactic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -14146,6 +14909,14 @@
     "formula": "C7H6O2",
     "category": "aromatic-acid",
     "iupacNameEn": "Benzoic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -14357,6 +15128,14 @@
     "formula": "C4H8O2",
     "category": "ester",
     "iupacNameEn": "Ethyl ethanoate",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -14534,6 +15313,14 @@
     "iupacNameEn": "Prop-2-enoic acid",
     "commonNameJa": "アクリル酸",
     "commonNameEn": "Acrylic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -14705,6 +15492,14 @@
     "iupacNameEn": "Ethanoic anhydride",
     "commonNameJa": "無水酢酸",
     "commonNameEn": "Acetic anhydride",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -14862,6 +15657,14 @@
     "formula": "CH5N",
     "category": "amine",
     "iupacNameEn": "Methanamine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15001,6 +15804,14 @@
     "formula": "C2H7N",
     "category": "amine",
     "iupacNameEn": "N-Methylmethanamine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15176,6 +15987,14 @@
     "formula": "C3H9N",
     "category": "amine",
     "iupacNameEn": "N,N-Dimethylmethanamine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15385,6 +16204,15 @@
     "iupacNameEn": "Benzenamine",
     "commonNameJa": "アニリン",
     "commonNameEn": "Aniline",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6115"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15562,6 +16390,14 @@
     "iupacNameEn": "Ethanamide",
     "commonNameJa": "アセトアミド",
     "commonNameEn": "Acetamide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15703,6 +16539,14 @@
     "iupacNameEn": "Carbamide",
     "commonNameJa": "尿素",
     "commonNameEn": "Urea",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15806,6 +16650,14 @@
     "formula": "CHN",
     "category": "nitrile",
     "iupacNameEn": "Hydrogen cyanide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -15902,6 +16754,14 @@
     "iupacNameEn": "Ethanenitrile",
     "commonNameJa": "アセトニトリル",
     "commonNameEn": "Acetonitrile",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16019,6 +16879,14 @@
     "iupacNameEn": "Prop-2-enenitrile",
     "commonNameJa": "アクリロニトリル",
     "commonNameEn": "Acrylonitrile",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16169,6 +17037,14 @@
     "formula": "C5H5N",
     "category": "aromatic-heterocycle",
     "iupacNameEn": "Pyridine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16322,6 +17198,14 @@
     "iupacNameEn": "Prop-2-enal",
     "commonNameJa": "アクロレイン",
     "commonNameEn": "Acrolein",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16469,6 +17353,14 @@
     "iupacNameEn": "2-Aminoethanoic acid",
     "commonNameJa": "グリシン",
     "commonNameEn": "Glycine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16646,6 +17538,14 @@
     "iupacNameEn": "2-Aminopropanoic acid",
     "commonNameJa": "アラニン",
     "commonNameEn": "Alanine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -16833,6 +17733,14 @@
     "formula": "C2H8N2",
     "category": "diamine",
     "iupacNameEn": "Ethane-1,2-diamine",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -17030,6 +17938,14 @@
     "iupacNameEn": "Phenol",
     "commonNameJa": "フェノール",
     "commonNameEn": "Phenol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -17251,6 +18167,14 @@
     "iupacNameEn": "Methoxybenzene",
     "commonNameJa": "アニソール",
     "commonNameEn": "Anisole",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -17496,6 +18420,14 @@
     "iupacNameEn": "1-Phenylethan-1-one",
     "commonNameJa": "アセトフェノン",
     "commonNameEn": "Acetophenone",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -17726,6 +18658,14 @@
     "iupacNameEn": "Benzene-1,2-diol",
     "commonNameJa": "カテコール",
     "commonNameEn": "Catechol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -17938,6 +18878,14 @@
     "iupacNameEn": "Benzene-1,4-diol",
     "commonNameJa": "ヒドロキノン",
     "commonNameEn": "Hydroquinone",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -18165,6 +19113,14 @@
     "iupacNameEn": "2-Hydroxybenzoic acid",
     "commonNameJa": "サリチル酸",
     "commonNameEn": "Salicylic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -18413,6 +19369,14 @@
     "iupacNameEn": "Benzene-1,4-dicarboxylic acid",
     "commonNameJa": "テレフタル酸",
     "commonNameEn": "Terephthalic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -18691,6 +19655,14 @@
     "iupacNameEn": "2-(Acetyloxy)benzoic acid",
     "commonNameJa": "アスピリン",
     "commonNameEn": "Aspirin",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -18922,6 +19894,14 @@
     "iupacNameEn": "Propanedioic acid",
     "commonNameJa": "マロン酸",
     "commonNameEn": "Malonic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -19111,6 +20091,14 @@
     "iupacNameEn": "Butanedioic acid",
     "commonNameJa": "コハク酸",
     "commonNameEn": "Succinic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -19354,6 +20342,14 @@
     "iupacNameEn": "Hexanedioic acid",
     "commonNameJa": "アジピン酸",
     "commonNameEn": "Adipic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -19604,6 +20600,14 @@
     "commonNameJa": "リンゴ酸",
     "commonNameEn": "Malic acid",
     "stereochemistry": "unspecified",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -19859,6 +20863,14 @@
     "iupacNameEn": "2-Hydroxypropane-1,2,3-tricarboxylic acid",
     "commonNameJa": "クエン酸",
     "commonNameEn": "Citric acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -20078,6 +21090,14 @@
     "iupacNameEn": "2-Hydroxyethanoic acid",
     "commonNameJa": "グリコール酸",
     "commonNameEn": "Glycolic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -20290,6 +21310,14 @@
     "iupacNameEn": "Methyl 2-hydroxybenzoate",
     "commonNameJa": "サリチル酸メチル",
     "commonNameEn": "Methyl salicylate",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -20584,6 +21612,14 @@
     "iupacNameEn": "3-Methylbutyl ethanoate",
     "commonNameJa": "酢酸イソアミル",
     "commonNameEn": "Isoamyl acetate",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -20862,6 +21898,14 @@
     "iupacNameEn": "Phenylmethanol",
     "commonNameJa": "ベンジルアルコール",
     "commonNameEn": "Benzyl alcohol",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -21082,6 +22126,14 @@
     "commonNameJa": "セリン",
     "commonNameEn": "Serine",
     "stereochemistry": "unspecified",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -21290,6 +22342,14 @@
     "commonNameJa": "システイン",
     "commonNameEn": "Cysteine",
     "stereochemistry": "unspecified",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -21534,6 +22594,14 @@
     "commonNameJa": "メチオニン",
     "commonNameEn": "Methionine",
     "stereochemistry": "unspecified",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -21794,6 +22862,14 @@
     "iupacNameEn": "Cyclohex-1-ene",
     "commonNameJa": "シクロヘキセン",
     "commonNameEn": "Cyclohexene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -21989,6 +23065,14 @@
     "iupacNameEn": "2-Oxopropanoic acid",
     "commonNameJa": "ピルビン酸",
     "commonNameEn": "Pyruvic acid",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22147,6 +23231,14 @@
     "iupacNameEn": "Furan",
     "commonNameJa": "フラン",
     "commonNameEn": "Furan",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22303,6 +23395,14 @@
     "iupacNameEn": "Dimethyl sulfoxide",
     "commonNameJa": "ジメチルスルホキシド",
     "commonNameEn": "Dimethyl sulfoxide",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22437,6 +23537,18 @@
     "iupacNameEn": "Trioxygen",
     "commonNameJa": "オゾン",
     "commonNameEn": "Ozone",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#2443bb",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24823"
+      },
+      "gas": {
+        "kind": "colored",
+        "renderColor": "#a6ceef",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24823"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22550,6 +23662,14 @@
     "iupacNameEn": "Nitromethane",
     "commonNameJa": "ニトロメタン",
     "commonNameEn": "Nitromethane",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22734,6 +23854,16 @@
     "iupacNameEn": "Nitrobenzene",
     "commonNameJa": "ニトロベンゼン",
     "commonNameEn": "Nitrobenzene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#e7ce78",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7416"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -22981,6 +24111,16 @@
     "iupacNameEn": "1-Methyl-2-nitrobenzene",
     "commonNameJa": "2-ニトロトルエン",
     "commonNameEn": "2-Nitrotoluene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#ead780",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6944"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -23268,6 +24408,16 @@
     "iupacNameEn": "1-Methyl-2,4-dinitrobenzene",
     "commonNameJa": "2,4-ジニトロトルエン",
     "commonNameEn": "2,4-Dinitrotoluene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "colored",
+        "renderColor": "#dfb830",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/8461"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",
@@ -23589,6 +24739,14 @@
     "iupacNameEn": "1-Methyl-2,4,6-trinitrobenzene",
     "commonNameJa": "2,4,6-トリニトロトルエン",
     "commonNameEn": "2,4,6-Trinitrotoluene",
+    "phaseAppearance": {
+      "liquid": {
+        "kind": "none"
+      },
+      "gas": {
+        "kind": "none"
+      }
+    },
     "nonbonded": {
       "schemaVersion": 1,
       "parameterSet": "reaction-lab-nonbonded-v1",

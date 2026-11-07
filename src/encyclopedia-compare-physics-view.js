@@ -6,6 +6,7 @@ import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js'
 import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
 import {ComparisonBoilingCycle} from './compare-boiling-cycle.js';
 import {boilingPilotEnabled} from './compare-boiling-data.js';
+import {phaseAppearanceFor} from './molecule-phase-appearance.js';
 
 const STYLE_ID='molecule-craft-compare-physics-style';
 const STYLE=`
@@ -47,6 +48,10 @@ export function renderEncyclopediaComparison({
   const boilingPilot=boilingPilotEnabled(win?.location?.search??'');
   const {rows}=buildComparisonRows(records,{axis,discoveredIds}),{positions}=layoutComparisonRows(rows,axis);
   const indexById=new Map(rows.map((row,index)=>[row.id,index]));
+  // Never feed hidden records' appearance data to an observable renderer.
+  const phaseAppearanceById=new Map(rows.filter(row=>row.discovered).map(row=>[row.id,{
+    liquid:phaseAppearanceFor(row.record,'liquid'),gas:phaseAppearanceFor(row.record,'gas'),
+  }]));
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
@@ -247,7 +252,7 @@ export function renderEncyclopediaComparison({
       stage.classList.toggle('is-boiling',boilingCycle.snapshot(row?.id)?.phase==='boiling');
       if(boilingVisualReady){
         const snapshots=new Map([...boilingCycle.entries].map(([id])=>[id,boilingCycle.snapshot(id)]));
-        try{scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId);}
+        try{scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId,phaseAppearanceById);}
         catch(error){
           console.error('Boiling VFX stopped; restoring accessible bead controls',error);
           boilingVisualReady=false;

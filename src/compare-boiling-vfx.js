@@ -21,7 +21,7 @@ function glowTexture(doc){
 function particleSystem({texture,kind}){
   const bubble=kind==='bubble';
   const material=new THREE.MeshBasicMaterial({
-    map:texture,color:bubble?0xc8fff3:0x7edce8,transparent:true,
+    map:texture,color:bubble?0xc8fff3:0xf6f9fc,transparent:true,
     opacity:bubble?.78:.46,depthWrite:false,depthTest:true,
     blending:THREE.AdditiveBlending,side:THREE.DoubleSide,
   });
@@ -46,22 +46,21 @@ export class ComparisonBoilingVisual {
     this.geometry=new THREE.SphereGeometry(.38,40,28);
     this.innerGeometry=new THREE.SphereGeometry(.32,32,24);
     this.glass=new THREE.MeshPhysicalMaterial({
-      color:0x6ad5d7,metalness:.04,roughness:.12,transmission:.38,
+      color:0xeaf3f7,metalness:.04,roughness:.12,transmission:.38,
       thickness:.9,clearcoat:1,clearcoatRoughness:.08,
       iridescence:.32,iridescenceIOR:1.31,
       transparent:true,opacity:.86,depthWrite:false,side:THREE.FrontSide,
       emissive:0x104851,emissiveIntensity:.28,
     });
     this.liquid=new THREE.ShaderMaterial({
-      uniforms:{uTime:{value:0},uHeat:{value:0},uOpacity:{value:1}},
+      uniforms:{uTime:{value:0},uHeat:{value:0},uOpacity:{value:1},uLiquidTint:{value:new THREE.Color('#eaf3f7')}},
       transparent:true,depthWrite:false,side:THREE.FrontSide,
       vertexShader:`varying vec3 vNormal;varying vec3 vP;void main(){vNormal=normalize(normalMatrix*normal);vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-      fragmentShader:`precision mediump float;uniform float uTime;uniform float uHeat;uniform float uOpacity;varying vec3 vNormal;varying vec3 vP;
+      fragmentShader:`precision mediump float;uniform float uTime;uniform float uHeat;uniform float uOpacity;uniform vec3 uLiquidTint;varying vec3 vNormal;varying vec3 vP;
         void main(){float sw=sin(vP.y*19.+sin(vP.x*12.+uTime*.8)*.8+uTime*1.4)*.5+.5;
           float ed=pow(1.-abs(normalize(vNormal).z),2.);
-          vec3 deep=mix(vec3(.055,.23,.28),vec3(.05,.46,.50),sw*.62);
-          vec3 warm=vec3(.38,.78,.71);
-          vec3 col=mix(deep,warm,sw*.12+uHeat*.17)+ed*vec3(.16,.43,.46);
+          vec3 deep=mix(uLiquidTint*.25,uLiquidTint*.67,sw*.62);
+          vec3 col=mix(deep,uLiquidTint,sw*.12+uHeat*.17)+ed*vec3(.18,.26,.30);
           gl_FragColor=vec4(col,uOpacity*(.67+ed*.2));}`,
     });
     this.texture=glowTexture(ropeScene.stage.ownerDocument);
@@ -85,13 +84,15 @@ export class ComparisonBoilingVisual {
     const orb={group,outside,inside,halo};this.orbs.set(id,orb);return orb;
   }
 
-  update(physics,snapshots,indexById,dt,activeId){
+  update(physics,snapshots,indexById,dt,activeId,phaseAppearanceById=new Map()){
     if(this.disposed)return;
     this.activeId=activeId;
     let active=null;
     for(const [id,snapshot] of snapshots){
       const index=indexById.get(id);if(index===undefined)continue;
       const orb=this.orb(id),point=this.host.toWorld(physics.beadPosition(index));
+      const appearance=phaseAppearanceById.get(id);
+      orb.inside.material.uniforms.uLiquidTint.value.set(appearance?.liquid?.renderColor??'#eaf3f7');
       // All phase changes are local to the visual; no physics node teleports.
       orb.group.position.copy(point);orb.group.position.z+=.39;
       orb.group.visible=snapshot.opacity>.005;
@@ -105,6 +106,7 @@ export class ComparisonBoilingVisual {
     }
     for(const [id,orb] of this.orbs)if(!snapshots.has(id))orb.group.visible=false;
     const phase=active?.snapshot.phase;
+    this.vapor.material.color.set(phaseAppearanceById.get(activeId)?.gas?.renderColor??'#f6f9fc');
     this.bubbles.emission.value=phase==='boiling'?78:phase==='heating'&&active.snapshot.time>1.35?8:0;
     this.vapor.emission.value=phase==='boiling'?Math.min(110,24+active.snapshot.time*30):0;
     if(active){

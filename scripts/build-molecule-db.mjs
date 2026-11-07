@@ -496,7 +496,40 @@ try {
   if (error?.code !== 'ENOENT') throw error;
 }
 const previousById = new Map(previousRecords.map(record => [record.id, record]));
+// Curated qualitative colors of the *bulk phase*. Not the CPK colors used by
+// the molecular model. `none` is an unverified visual fallback, not a claim
+// that an unresearched substance is physically colorless.
+const phaseAppearanceById = JSON.parse(await readFile(new URL('../data/phase-appearance.json', import.meta.url), 'utf8'));
+for (const id of Object.keys(phaseAppearanceById)) {
+  if (!ids.has(id)) throw new Error(`Unknown phase appearance molecule: ${id}`);
+  for (const [phase, value] of Object.entries(phaseAppearanceById[id])) {
+    if (!['liquid', 'gas'].includes(phase)) throw new Error(`Unsupported phase appearance: ${id}.${phase}`);
+    if (!['colorless', 'colored'].includes(value.kind) || !/^https:\/\/pubchem\.ncbi\.nlm\.nih\.gov\/compound\//.test(value.sourceUrl ?? '')) {
+      throw new Error(`Missing researched appearance and primary-source URL: ${id}.${phase}`);
+    }
+    if (value.kind === 'colored' && (!/^#[0-9a-fA-F]{6}$/.test(value.renderColor ?? '') || !value.labelJa)) {
+      throw new Error(`Colored appearance lacks visual swatch/description: ${id}.${phase}`);
+    }
+    if (value.kind === 'colorless' && value.renderColor !== undefined) throw new Error(`Colorless appearance must not have a tint: ${id}.${phase}`);
+  }
+}
 for (const molecule of molecules) {
+  // Every production record has an explicit fallback for both phases. The
+  // swatches are authored for legibility, not measured spectral reflectance.
+  // Keep Japanese editorial notes in the source ledger; the generated runtime
+  // molecule DB is traversed by the reviewed encyclopedia furigana corpus.
+  const phaseEntry = phase => {
+    const researched = phaseAppearanceById[molecule.id]?.[phase];
+    return researched ? {
+      kind:researched.kind,
+      ...(researched.kind === 'colored' ? {renderColor:researched.renderColor} : {}),
+      sourceUrl:researched.sourceUrl,
+    } : {kind:'none'};
+  };
+  molecule.phaseAppearance = {
+    liquid: phaseEntry('liquid'),
+    gas: phaseEntry('gas'),
+  };
   const previous = previousById.get(molecule.id);
   if (!previous?.nonbonded) continue;
   if (JSON.stringify(previous.atoms) !== JSON.stringify(molecule.atoms) || JSON.stringify(previous.bonds) !== JSON.stringify(molecule.bonds)) {
