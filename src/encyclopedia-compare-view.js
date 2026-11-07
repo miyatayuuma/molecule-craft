@@ -1,6 +1,7 @@
 import {buildComparisonRows,COMPARISON_AXES,comparisonValueLabel,layoutComparisonRows,nearestComparisonIndex} from './encyclopedia-compare.js';
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 import {moleculeDisplayName} from './collection-catalog.js';
+import {boilingPilotEnabled} from './compare-boiling-data.js';
 
 const STYLE_ID='molecule-craft-compare-style';
 const STYLE=`
@@ -23,7 +24,8 @@ export function appendComparisonModeLabel(button,mode){
 }
 function appendAxisLabel(button,axis){
   if(axis==='molarMass')button.append('モル',ruby(button.ownerDocument,'質量','しつりょう'));
-  else button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
+  else if(axis==='atomCount')button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
+  else button.append(ruby(button.ownerDocument,'沸点','ふってん'));
 }
 
 export function renderEncyclopediaComparison({
@@ -36,17 +38,17 @@ export function renderEncyclopediaComparison({
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
+    if(key==='boilingPoint'&&!boilingPilotEnabled(win?.location?.search??''))continue;
     const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
-  controls.append(elem(doc,'span','compare-axis-note','間隔は数値差を圧縮して表示'));
   wrapper.append(controls);
   const stage=elem(doc,'div','graph-stage compare-stage');stage.tabIndex=0;stage.setAttribute('role','group');stage.setAttribute('aria-label','くらべる図鑑。左右に動かして分子を比較');
   const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('aria-hidden','true');stage.append(svg);
   stage.append(elem(doc,'div','compare-center-line'),elem(doc,'div','compare-center-label','比較地点'));
   wrapper.append(stage);
-  const summary=elem(doc,'div','compare-summary'),tip=elem(doc,'p','compare-tip','左右へ動かす・珠を選ぶ　／　数値差が紐の長さになります');
-  wrapper.append(summary,tip);host.className='encyclopedia-graph-host encyclopedia-compare-host';host.replaceChildren(wrapper);
+  const summary=elem(doc,'div','compare-summary');
+  wrapper.append(summary);host.className='encyclopedia-graph-host encyclopedia-compare-host';host.replaceChildren(wrapper);
   const visible=new Map();
   let currentIndex=indexById.get(focusId)??0,center=positions[currentIndex]??0,drag=null,animation=0,disposed=false,previousFocus=-1,lastDragAt=0,hasTransition=!!transitionRects.size;
   const stageWidth=()=>Math.max(240,stage.clientWidth||host.clientWidth||360);

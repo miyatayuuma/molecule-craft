@@ -17,6 +17,7 @@ import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 import {moleculeBasicProperties} from './molecule-basic-properties.js?v=1';
 import {renderEncyclopediaComparison,COMPARISON_MODE_LABELS,COMPARISON_MODE_ACCESSIBLE_LABEL,appendComparisonModeLabel} from './encyclopedia-compare-view.js';
+import {boilingPilotEnabled} from './compare-boiling-data.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -37,6 +38,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const physicalComparison=new URLSearchParams(root.defaultView?.location?.search??globalThis.location?.search??'').get('comparePhysics')!=='0'
     ?(await import('./encyclopedia-compare-physics-view.js')).renderEncyclopediaComparison
     :null;
+  const boilingPilot=boilingPilotEnabled(root.defaultView?.location?.search??globalThis.location?.search??'');
   const data=await loadCollectionData();
   const completeFurigana=createCompleteFuriganaIndex(data.extraFurigana);
   validateChemistryVisualSpecs(data.encyclopedia,records);
@@ -848,7 +850,8 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(comparisonMode==='compare'){
       if(pressed.includes(1)){dialog.close();return true;}
       if(pressed.includes(12)||pressed.includes(13)){
-        const axes=['molarMass','atomCount'],next=axes[(axes.indexOf(comparisonAxis)+(pressed.includes(13)?1:-1)+axes.length)%axes.length];
+        const axes=boilingPilot?['molarMass','atomCount','boilingPoint']:['molarMass','atomCount'];
+        const next=axes[(axes.indexOf(comparisonAxis)+(pressed.includes(13)?1:-1)+axes.length)%axes.length];
         list.querySelector(`[data-compare-axis="${next}"]`)?.click();return true;
       }
       if(pressed.includes(14)||repeating.includes(14))comparisonController?.move(-1);

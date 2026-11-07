@@ -41,6 +41,20 @@ export class ComparisonRopeScene {
     this.model = null;
     this.modelReady = false;
     this.disposed = false;
+    this.boilingVisual = null;
+  }
+
+  async enableBoiling(){
+    if(this.disposed)return false;
+    if(this.boilingVisual)return true;
+    const {ComparisonBoilingVisual}=await import('./compare-boiling-vfx.js');
+    if(this.disposed)return false;
+    this.boilingVisual=new ComparisonBoilingVisual(this);
+    return true;
+  }
+
+  updateBoiling(physics,snapshots,indexById,dt,activeId){
+    this.boilingVisual?.update(physics,snapshots,indexById,dt,activeId);
   }
 
   resize(width, height) {
@@ -151,6 +165,7 @@ export class ComparisonRopeScene {
 
   dispose() {
     this.disposed = true;
+    this.boilingVisual?.dispose();
     for (const mesh of this.threads) mesh.geometry.dispose();
     for (const material of this.materials) material.dispose();
     if (this.model) {

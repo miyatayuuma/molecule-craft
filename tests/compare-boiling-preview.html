@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Molecule Craft｜沸騰観察 試作</title>
+  <script type="importmap">{"imports":{"three":"../vendor/three/three.module.min.js"}}</script>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#091823;color:#ebfaf9;font-family:system-ui,"Noto Sans JP",sans-serif}
+    main{max-width:1040px;margin:auto;padding:12px}h1{font-size:16px;font-weight:650;margin:5px 0 10px}
+    #preview{height:min(77dvh,700px);min-height:430px}.encyclopedia-graph-host{display:block;min-height:0}
+    .encyclopedia-graph{display:grid;height:100%;grid-template-rows:minmax(0,1fr) auto;gap:6px}
+    .graph-stage{position:relative;height:100%;min-height:0;overflow:hidden;border:1px solid #285466;border-radius:23px;isolation:isolate}
+    .graph-node{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;border-radius:50%;cursor:pointer}
+    .graph-focus-thumbnail{position:absolute;object-fit:contain}.compare-axis{position:absolute;z-index:8;top:12px;left:10px}
+    .compare-summary{min-height:38px}.preview-note{font-size:12px;color:#9fbdc1;margin:8px 4px}
+    @media(max-width:650px){main{padding:8px}#preview{height:min(77dvh,620px);min-height:400px}}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>沸騰観察｜3分子・描画試作</h1>
+    <div id="preview"></div>
+    <p class="preview-note">珠を左右へ動かすと再凝集します。実験中の温度は台座の計器に表示されます。</p>
+  </main>
+  <script type="module">
+    import {renderEncyclopediaComparison} from '../src/encyclopedia-compare-physics-view.js';
+    const all=await fetch('../data/molecules.json').then(response=>response.json());
+    const ids=new Set(['n-butane','ethanol','water']);
+    const records=all.filter(record=>ids.has(record.id));
+    const host=document.querySelector('#preview');
+    const make=focusId=>renderEncyclopediaComparison({host,records,discoveredIds:ids,axis:'boilingPoint',focusId,
+      onFocus:id=>{globalThis.previewFocusId=id;},onDetail:()=>{},onAxis:()=>{},win});
+    const win=window;globalThis.previewController=make('ethanol');
+    globalThis.previewFocusId='ethanol';
+    globalThis.addEventListener('beforeunload',()=>globalThis.previewController?.destroy());
+  </script>
+</body>
+</html>

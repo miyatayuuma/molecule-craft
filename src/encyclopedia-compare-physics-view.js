@@ -4,6 +4,8 @@ import {moleculeDisplayName} from './collection-catalog.js';
 import {ComparisonRopePhysics} from './compare-rope-physics.js';
 import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js';
 import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
+import {ComparisonBoilingCycle} from './compare-boiling-cycle.js';
+import {boilingPilotEnabled} from './compare-boiling-data.js';
 
 const STYLE_ID='molecule-craft-compare-physics-style';
 const STYLE=`
@@ -13,6 +15,7 @@ const STYLE=`
 .compare-docking{position:absolute;left:50%;top:43%;z-index:3;width:100px;height:100px;transform:translate(-50%,-50%);border:1px solid #75e9d500;border-radius:50%;opacity:0;pointer-events:none}.compare-stage.is-docking .compare-docking{opacity:.38;border-color:#8de9d366;box-shadow:0 0 20px #65dec329}.compare-stage.is-dock-locked .compare-docking{animation:compare-dock-pulse 430ms ease-out}@keyframes compare-dock-pulse{from{opacity:.75;transform:translate(-50%,-50%) scale(.88);border-color:#b8fff2}to{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
 .compare-bead.graph-node{z-index:4;width:56px;height:56px;min-height:56px;padding:2px;overflow:visible;touch-action:none;transition:box-shadow 160ms ease}.compare-bead.graph-node.focus{width:82px;height:82px;min-height:82px;padding:3px;z-index:5}.compare-bead.graph-node .graph-focus-thumbnail{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}.compare-bead.graph-node.focus .graph-focus-thumbnail{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.compare-bead.graph-node.unknown{color:#afc7d5}.compare-bead.graph-node.unknown:before{display:none}.compare-bead.graph-node.unknown .compare-question{font-size:24px;line-height:1;color:#a6bfd0;font-weight:550}.compare-bead.graph-node.unknown.focus .compare-question{font-size:34px;color:#d1e1ed}
 .compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
+.compare-bead.graph-node.compare-boiling-3d{opacity:0;box-shadow:none;pointer-events:auto}.compare-boiling-label{color:#9fead9}.compare-stage.is-boiling .compare-docking{opacity:.28;border-color:#80ede744;box-shadow:0 0 23px #71e3db24}
 @media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto}#collection-dialog .compare-axis{position:absolute;top:18px;left:12px;z-index:8;background:#0b1e2bdc;border-radius:13px;padding:4px;max-width:44%}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}}
 @media(max-width:650px){.compare-axis{padding:0 5px}.compare-axis button{min-height:36px}.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 112px),calc(100% - 92px));width:min(232px,69vw);gap:3px;padding:9px 12px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:28px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.compare-bead.graph-node{transition:none}}
@@ -31,7 +34,8 @@ export function appendComparisonModeLabel(button,mode){
 }
 function appendAxisLabel(button,axis){
   if(axis==='molarMass')button.append('モル',ruby(button.ownerDocument,'質量','しつりょう'));
-  else button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
+  else if(axis==='atomCount')button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
+  else button.append(ruby(button.ownerDocument,'沸点','ふってん'));
 }
 
 export function renderEncyclopediaComparison({
@@ -39,18 +43,21 @@ export function renderEncyclopediaComparison({
   onFocus=()=>{},onDetail=()=>{},onAxis=()=>{},transitionRects=new Map(),win=globalThis.window,
 }={}){
   const doc=host.ownerDocument??globalThis.document;ensureStyles(doc);ensureMoleculeBeadStyles(doc);
+  const boilingEnabled=axis==='boilingPoint';
+  const boilingPilot=boilingPilotEnabled(win?.location?.search??'');
   const {rows}=buildComparisonRows(records,{axis,discoveredIds}),{positions}=layoutComparisonRows(rows,axis);
   const indexById=new Map(rows.map((row,index)=>[row.id,index]));
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
+    if(key==='boilingPoint'&&!boilingPilot)continue;
     const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
   wrapper.append(controls);
   const stage=elem(doc,'div','graph-stage compare-stage');stage.tabIndex=0;stage.setAttribute('role','group');stage.setAttribute('aria-label','くらべる図鑑。左右に動かして分子を比較');
   const instrument=elem(doc,'div','compare-instrument');
-  const instrumentName=elem(doc,'span','compare-instrument-name','モル質量');
+  const instrumentName=elem(doc,'span','compare-instrument-name',boilingEnabled?'温度 · 1気圧':'モル質量');
   const reading=elem(doc,'div','compare-instrument-reading');reading.setAttribute('aria-live','polite');
   const instrumentValue=elem(doc,'strong','compare-instrument-value','— —');
   const instrumentUnit=elem(doc,'span','compare-instrument-unit','g/mol');
@@ -66,10 +73,18 @@ export function renderEncyclopediaComparison({
   const stageWidth=()=>Math.max(240,stage.clientWidth||host.clientWidth||360);
   const stageHeight=()=>Math.max(320,stage.clientHeight||460);
   const physics=rows.length?new ComparisonRopePhysics(positions,{width:stageWidth(),height:stageHeight(),center}):null;
+  // Motion-sensitive users keep a stable numerical boiling-point readout.
+  const boilingCycle=boilingEnabled&&!reduced?new ComparisonBoilingCycle():null;
   let scene=null,physicsFrame=0,lastPhysicsAt=0;
+  let boilingVisualReady=false;
   if(physics){
     try{
       scene=new ComparisonRopeScene(stage);scene.resize(stageWidth(),stageHeight());
+      if(boilingCycle){
+        scene.enableBoiling().then(ready=>{boilingVisualReady=!!ready&&!disposed;}).catch(error=>{
+          console.info('Boiling VFX unavailable; keeping readable instrument',error);
+        });
+      }
       // Preferred pedestal was converted from the author's BlendSwap source.
       scene.loadPlatform(new URL('../assets/compare/scifi-pedestal.glb',import.meta.url).href,
         new URL('../assets/compare/hologram-projector-cc0.glb',import.meta.url).href)
@@ -83,9 +98,9 @@ export function renderEncyclopediaComparison({
   const updateSummary=()=>{
     summary.replaceChildren();if(!rows.length){summary.textContent='この軸で比較できる分子はありません。';return;}
     const row=rows[currentIndex];
-    instrumentName.textContent=axis==='molarMass'?'モル質量':'原子数';
-    instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):String(row.value)):'— —';
-    instrumentUnit.textContent=axis==='molarMass'?'g/mol':'個';
+    instrumentName.textContent=boilingEnabled?'温度 · 1気圧':axis==='molarMass'?'モル質量':'原子数';
+    instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):boilingEnabled?row.value.toFixed(1):String(row.value)):'— —';
+    instrumentUnit.textContent=axis==='molarMass'?'g/mol':boilingEnabled?'°C':'個';
     instrumentValue.classList.toggle('undiscovered',!row.discovered);
     if(!row.discovered){summary.append(elem(doc,'strong','compare-summary-unknown','？ 未知の分子'));}
     else{
@@ -95,7 +110,12 @@ export function renderEncyclopediaComparison({
   };
   const showFocus=()=>{
     const next=nearest();if(next<0||next===currentIndex)return;
+    boilingCycle?.focus(null);
     currentIndex=next;updateSummary();onFocus(rows[next].id);
+  };
+  const startObservation=index=>{
+    if(!boilingCycle||!rows[index])return;
+    const row=rows[index];boilingCycle.focus(row.id,null,{known:row.discovered,boilingPoint:row.value});
   };
   const bead=(index)=>{
     const row=rows[index],button=elem(doc,'button',`graph-node compare-bead ${row.discovered?'registered':'unknown'}`);button.type='button';
@@ -115,7 +135,9 @@ export function renderEncyclopediaComparison({
     for(let i=from;i<=to;i++){
       const {x,y}=physics.beadPosition(i);if(x< -110||x>width+110||y>stageHeight()+110)continue;
       let node=visible.get(i);if(!node){node=bead(i);visible.set(i,node);}
-      node.style.left=`${x}px`;node.style.top=`${y}px`;node.classList.toggle('focus',i===currentIndex);node.setAttribute('aria-pressed',String(i===currentIndex));used.add(i);
+      node.style.left=`${x}px`;node.style.top=`${y}px`;node.classList.toggle('focus',i===currentIndex);
+      node.classList.toggle('compare-boiling-3d',boilingVisualReady&&!!boilingCycle?.snapshot(rows[i].id));
+      node.setAttribute('aria-pressed',String(i===currentIndex));used.add(i);
     }
     for(const [index,node] of visible)if(!used.has(index)){node.remove();visible.delete(index);}
     scene?.draw(physics,currentIndex);
@@ -205,17 +227,28 @@ export function renderEncyclopediaComparison({
   };
   const resize=()=>{if(!physics)return;physics.resize(stageWidth(),stageHeight());scene?.resize(stageWidth(),stageHeight());draw();};
   const observer=typeof win?.ResizeObserver==='function'?new win.ResizeObserver(resize):null;observer?.observe(stage);win?.addEventListener?.('resize',resize);
-  updateSummary();draw();
+  updateSummary();if(boilingEnabled&&rows.length)startObservation(currentIndex);draw();
   // Physics and rendering are deliberately independent from selection easing;
   // dragging can stop while the chain still swings and settles by gravity.
   const physicsTick=now=>{
     if(disposed)return;
     const elapsed=lastPhysicsAt?Math.min((now-lastPhysicsAt)/1000,.05):1/60;
     lastPhysicsAt=now;physics?.advance(elapsed);
+    boilingCycle?.advance(elapsed);
     if(physics?.completedDock!==null&&physics?.completedDock!==undefined){
       const index=physics.completedDock;physics.completedDock=null;
       center=positions[index];showFocus();
+      startObservation(index);
       stage.classList.remove('is-docking');stage.classList.add('is-dock-locked');
+    }
+    if(boilingCycle){
+      const temperature=boilingCycle.reading(),row=rows[currentIndex];
+      if(row?.discovered&&Number.isFinite(temperature))instrumentValue.textContent=temperature.toFixed(1);
+      stage.classList.toggle('is-boiling',boilingCycle.snapshot(row?.id)?.phase==='boiling');
+      if(boilingVisualReady){
+        const snapshots=new Map([...boilingCycle.entries].map(([id])=>[id,boilingCycle.snapshot(id)]));
+        scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId);
+      }
     }
     draw();
     physicsFrame=win.requestAnimationFrame(physicsTick);
