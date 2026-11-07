@@ -1,7 +1,6 @@
 import {buildComparisonRows,COMPARISON_AXES,comparisonValueLabel,layoutComparisonRows,nearestComparisonIndex} from './encyclopedia-compare.js';
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 import {moleculeDisplayName} from './collection-catalog.js';
-import {boilingPilotEnabled} from './compare-boiling-data.js';
 
 const STYLE_ID='molecule-craft-compare-style';
 const STYLE=`
@@ -38,7 +37,6 @@ export function renderEncyclopediaComparison({
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
-    if(key==='boilingPoint'&&!boilingPilotEnabled(win?.location?.search??''))continue;
     const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
