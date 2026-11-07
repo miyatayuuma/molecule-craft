@@ -13,14 +13,14 @@ export const heatingProgress=time=>{
 
 export function boilingHeatLevel(snapshot){
   if(snapshot?.phase==='heating')return heatingProgress(snapshot.time);
-  if(snapshot?.phase==='boiling')return 1;
+  if(snapshot?.phase==='boiling'||snapshot?.phase==='subliming')return 1;
   return 0;
 }
 
 export class ComparisonBoilingCycle {
   constructor(){this.activeId=null;this.entries=new Map();}
 
-  focus(id,point,{known=false,boilingPoint=null}={}){
+  focus(id,point,{known=false,boilingPoint=null,transition=null}={}){
     if(id===this.activeId)return;
     if(this.activeId!==null){
       const previous=this.entries.get(this.activeId);
@@ -34,7 +34,7 @@ export class ComparisonBoilingCycle {
     if(!known||!Number.isFinite(boilingPoint))return;
     const previous=this.entries.get(id);
     if(previous?.phase==='recovering')this.entries.delete(id);
-    this.entries.set(id,{id,point,boilingPoint,phase:'heating',time:0,recovery:0,recoveryFrom:1});
+    this.entries.set(id,{id,point,boilingPoint,transition,phase:'heating',time:0,recovery:0,recoveryFrom:1});
   }
 
   advance(dt){
@@ -49,9 +49,10 @@ export class ComparisonBoilingCycle {
       if(entry.phase==='evaporated')continue;
       entry.time+=elapsed;
       if(entry.phase==='heating'&&entry.time>=BOILING_TIMING.warmup-1e-8){
-        entry.phase='boiling';entry.time=Math.max(0,entry.time-BOILING_TIMING.warmup);
+        entry.phase=entry.transition?.kind==='sublimation'?'subliming':'boiling';
+        entry.time=Math.max(0,entry.time-BOILING_TIMING.warmup);
       }
-      if(entry.phase==='boiling'&&entry.time>=BOILING_TIMING.boiling-1e-8){
+      if((entry.phase==='boiling'||entry.phase==='subliming')&&entry.time>=BOILING_TIMING.boiling-1e-8){
         entry.phase='evaporated';entry.time=BOILING_TIMING.boiling;
       }
     }
@@ -59,7 +60,7 @@ export class ComparisonBoilingCycle {
 
   opacity(entry){
     if(entry.phase==='heating')return 1;
-    if(entry.phase==='boiling')return 1-clamp((entry.time-.6)/(BOILING_TIMING.boiling-.6),0,1);
+    if(entry.phase==='boiling'||entry.phase==='subliming')return 1-clamp((entry.time-.6)/(BOILING_TIMING.boiling-.6),0,1);
     if(entry.phase==='evaporated')return 0;
     if(entry.phase==='recovering')return entry.recoveryFrom+(1-entry.recoveryFrom)*clamp(entry.recovery/BOILING_TIMING.recovery,0,1);
     return 1;
@@ -68,8 +69,15 @@ export class ComparisonBoilingCycle {
   reading(){
     const entry=this.entries.get(this.activeId);
     if(!entry)return null;
-    const {boilingPoint,phase,time}=entry;
-    return phase==='heating'?boilingPoint-BOILING_START_OFFSET*(1-heatingProgress(time)):boilingPoint;
+    const {boilingPoint,transition,phase,time}=entry;
+    if(phase==='heating')return boilingPoint-BOILING_START_OFFSET*(1-heatingProgress(time));
+    if(transition?.kind==='range'){
+      // Animate *documented uncertainty*, not measurement error. The UI keeps
+      // the fixed range and its isomer/literature explanation visible.
+      const wave=Math.sin(time*5.2)*.76+Math.sin(time*11.3)*.24;
+      return clamp(boilingPoint+wave*(transition.highC-transition.lowC)/2,transition.lowC,transition.highC);
+    }
+    return boilingPoint;
   }
 
   snapshot(id){

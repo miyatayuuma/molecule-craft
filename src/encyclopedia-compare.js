@@ -1,5 +1,5 @@
 import {moleculeBasicProperties} from './molecule-basic-properties.js';
-import {boilingValueFor} from './compare-boiling-data.js';
+import {boilingComparisonFor} from './compare-boiling-data.js';
 
 export const COMPARISON_AXES=Object.freeze({
   molarMass:{label:'モル質量',unit:'g/mol'},
@@ -14,9 +14,10 @@ export function buildComparisonRows(records,{axis='molarMass',discoveredIds=new 
   const rows=[],missing=[];
   for(const record of records){
     try{
-      const value=axis==='boilingPoint'?boilingValueFor(record.id):moleculeBasicProperties(record)[axis];
+      const transition=axis==='boilingPoint'?boilingComparisonFor(record.id):null;
+      const value=axis==='boilingPoint'?transition?.celsius:moleculeBasicProperties(record)[axis];
       if(!Number.isFinite(value))throw new RangeError('Missing basic property');
-      rows.push({id:record.id,record,value,discovered:discoveredIds.has(record.id)});
+      rows.push({id:record.id,record,value,transition,discovered:discoveredIds.has(record.id)});
     }catch{missing.push(record.id);}
   }
   rows.sort((a,b)=>a.value-b.value||a.id.localeCompare(b.id,'en'));
@@ -49,6 +50,11 @@ export function nearestComparisonIndex(positions,coordinate){
   return coordinate-positions[left-1]<=positions[left]-coordinate?left-1:left;
 }
 
-export function comparisonValueLabel(value,axis='molarMass'){
-  return axis==='atomCount'?`${value} 個`:axis==='boilingPoint'?`${value.toFixed(1)} °C`:`${value.toFixed(2)} g/mol`;
+export function comparisonValueLabel(value,axis='molarMass',transition=null){
+  if(axis==='boilingPoint'){
+    if(transition?.kind==='sublimation')return `${value.toFixed(1)} °C（昇華）`;
+    if(transition?.kind==='range')return `${transition.lowC.toFixed(1)}〜${transition.highC.toFixed(1)} °C（${transition.basis==='isomer'?'異性体差':'資料差'}）`;
+    return `${value.toFixed(1)} °C`;
+  }
+  return axis==='atomCount'?`${value} 個`:`${value.toFixed(2)} g/mol`;
 }

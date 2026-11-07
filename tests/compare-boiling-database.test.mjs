@@ -9,7 +9,7 @@ test('normal-pressure boiling-point database retains sources and excludes decomp
   const database=JSON.parse(await readFile(new URL('../data/boiling-points.json',import.meta.url)));
   const ids=new Set(molecules.map(entry=>entry.id));
   const entries=Object.entries(database.compounds);
-  assert.equal(entries.length,107);
+  assert.equal(entries.length,112);
   assert.equal(KNOWN_BOILING_POINT_COUNT,entries.length);
   for(const [id,entry] of entries){
     assert.ok(ids.has(id),`unknown molecule: ${id}`);
@@ -27,8 +27,8 @@ test('normal-pressure boiling-point database retains sources and excludes decomp
   }
   const discoveredIds=new Set(['water']);
   const {rows,missing}=buildComparisonRows(molecules,{axis:'boilingPoint',discoveredIds});
-  assert.equal(rows.length,107);
-  assert.equal(missing.length,35);
+  assert.equal(rows.length,116);
+  assert.equal(missing.length,26);
   assert.equal(rows.filter(row=>row.discovered).length,1);
   assert.ok(rows.every((row,index)=>index===0||rows[index-1].value<=row.value));
 });

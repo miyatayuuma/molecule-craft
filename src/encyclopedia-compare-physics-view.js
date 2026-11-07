@@ -16,9 +16,10 @@ const STYLE=`
 .compare-bead.graph-node{z-index:4;width:56px;height:56px;min-height:56px;padding:2px;overflow:visible;touch-action:none;transition:box-shadow 160ms ease}.compare-bead.graph-node.focus{width:82px;height:82px;min-height:82px;padding:3px;z-index:5}.compare-bead.graph-node .graph-focus-thumbnail{inset:2px;width:calc(100% - 4px);height:calc(100% - 4px)}.compare-bead.graph-node.focus .graph-focus-thumbnail{inset:3px;width:calc(100% - 6px);height:calc(100% - 6px)}.compare-bead.graph-node.unknown{color:#afc7d5}.compare-bead.graph-node.unknown:before{display:none}.compare-bead.graph-node.unknown .compare-question{font-size:24px;line-height:1;color:#a6bfd0;font-weight:550}.compare-bead.graph-node.unknown.focus .compare-question{font-size:34px;color:#d1e1ed}
 .compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
 .compare-bead.graph-node.compare-boiling-3d{opacity:0;box-shadow:none;pointer-events:auto}.compare-boiling-label{color:#9fead9}.compare-stage.is-boiling .compare-docking{opacity:.28;border-color:#80ede744;box-shadow:0 0 23px #71e3db24}
+.compare-instrument-note{display:block;min-height:12px;font-size:10px;line-height:1.2;color:#b8cfd7}.compare-instrument-reading.is-uncertain .compare-instrument-value{animation:compare-value-signal 1.35s steps(4,end) infinite;text-shadow:1px 0 #f5b78875,-1px 0 #66b7d175}@keyframes compare-value-signal{0%,85%,100%{text-shadow:none}86%,96%{text-shadow:1px 0 #f5b788a0,-1px 0 #66b7d1a0}}.compare-transition-mark{position:absolute;right:-3px;top:-5px;border:1px solid #80a9ba;border-radius:8px;background:#123343e8;color:#f7d4a0;padding:0 4px;font-size:11px;line-height:17px;z-index:3;pointer-events:none}
 @media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto}#collection-dialog .compare-axis{position:absolute;top:18px;left:12px;z-index:8;background:#0b1e2bdc;border-radius:13px;padding:4px;max-width:44%}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}}
 @media(max-width:650px){.compare-axis{padding:0 5px}.compare-axis button{min-height:36px}.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 112px),calc(100% - 92px));width:min(232px,69vw);gap:3px;padding:9px 12px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:28px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}}
-@media(prefers-reduced-motion:reduce){.compare-bead.graph-node{transition:none}}
+@media(prefers-reduced-motion:reduce){.compare-bead.graph-node{transition:none}.compare-instrument-reading.is-uncertain .compare-instrument-value{animation:none}}
 `;
 
 function ensureStyles(doc){if(doc.getElementById(STYLE_ID))return;const style=doc.createElement('style');style.id=STYLE_ID;style.textContent=STYLE;doc.head?.append(style);}
@@ -64,7 +65,8 @@ export function renderEncyclopediaComparison({
   const instrumentValue=elem(doc,'strong','compare-instrument-value','— —');
   const instrumentUnit=elem(doc,'span','compare-instrument-unit','g/mol');
   reading.append(instrumentValue,instrumentUnit);
-  instrument.append(instrumentName,reading);
+  const instrumentNote=elem(doc,'span','compare-instrument-note');
+  instrument.append(instrumentName,reading,instrumentNote);
   const docking=elem(doc,'div','compare-docking');docking.setAttribute('aria-hidden','true');
   stage.append(instrument,docking);
   wrapper.append(stage);
@@ -100,14 +102,18 @@ export function renderEncyclopediaComparison({
   const updateSummary=()=>{
     summary.replaceChildren();if(!rows.length){summary.textContent='この軸で比較できる分子はありません。';return;}
     const row=rows[currentIndex];
-    instrumentName.textContent=boilingEnabled?'温度 · 1気圧':axis==='molarMass'?'モル質量':'原子数';
-    instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):boilingEnabled?row.value.toFixed(1):String(row.value)):'— —';
+    const transition=row.discovered&&boilingEnabled?row.transition:null;
+    instrumentName.textContent=transition?.kind==='sublimation'?'昇華点 · 1気圧':boilingEnabled?'温度 · 1気圧':axis==='molarMass'?'モル質量':'原子数';
+    instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):boilingEnabled?(transition?.kind==='range'?`${transition.lowC.toFixed(1)}〜${transition.highC.toFixed(1)}`:row.value.toFixed(1)):String(row.value)):'— —';
     instrumentUnit.textContent=axis==='molarMass'?'g/mol':boilingEnabled?'°C':'個';
     instrumentValue.classList.toggle('undiscovered',!row.discovered);
+    reading.classList.toggle('is-uncertain',transition?.kind==='range'&&!reduced);
+    instrumentNote.textContent=transition?.kind==='sublimation'?'液体を経ず、固体から気体へ':transition?.kind==='range'?(transition.basis==='isomer'?'異性体ごとに沸点が異なる':'資料によって沸点が異なる'):'';
     if(!row.discovered){summary.append(elem(doc,'strong','compare-summary-unknown','？ 未知の分子'));}
     else{
       const heading=elem(doc,'strong');appendMoleculeNameFurigana(heading,moleculeDisplayName(row.record));
       summary.append(heading);
+      if(transition&&transition.kind!=='boiling')summary.append(elem(doc,'small',null,comparisonValueLabel(row.value,axis,transition)));
     }
   };
   const showFocus=()=>{
@@ -117,14 +123,15 @@ export function renderEncyclopediaComparison({
   };
   const startObservation=index=>{
     if(!boilingCycle||!rows[index])return;
-    const row=rows[index];boilingCycle.focus(row.id,null,{known:row.discovered,boilingPoint:row.value});
+    const row=rows[index];boilingCycle.focus(row.id,null,{known:row.discovered,boilingPoint:row.value,transition:row.transition});
   };
   const bead=(index)=>{
     const row=rows[index],button=elem(doc,'button',`graph-node compare-bead ${row.discovered?'registered':'unknown'}`);button.type='button';
-    button.setAttribute('aria-label',row.discovered?`${moleculeDisplayName(row.record)}、${comparisonValueLabel(row.value,axis)}`:'未知の分子');
+    button.setAttribute('aria-label',row.discovered?`${moleculeDisplayName(row.record)}、${comparisonValueLabel(row.value,axis,row.transition)}`:'未知の分子');
     button.setAttribute('aria-pressed','false');button.dataset.compareIndex=String(index);
     if(row.discovered){
       button.dataset.graphId=row.id;const img=elem(doc,'img','graph-focus-thumbnail');img.src=new URL(`../assets/models/molecule-${row.id}.svg`,import.meta.url).href;img.alt='';img.decoding='async';img.addEventListener('error',()=>{img.remove();button.classList.add('thumbnail-unavailable');},{once:true});button.append(img);
+      if(row.transition?.kind==='sublimation'||row.transition?.kind==='range')button.append(elem(doc,'span','compare-transition-mark',row.transition.kind==='sublimation'?'↗':'≈'));
     }else button.append(elem(doc,'span','compare-question','?'));
     button.addEventListener('click',()=>{if(win.performance.now()-lastDragAt<240)return;if(index===currentIndex&&row.discovered)onDetail(row.id,button);else beginDock(index);});
     stage.append(button);
@@ -247,7 +254,7 @@ export function renderEncyclopediaComparison({
       const temperature=boilingCycle.reading(),row=rows[currentIndex];
       if(row?.discovered&&Number.isFinite(temperature))instrumentValue.textContent=temperature.toFixed(1);
       const activeSnapshot=boilingCycle.snapshot(row?.id);
-      stage.classList.toggle('is-boiling',activeSnapshot?.phase==='boiling');
+      stage.classList.toggle('is-boiling',activeSnapshot?.phase==='boiling'||activeSnapshot?.phase==='subliming');
       scene?.setBoilingHeat?.({
         temperature,
         phase:activeSnapshot?.phase,

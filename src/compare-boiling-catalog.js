@@ -1,5 +1,7 @@
-// Generated from data/boiling-points.json by scripts/build-boiling-catalog.mjs.
-// Values are normal boiling points near 1 atm, not estimated from structure.
+// Generated from data/boiling-points.json and data/boiling-exceptions.json.
+// Normal boiling points, independently labelled sublimation temperatures,
+// and bounded literature/isomer ranges. Never interpret a range midpoint
+// as a measured single-compound boiling point.
 export const NORMAL_BOILING_POINTS=Object.freeze({
   "hydrogen": {celsius:-252.8,pubchemCid:783},
   "oxygen": {celsius:-183,pubchemCid:977},
@@ -108,4 +110,15 @@ export const NORMAL_BOILING_POINTS=Object.freeze({
   "nitromethane": {celsius:101,pubchemCid:6375},
   "nitrobenzene": {celsius:210.8,pubchemCid:7416},
   "2-nitrotoluene": {celsius:222.3,pubchemCid:6944},
+  "cyclobutane": {celsius:12.6,pubchemCid:9250},
+  "difluoromethane": {celsius:-51.6,pubchemCid:6345},
+  "1-butyne": {celsius:8.1,pubchemCid:7846},
+  "2-butyne": {celsius:27,pubchemCid:10419},
+  "catechol": {celsius:245.5,pubchemCid:289},
+});
+export const BOILING_COMPARISON_EXCEPTIONS=Object.freeze({
+  "carbon-dioxide": {kind:'sublimation',celsius:-78.5},
+  "ethyne": {kind:'sublimation',celsius:-84.7},
+  "2-butene": {kind:'range',basis:"isomer",lowC:0.9,highC:3.7},
+  "methyl-ethyl-ether": {kind:'range',basis:"sources",lowC:6.6,highC:10.1},
 });
