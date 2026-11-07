@@ -10,7 +10,12 @@ assert.equal(byId.size,142);
 assert.equal(Object.keys(curated).length,11);
 for(const record of records){
   for(const phase of ['liquid','gas']){
-    const expected=curated[record.id]?.[phase]??{kind:'none'};
+    const researched=curated[record.id]?.[phase];
+    const expected=researched?{
+      kind:researched.kind,
+      ...(researched.kind==='colored'?{renderColor:researched.renderColor}:{}),
+      sourceUrl:researched.sourceUrl,
+    }:{kind:'none'};
     assert.deepEqual(record.phaseAppearance[phase],expected,`${record.id}.${phase}`);
     const appearance=phaseAppearanceFor(record,phase);
     assert.equal(appearance.kind,expected.kind);
@@ -18,8 +23,8 @@ for(const record of records){
     assert.equal(/^https:\/\/pubchem\.ncbi\.nlm\.nih\.gov\/compound\//.test(expected.sourceUrl??''),expected.kind!=='none');
   }
 }
-assert.equal(phaseAppearanceFor(byId.get('ozone'),'liquid').labelJa,'濃青色');
-assert.equal(phaseAppearanceFor(byId.get('chlorine'),'gas').labelJa,'黄緑色');
+assert.equal(phaseAppearanceFor(byId.get('ozone'),'liquid').renderColor,'#2443bb');
+assert.equal(phaseAppearanceFor(byId.get('chlorine'),'gas').renderColor,'#c1d864');
 assert.equal(phaseAppearanceFor(byId.get('ethanol'),'liquid').kind,'colorless');
 assert.equal(phaseAppearanceFor(byId.get('methane'),'liquid').kind,'none');
 assert.equal(phaseAppearanceFor(byId.get('methane'),'liquid').renderColor,NEUTRAL_LIQUID_COLOR);

@@ -516,9 +516,19 @@ for (const id of Object.keys(phaseAppearanceById)) {
 for (const molecule of molecules) {
   // Every production record has an explicit fallback for both phases. The
   // swatches are authored for legibility, not measured spectral reflectance.
+  // Keep Japanese editorial notes in the source ledger; the generated runtime
+  // molecule DB is traversed by the reviewed encyclopedia furigana corpus.
+  const phaseEntry = phase => {
+    const researched = phaseAppearanceById[molecule.id]?.[phase];
+    return researched ? {
+      kind:researched.kind,
+      ...(researched.kind === 'colored' ? {renderColor:researched.renderColor} : {}),
+      sourceUrl:researched.sourceUrl,
+    } : {kind:'none'};
+  };
   molecule.phaseAppearance = {
-    liquid: phaseAppearanceById[molecule.id]?.liquid ?? {kind:'none'},
-    gas: phaseAppearanceById[molecule.id]?.gas ?? {kind:'none'},
+    liquid: phaseEntry('liquid'),
+    gas: phaseEntry('gas'),
   };
   const previous = previousById.get(molecule.id);
   if (!previous?.nonbonded) continue;

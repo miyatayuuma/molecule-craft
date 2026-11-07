@@ -99,7 +99,6 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "淡青色",
         "renderColor": "#a2c8f4",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/977"
       },
@@ -801,13 +800,11 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "琥珀色",
         "renderColor": "#d9a344",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24526"
       },
       "gas": {
         "kind": "colored",
-        "labelJa": "黄緑色",
         "renderColor": "#c1d864",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24526"
       }
@@ -16210,8 +16207,7 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colorless",
-        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6115",
-        "noteJa": "新鮮な純物質は無色。空気や光で褐色に変わる場合がある。"
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6115"
       },
       "gas": {
         "kind": "none"
@@ -23544,13 +23540,11 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "濃青色",
         "renderColor": "#2443bb",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24823"
       },
       "gas": {
         "kind": "colored",
-        "labelJa": "淡青色",
         "renderColor": "#a6ceef",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/24823"
       }
@@ -23863,7 +23857,6 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "淡黄色",
         "renderColor": "#e7ce78",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7416"
       },
@@ -24121,7 +24114,6 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "淡黄色",
         "renderColor": "#ead780",
         "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6944"
       },
@@ -24419,10 +24411,8 @@
     "phaseAppearance": {
       "liquid": {
         "kind": "colored",
-        "labelJa": "黄色",
         "renderColor": "#dfb830",
-        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/8461",
-        "noteJa": "加熱して融けたときの色。沸騰を伴わない加熱・分解とは区別する。"
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/8461"
       },
       "gas": {
         "kind": "none"

@@ -10,7 +10,7 @@ export function phaseAppearanceFor(record, phase) {
     ? appearance.kind : 'none';
   return {
     kind,
-    labelJa: kind === 'colored' ? appearance.labelJa : kind === 'colorless' ? '無色' : '特徴なし',
+    labelJa: kind === 'colored' ? '有色' : kind === 'colorless' ? '無色' : '特徴なし',
     renderColor: kind === 'colored' ? appearance.renderColor
       : phase === 'liquid' ? NEUTRAL_LIQUID_COLOR : NEUTRAL_GAS_COLOR,
   };
