@@ -1,5 +1,6 @@
 import {GRAPH_NODE_STATE,adjacentGraphSectorAnchor,buildVisibleGraphProjection,canonicalGraphPositions,graphNodePresentation,graphNodeState,layoutFocusNeighborhood,searchKnownGraphNodes} from './encyclopedia-graph.js?v=3';
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
+import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
 
 export const ENCYCLOPEDIA_MOTION=Object.freeze({
   graphNavigationDuration:560,
@@ -225,7 +226,7 @@ export function renderEncyclopediaGraph({
   host,graph,records,stateOptions,focusId,highlightId=null,onFocus=()=>{},onDetail=()=>{},previousPositions=new Map(),previousVisibleIds=new Set(),suppressMotion=false,win=globalThis.window,
 }={}){
   if(!host||!graph)throw Error('Graph host and graph are required');
-  const document=host.ownerDocument??globalThis.document;ensureStyles(document);const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
+  const document=host.ownerDocument??globalThis.document;ensureStyles(document);ensureMoleculeBeadStyles(document);const reduceMotion=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches,graphMotion=graphMotionState(host,win);host.className='encyclopedia-graph-host';host.replaceChildren();
   const recordById=new Map(records.map(record=>[record.id,record])),projection=buildVisibleGraphProjection(graph,{focusId,...stateOptions});
   const wrapper=document.createElement('div');wrapper.className='encyclopedia-graph';
   const toolbar=document.createElement('div');toolbar.className='graph-toolbar';

@@ -5,6 +5,7 @@ import {ComparisonRopePhysics,ROPE_SUBDIVISIONS} from '../src/compare-rope-physi
 test('the flexible rope spreads sideways, swings freely and returns to the analyser',()=>{
   const arc=[0,78,156,237,320],physics=new ComparisonRopePhysics(arc,{width:390,height:400,center:156});
   assert.equal(physics.count,(arc.length-1)*ROPE_SUBDIVISIONS+1);
+  assert.equal(physics.lengths[0],(arc[1]-arc[0])*2/ROPE_SUBDIVISIONS,'the strand has twice the available rope per bead interval');
   for(let i=0;i<220;i++)physics.advance(1/60);
   const selected=physics.beadPosition(2);
   assert(Math.abs(selected.x-195)<1&&Math.abs(selected.y-172)<1,'central bead stays on the support');
@@ -22,7 +23,7 @@ test('the flexible rope spreads sideways, swings freely and returns to the analy
   assert(physics.points.every(p=>Number.isFinite(p.x)&&Number.isFinite(p.y)&&Number.isFinite(p.z)));
 });
 
-test('a sudden two-axis pull moves the entire strand without stretching an isolated bead',()=>{
+test('a pulled bead transmits flexible motion through the strand instead of moving every bead rigidly',()=>{
   const arc=Array.from({length:24},(_,i)=>i*80);
   const physics=new ComparisonRopePhysics(arc,{width:390,height:400,center:arc[10]});
   const maxStretch=()=>Math.max(...physics.lengths.map((length,i)=>{
@@ -30,27 +31,33 @@ test('a sudden two-axis pull moves the entire strand without stretching an isola
     return Math.abs(Math.hypot(a.x-b.x,a.y-b.y)-length)/length;
   }));
   for(let i=0;i<120;i++)physics.advance(1/60);
-  const before=physics.beadPosition(9).x;
+  const before=physics.beadPosition(9).x,nearBefore=physics.beadPosition(10).x;
   const bead=physics.beadPosition(11);
+  const heldBefore=bead.x;
   const targetX=bead.x+118,targetY=bead.y-95;
   physics.grab(11,targetX,targetY);
-  assert(maxStretch()<0.025,`even an abrupt pull retains near-constant rope length (got ${maxStretch()})`);
-  assert(physics.beadPosition(9).x>before+50,'neighbouring beads follow the hand instead of staying on a rigid rail');
-  for(let i=0;i<25;i++)physics.advance(1/60);
-  assert(maxStretch()<0.012,'settled held rope keeps its segment lengths');
-  assert(Math.abs(physics.beadPosition(11).x-targetX)<1e-8&&Math.abs(physics.beadPosition(11).y-targetY)<1e-8,'the grabbed bead remains precisely under the hand');
+  assert(Math.abs(physics.beadPosition(9).x-before)<1e-8,'the far rope is never teleported during pointer input');
+  for(let i=0;i<6;i++)physics.advance(1/60);
+  const heldTravel=physics.beadPosition(11).x-heldBefore;
+  const nearTravel=physics.beadPosition(10).x-nearBefore;
+  const farTravel=physics.beadPosition(9).x-before;
+  assert(heldTravel>65&&nearTravel>15&&Math.abs(farTravel)<Math.abs(nearTravel),'motion propagates from the held bead to neighbours with spatial lag');
+  assert(maxStretch()<0.02,'rope length remains constrained during a moving wave');
+  for(let i=0;i<20;i++)physics.advance(1/60);
+  assert(maxStretch()<0.02,'held rope keeps its segment lengths while settling');
+  assert(Math.abs(physics.beadPosition(11).x-targetX)<2&&Math.abs(physics.beadPosition(11).y-targetY)<2,'the held bead catches up to the pointer without dragging the chain rigidly');
   const heldX=physics.beadPosition(11).x;
   physics.release({vx:-350,vy:200});
   for(let i=0;i<65;i++)physics.advance(1/60);
   assert(maxStretch()<0.02,'after release the strand keeps its rest lengths');
-  assert(Math.abs(physics.beadPosition(11).x-heldX)>20,'the strand continues gliding into its magnetic support after release');
+  assert(Math.abs(physics.beadPosition(11).x-heldX)>10,'the strand continues moving under its own inertia after release');
 });
 
 test('a released bead eases into the socket while neighbouring beads stay apart',()=>{
   const arc=Array.from({length:18},(_,i)=>i*80);
   const rope=new ComparisonRopePhysics(arc,{width:390,height:400,center:arc[5]});
   for(let i=0;i<160;i++)rope.advance(1/60);
-  rope.grab(6,330,110);rope.release();rope.dock(6);
+  rope.grab(6,330,110);for(let i=0;i<8;i++)rope.advance(1/60);rope.release();rope.dock(6);
   const separation=()=>Math.hypot(rope.beadPosition(6).x-rope.x,rope.beadPosition(6).y-rope.y);
   const firstDistance=separation();
   assert(firstDistance>90,'the selected bead starts away from the socket');
