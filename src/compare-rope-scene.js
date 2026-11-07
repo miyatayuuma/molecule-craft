@@ -42,6 +42,9 @@ export class ComparisonRopeScene {
     this.modelReady = false;
     this.disposed = false;
     this.boilingVisual = null;
+    this.platformHeat = 0;
+    this.platformEmissive = [];
+    this.hotEmissive = new THREE.Color('#ff672d');
   }
 
   async enableBoiling(){
@@ -105,6 +108,19 @@ export class ComparisonRopeScene {
         }
       });
     }
+    // The authored pedestal has a dedicated emissive texture for its white
+    // illuminated arcs and dots. Change the light color, not the dark body.
+    const glowing = new Set();
+    base.traverse(object => {
+      if (!object.isMesh) return;
+      for (const material of Array.isArray(object.material) ? object.material : [object.material]) {
+        if (material?.emissiveMap && material.emissive && !glowing.has(material)) glowing.add(material);
+      }
+    });
+    this.platformEmissive = [...glowing].map(material => ({
+      material, neutral: material.emissive.clone(), intensity: material.emissiveIntensity,
+    }));
+    this.applyPlatformHeat();
     base.updateMatrixWorld(true);
     const box = new THREE.Box3().makeEmpty();
     base.traverse(object => {
@@ -124,6 +140,22 @@ export class ComparisonRopeScene {
     this.positionModel();
     this.modelReady = true;
     return selected === fallbackUrl ? 'provisional' : 'preferred';
+  }
+
+  applyPlatformHeat() {
+    const warmth = THREE.MathUtils.smoothstep(this.platformHeat, 0.03, 0.95);
+    for (const {material, neutral, intensity} of this.platformEmissive) {
+      material.emissive.copy(neutral).lerp(this.hotEmissive, warmth);
+      material.emissiveIntensity = intensity * (1 + warmth * 0.65);
+    }
+  }
+
+  setBoilingHeat(target, dt = 1 / 60) {
+    const desired = THREE.MathUtils.clamp(target || 0, 0, 1);
+    const rate = desired > this.platformHeat ? 8 : 2.8;
+    const fraction = 1 - Math.exp(-rate * THREE.MathUtils.clamp(dt, 0, 0.05));
+    this.platformHeat += (desired - this.platformHeat) * fraction;
+    this.applyPlatformHeat();
   }
 
   toWorld(point) {
@@ -199,6 +231,7 @@ export class ComparisonRopeCanvas {
     this.platform.className = 'compare-pedestal-fallback';
     this.platform.alt = '';
     this.platform.src = new URL('../assets/compare/pedestal-preview.png', import.meta.url).href;
+    this.platformHeat = 0;
     stage.prepend(this.platform);
     stage.prepend(this.canvas);
   }
@@ -212,6 +245,14 @@ export class ComparisonRopeCanvas {
   }
 
   async loadPlatform() { return 'preferred'; }
+
+  setBoilingHeat(target, dt = 1 / 60) {
+    const desired = Math.max(0, Math.min(1, target || 0));
+    const speed = desired > this.platformHeat ? 8 : 2.8;
+    this.platformHeat += (desired - this.platformHeat) * (1 - Math.exp(-speed * Math.max(0, Math.min(.05, dt))));
+    const heat = this.platformHeat.toFixed(3);
+    this.platform.style.filter = `drop-shadow(0 8px 16px #000a) sepia(${heat}) saturate(${(1 + this.platformHeat * 2).toFixed(3)}) hue-rotate(${Math.round(-this.platformHeat * 18)}deg)`;
+  }
 
   draw(physics, focusIndex) {
     const ctx = this.context;

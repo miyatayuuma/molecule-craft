@@ -2,6 +2,20 @@
 // events, game saves, and the rope physics. All times are in seconds.
 const clamp=(value,min,max)=>Math.min(max,Math.max(min,value));
 export const BOILING_TIMING=Object.freeze({warmup:2.25,boiling:3.0,recovery:1.7});
+export const BOILING_START_OFFSET=55;
+
+// Temperature rises quickly at first, then eases gently into the plateau.
+// This is a presentation curve, not a measured thermal conductivity model.
+export const heatingProgress=time=>{
+  const t=clamp(time/BOILING_TIMING.warmup,0,1);
+  return 1-(1-t)**3;
+};
+
+export function boilingHeatLevel(snapshot){
+  if(snapshot?.phase==='heating')return heatingProgress(snapshot.time);
+  if(snapshot?.phase==='boiling')return 1;
+  return 0;
+}
 
 export class ComparisonBoilingCycle {
   constructor(){this.activeId=null;this.entries=new Map();}
@@ -55,8 +69,7 @@ export class ComparisonBoilingCycle {
     const entry=this.entries.get(this.activeId);
     if(!entry)return null;
     const {boilingPoint,phase,time}=entry;
-    const start=boilingPoint-12;
-    return phase==='heating'?start+12*clamp(time/BOILING_TIMING.warmup,0,1):boilingPoint;
+    return phase==='heating'?boilingPoint-BOILING_START_OFFSET*(1-heatingProgress(time)):boilingPoint;
   }
 
   snapshot(id){

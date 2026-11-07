@@ -4,7 +4,7 @@ import {moleculeDisplayName} from './collection-catalog.js';
 import {ComparisonRopePhysics} from './compare-rope-physics.js';
 import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js';
 import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
-import {ComparisonBoilingCycle} from './compare-boiling-cycle.js';
+import {ComparisonBoilingCycle,boilingHeatLevel} from './compare-boiling-cycle.js';
 import {boilingPilotEnabled} from './compare-boiling-data.js';
 import {phaseAppearanceFor} from './molecule-phase-appearance.js';
 
@@ -249,7 +249,9 @@ export function renderEncyclopediaComparison({
     if(boilingCycle){
       const temperature=boilingCycle.reading(),row=rows[currentIndex];
       if(row?.discovered&&Number.isFinite(temperature))instrumentValue.textContent=temperature.toFixed(1);
-      stage.classList.toggle('is-boiling',boilingCycle.snapshot(row?.id)?.phase==='boiling');
+      const activeSnapshot=boilingCycle.snapshot(row?.id);
+      stage.classList.toggle('is-boiling',activeSnapshot?.phase==='boiling');
+      scene?.setBoilingHeat?.(boilingHeatLevel(activeSnapshot),elapsed);
       if(boilingVisualReady){
         const snapshots=new Map([...boilingCycle.entries].map(([id])=>[id,boilingCycle.snapshot(id)]));
         try{scene?.updateBoiling?.(physics,snapshots,indexById,elapsed,boilingCycle.activeId,phaseAppearanceById);}
