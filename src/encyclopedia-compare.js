@@ -1,8 +1,10 @@
 import {moleculeBasicProperties} from './molecule-basic-properties.js';
+import {boilingValueFor} from './compare-boiling-data.js';
 
 export const COMPARISON_AXES=Object.freeze({
   molarMass:{label:'モル質量',unit:'g/mol'},
   atomCount:{label:'原子数',unit:'個'},
+  boilingPoint:{label:'沸点',unit:'°C'},
 });
 
 // Values come exclusively from the same calculation used by the molecule
@@ -12,7 +14,7 @@ export function buildComparisonRows(records,{axis='molarMass',discoveredIds=new 
   const rows=[],missing=[];
   for(const record of records){
     try{
-      const value=moleculeBasicProperties(record)[axis];
+      const value=axis==='boilingPoint'?boilingValueFor(record.id):moleculeBasicProperties(record)[axis];
       if(!Number.isFinite(value))throw new RangeError('Missing basic property');
       rows.push({id:record.id,record,value,discovered:discoveredIds.has(record.id)});
     }catch{missing.push(record.id);}
@@ -29,7 +31,7 @@ export function comparisonDistance(difference,{minSpacing=76,scale=30,unit=3}={}
 }
 
 export function layoutComparisonRows(rows,axis='molarMass'){
-  const positions=[],spacings=[],option=axis==='atomCount'?{scale:22,unit:1}:{scale:30,unit:3};
+  const positions=[],spacings=[],option=axis==='atomCount'?{scale:22,unit:1}:axis==='boilingPoint'?{scale:24,unit:12}:{scale:30,unit:3};
   let x=0;
   for(let i=0;i<rows.length;i++){
     if(i>0){const difference=rows[i].value-rows[i-1].value,spacing=comparisonDistance(difference,option);x+=spacing;spacings.push(spacing);}
@@ -48,5 +50,5 @@ export function nearestComparisonIndex(positions,coordinate){
 }
 
 export function comparisonValueLabel(value,axis='molarMass'){
-  return axis==='atomCount'?`${value} 個`:`${value.toFixed(2)} g/mol`;
+  return axis==='atomCount'?`${value} 個`:axis==='boilingPoint'?`${value.toFixed(1)} °C`:`${value.toFixed(2)} g/mol`;
 }
