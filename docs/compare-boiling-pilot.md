@@ -1,10 +1,14 @@
-# MC-COMPARE-02｜沸点比較・沸騰観察（3分子試作）
+# MC-COMPARE-02｜沸点比較・沸騰観察（正式実装）
 
-## 試作入口
+## 入口と登録範囲
 
-分子図鑑 → くらべる → `沸点`。パイロットは `?compareBoilingPilot=1` を付けた URL でだけ有効。通常のモル質量・原子数の比較は変更しない。
+分子図鑑 → くらべる → `沸点`。試作フラグは不要で、通常表示・ゲームパッド十字キーの軸切替から選べる。通常のモル質量・原子数・樹形図の比較は変更しない。
 
-試作対象: n-ブタン −0.5 °C、エタノール 78.4 °C、水 100.0 °C。NIST Chemistry WebBook SRD69 の常圧沸点に基づく表示値。完全な物性データベースではない。
+全142分子のうち、信頼できる常圧沸点の資料が確認できた **107分子** を `data/boiling-points.json` に登録。残る35分子には推測値を作らず、沸点での序列比較から除外する。混合物・減圧条件・分解温度・昇華温度・異性体不特定の値は常圧沸点として登録しない。基礎データは PubChem PUG-View の実測物性資料（HSDB、ICSC、DOE PAC、CAMEO等）を照合したもので、各分子の出典名・PubChem CID をDBに保持する。画面表示は0.1 °Cに丸める。
+
+従来の3分子試作の表示値 n-ブタン −0.5 °C、エタノール 78.4 °C、水 100.0 °C は NIST Chemistry WebBook SRD69 に基づき維持した。
+
+- https://pubchem.ncbi.nlm.nih.gov/pug_view/
 
 - https://webbook.nist.gov/cgi/cbook.cgi?ID=C106978&Type=TBOIL
 - https://webbook.nist.gov/cgi/cbook.cgi?ID=C64175&Mask=6
@@ -22,7 +26,7 @@
 
 視認性の補強: PBR 材質の emissive 色変更だけでは ACES トーンマッピングと元の白い発光に色が埋もれやすい。そのため、GLB の同じ emissive テクスチャ・UV を共有する *tonemapped=false* の加算描画層を重ね、元の白発光は加熱時に弱める。さらに台座中心の補助光も表示温度に応じて着色する。Canvas フォールバックは元画像と冷色・暖色加工した２種の複製画像を温度でクロスフェードし、低温と高温をはっきり区別する。
 
-未知の分子には名前・数値・沸点演出を表示しない。既存の発見・セーブ・データ型は変更しない。
+未発見の分子は常圧沸点がDBにあっても未知の珠として紐に並び、名前・値・外観データは非公開。常圧沸点未確認の35分子は、並び順を科学的に決められないためこの軸には含めない。既存の発見・セーブ・データ型は変更しない。
 
 ## 技術・帰属
 
@@ -34,6 +38,6 @@
 
 ## 限定検証
 
-`node --test tests/compare-boiling-cycle.test.mjs tests/compare-boiling-heater.test.mjs tests/compare-boiling-morph.test.mjs tests/encyclopedia-compare.test.mjs tests/compare-rope-physics.test.mjs`
+`node --test tests/compare-boiling-database.test.mjs tests/compare-boiling-cycle.test.mjs tests/compare-boiling-heater.test.mjs tests/compare-boiling-morph.test.mjs tests/encyclopedia-compare.test.mjs tests/compare-rope-physics.test.mjs`
 
 ブラウザ試作では、同じ珠を繰り返し自動発火しないこと、切替中に旧珠が復元すること、未知珠の表示、Android の描画負荷を確認する。

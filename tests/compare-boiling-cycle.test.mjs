@@ -57,11 +57,11 @@ test('unknown samples cannot be measured or animated',()=>{
   assert.equal(cycle.reading(),null);assert.equal(cycle.snapshot('water'),null);
 });
 
-test('pilot is sorted by real, finite boiling points without exposing unknowns',()=>{
-  const records=['water','ethanol','n-butane','methane'].map(id=>({id}));
+test('full boiling catalog is sorted without exposing undiscovered molecules or inventing absent values',()=>{
+  const records=['water','ethanol','n-butane','methane','carbon-dioxide'].map(id=>({id}));
   const {rows,missing}=buildComparisonRows(records,{axis:'boilingPoint',discoveredIds:new Set(['water'])});
-  assert.deepEqual(rows.map(row=>row.id),['n-butane','ethanol','water']);
-  assert.deepEqual(missing,['methane']);
+  assert.deepEqual(rows.map(row=>row.id),['methane','n-butane','ethanol','water']);
+  assert.deepEqual(missing,['carbon-dioxide'],'sublimation cannot be shown as atmospheric boiling');
   assert.equal(rows[0].discovered,false);
-  assert.equal(comparisonValueLabel(rows[2].value,'boilingPoint'),'100.0 °C');
+  assert.equal(comparisonValueLabel(rows[3].value,'boilingPoint'),'100.0 °C');
 });

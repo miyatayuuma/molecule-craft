@@ -5,7 +5,6 @@ import {ComparisonRopePhysics} from './compare-rope-physics.js';
 import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js';
 import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
 import {ComparisonBoilingCycle,boilingHeatLevel} from './compare-boiling-cycle.js';
-import {boilingPilotEnabled} from './compare-boiling-data.js';
 import {phaseAppearanceFor} from './molecule-phase-appearance.js';
 
 const STYLE_ID='molecule-craft-compare-physics-style';
@@ -45,7 +44,6 @@ export function renderEncyclopediaComparison({
 }={}){
   const doc=host.ownerDocument??globalThis.document;ensureStyles(doc);ensureMoleculeBeadStyles(doc);
   const boilingEnabled=axis==='boilingPoint';
-  const boilingPilot=boilingPilotEnabled(win?.location?.search??'');
   const {rows}=buildComparisonRows(records,{axis,discoveredIds}),{positions}=layoutComparisonRows(rows,axis);
   const indexById=new Map(rows.map((row,index)=>[row.id,index]));
   // Never feed hidden records' appearance data to an observable renderer.
@@ -55,7 +53,6 @@ export function renderEncyclopediaComparison({
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
   const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
   for(const [key,definition] of Object.entries(COMPARISON_AXES)){
-    if(key==='boilingPoint'&&!boilingPilot)continue;
     const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
     button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
   }
