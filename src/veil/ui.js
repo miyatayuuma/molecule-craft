@@ -117,7 +117,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     thermalNoticeUntil=0;insightPresentation.clear();
     active=true;paused=false;returnState={phase:'exploring'};root.hidden=false;document.body.dataset.mode='veil';appShell.inert=true;
     renderer??=createVeilRenderer(canvas);renderer.resize();renderer.reset();
-    resetInput();q('veil-resume').hidden=true;audio.setRegion(run.region);audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
+    resetInput();q('veil-resume').hidden=true;q('veil-conflict-notice').hidden=true;root.dataset.storageConflict='false';audio.setRegion(run.region);audio.mute(resources.state.progress.sound===false);audio.start();supply.clearAnnouncement();offerProgressionInsights();syncInsightMarkers();
     const fuel=run.fuel.fuel,oxidizer=run.fuel.oxidizer,propellant=run.fuel.propellant;
     const first=prepared.nextRun===1?'採集殻を展開 · Insight保持中は機体、そうでなければSAFE SITEをtapして帰還':fuel.molecule&&oxidizer.molecule?'COMBUSTION DRIVE · 長押しで継続航行':propellant.molecule?`${formula(propellant.molecule)} BURST · 探索を続けるか持ち帰るか選ぼう`:'通常航行で塵を集め、H₂の材料を持ち帰ろう';
     notice(first,5);root.focus();last=0;hudAt=0;hud();updatePrompt();return true;
@@ -129,7 +129,7 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
     try{renderer?.reset();}catch{}
     insightPresentation.clear();restoreLaunchRollbackState(resources,checkpoint.resources);
     active=false;paused=false;run=null;returnState=null;shipTap=null;last=0;hudAt=0;messageUntil=0;thermalNotice=null;thermalNoticeUntil=0;
-    root.hidden=true;q('veil-resume').hidden=true;document.body.dataset.mode='craft';appShell.inert=false;supply.clearAnnouncement();updateCraft();
+    root.hidden=true;q('veil-resume').hidden=true;q('veil-conflict-notice').hidden=true;root.dataset.storageConflict='false';document.body.dataset.mode='craft';appShell.inert=false;supply.clearAnnouncement();updateCraft();
     const status=q('craft-resource-hint');if(status)status.textContent='探索画面を開始できません。LOADOUTに戻りました。再度出発してください。';
     console.error('Expedition launch transaction failed and was rolled back.',error);return true;
   }
@@ -304,16 +304,26 @@ export function createVeilUI({resources,canLeave=()=>true,canSupply=canLeave,onB
   pad.addEventListener('pointermove',move);for(const type of ['pointerup','pointercancel','lostpointercapture'])pad.addEventListener(type,event=>{if(event.pointerId===pointer){stick.x=stick.y=0;const id=pointer;pointer=null;try{pad.releasePointerCapture(id);}catch{}origin=null;knob.style.transform='translate(0px,0px)';}});
   window.addEventListener('keydown',event=>{if(!active||paused||returnState?.phase!=='exploring')return;if(event.key==='Enter'&&!event.repeat&&document.activeElement===canvas){event.preventDefault();beginReturn(false);return;}if(event.key===' '&&event.target.closest?.('button'))return;if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d',' ','Shift','e','E'].includes(event.key)){event.preventDefault();if(event.key===' '){if(!event.repeat)burst();}else if(event.key==='Shift')startCombustion();else if(event.key==='e'||event.key==='E'){if(!event.repeat)shock();}else keys.add(event.key);audio.start();}});
   window.addEventListener('keyup',event=>{keys.delete(event.key);if(event.key==='Shift')stopCombustion();});
-  function pause(){if(!active)return;resetInput();paused=true;audio.pause();resources.save();q('veil-resume').hidden=false;}
+  function updatePauseAction(){
+    const blocked=resources.blocked,button=q('veil-resume');
+    root.dataset.storageConflict=String(blocked);
+    q('veil-conflict-notice').hidden=!blocked;
+    button.textContent=blocked?'保存済みデータを再読み込み':'飛行を再開';
+    button.hidden=false;
+  }
+  function pause(){if(!active)return;resetInput();paused=true;audio.pause();resources.save();updatePauseAction();}
   window.addEventListener('blur',pause);document.addEventListener('visibilitychange',()=>{if(document.hidden)pause();last=0;});
-  window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){pause();resources.save();updateCraft();}});
-  q('veil-resume').addEventListener('click',()=>{if(resources.blocked)return;paused=false;last=0;q('veil-resume').hidden=true;audio.start();root.focus();});
+  window.addEventListener('pagehide',()=>{resources.save();audio.pause();});window.addEventListener('storage',event=>{if(event.key==='molecule-craft.resources.v1'){if(active)pause();else resources.save();updateCraft();}});
+  q('veil-resume').addEventListener('click',()=>{if(resources.blocked){window.location.reload();return;}paused=false;last=0;q('veil-resume').hidden=true;q('veil-conflict-notice').hidden=true;root.dataset.storageConflict='false';audio.start();root.focus();});
   new ResizeObserver(()=>renderer?.resize()).observe(root);updateCraft();
   function gamepadInput(sample){
     root.dataset.controllerActive=String(!!sample);
     if(!sample||!active||paused||returnState?.phase!=='exploring'){
       clearGamepadReturn();gamepadStick.x=gamepadStick.y=0;if(gamepadDriving){gamepadDriving=false;stopCombustion();}
-      if(sample&&active&&paused&&sample.pressed.includes(9))q('veil-resume').click();
+      if(sample&&active&&paused){
+        if(resources.blocked){if(sample.pressed.includes(9))q('veil-resume').focus();else if(sample.pressed.includes(0)&&document.activeElement===q('veil-resume'))q('veil-resume').click();}
+        else if(sample.pressed.includes(9))q('veil-resume').click();
+      }
       return;
     }
     // Returning may be initiated while steering. Eligibility is still checked

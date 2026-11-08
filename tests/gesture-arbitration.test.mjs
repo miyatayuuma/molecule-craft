@@ -1,5 +1,12 @@
 import assert from 'node:assert/strict';
-import { POINTER_ARBITRATION, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js';
+import { POINTER_ARBITRATION, canBeginCraftPointer, chooseAtomOrElectron, hasCompatibleElectronPair, pickAtomAtPointer, pickBondAtPointer } from '../src/gesture-arbitration.js';
+
+const touches=new Map([[11,{pointerType:'touch'}]]);
+assert.equal(canBeginCraftPointer(touches,'gamepad'),false,'A gamepad cursor cannot turn one finger into a pinch');
+assert.equal(canBeginCraftPointer(touches,'touch'),true,'A second real finger remains a valid pinch');
+assert.equal(canBeginCraftPointer(touches,'pen'),true,'Physical multi-pointer gestures remain valid');
+assert.equal(canBeginCraftPointer(new Map([[-739,{pointerType:'gamepad'}]]),'touch'),false,'A finger cannot steal a gamepad drag');
+assert.equal(canBeginCraftPointer(new Map(),'gamepad'),true,'Gamepad aiming still starts without physical pointers');
 
 const atoms = [
   { atomId: 1, screenX: 100, screenY: 100, depth: .2 },

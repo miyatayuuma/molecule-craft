@@ -6,6 +6,14 @@ export const POINTER_ARBITRATION = Object.freeze({
   bondEndpointExclusionPx: 24,
 });
 
+// A gamepad aim cursor cannot act as a second finger. Keep a gesture with its
+// existing input source; two physical touches still form a pinch normally.
+export function canBeginCraftPointer(activePointers, incomingType) {
+  if (activePointers.size === 0) return true;
+  return incomingType !== 'gamepad'
+    && ![...activePointers.values()].some(pointer => pointer.pointerType === 'gamepad');
+}
+
 export function pickAtomAtPointer(clientX, clientY, candidates, radiusPx) {
   const ranked = candidates
     .map(candidate => ({

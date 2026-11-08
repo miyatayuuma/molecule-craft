@@ -3,10 +3,23 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {createPolymerReferenceModel} from '../src/polymer-reference-model.js';
-import {initializeReferenceAtoms,syncReferenceBondBatch,setReferenceGrowth,advanceReferenceGrowth} from '../src/polymer-reference-renderer.js';
+import {initializeReferenceAtoms,syncReferenceBondBatch,setReferenceGrowth,advanceReferenceGrowth,discoveryGrowthThreshold} from '../src/polymer-reference-renderer.js';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 const originKey=o=>`${o.instanceId}:${o.sourceAtomIndex}`;
+test('first polymer reveal waits for a clearly extended chain but not all 100 units',()=>{
+ assert.equal(discoveryGrowthThreshold(4,100),28);
+ assert.equal(discoveryGrowthThreshold(9,100),33);
+ assert.equal(discoveryGrowthThreshold(4,20),20,'short reference plans cannot wait for nonexistent units');
+ const growth={units:4,lastRenderedAt:null};let frames=0;
+ while(growth.units<discoveryGrowthThreshold(4,100)){
+   growth.lastRenderedAt=frames*150;
+   assert.equal(advanceReferenceGrowth(growth,(frames+1)*150,100),true);
+   frames++;
+ }
+ assert.equal(frames,24,'normal growth remains observable for 3.6 seconds after the initial four units');
+ assert.ok(growth.units<100);
+});
 test('growth waits for a rendered frame and never catches up after a stall',()=>{
  const growth={units:4,lastRenderedAt:null};
  assert.equal(advanceReferenceGrowth(growth,100000,100),false);

@@ -1,5 +1,10 @@
 // Display-only batching. Preserve the existing sphere/cylinder tessellation,
 // material properties and every atom/lane transform; only draw ownership changes.
+export const DISCOVERY_GROWTH_ADDITIONAL_UNITS = 24;
+export function discoveryGrowthThreshold(initialUnits, totalUnits) {
+  return Math.min(totalUnits, initialUnits + DISCOVERY_GROWTH_ADDITIONAL_UNITS);
+}
+
 export function advanceReferenceGrowth(growth,now,target){
   if(growth.lastRenderedAt===null||now-growth.lastRenderedAt<150||growth.units>=target)return false;
   growth.units++;growth.lastRenderedAt=null;return true;
