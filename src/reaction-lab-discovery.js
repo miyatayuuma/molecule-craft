@@ -50,6 +50,7 @@ export function createReactionLabDiscoveryCoordinator({
   root=globalThis.document,
   now=Date.now,
   closeLabAndWait=()=>Promise.resolve(),
+  openLab=()=>false,
   getBatchGeneration=()=>null,
   onVibrate=()=>{},
   onDiagnostic=diagnostic=>console.error('[Reaction Lab discovery]',diagnostic.message,diagnostic),
@@ -58,7 +59,7 @@ export function createReactionLabDiscoveryCoordinator({
 }={}){
   const recordsById=new Map((records??[]).map(record=>[record.id,record]));
   const routesById=new Map(polymerRoutes.map(route=>[route.routeId,route])),polymerIdSet=new Set(polymerIds);
-  let eventSequence=0,scheduled=false,session=null;
+  let eventSequence=0,scheduled=false,session=null,returnToLabOnClose=false;
   const queue=[];
   const polymerSamples=new Map(),dismissedSampleIds=new Set();
 
@@ -89,6 +90,7 @@ export function createReactionLabDiscoveryCoordinator({
     try{await closeLabAndWait();}
     catch(error){markPending(items,'failed');diagnostic('lab-suspend-failed','LAB could not close for discovery presentation.',{error:String(error?.message??error)});session=null;return;}
     if(!session||session.state!=='suspending')return;
+    returnToLabOnClose=true;
     session.state='presenting';beginNextPresentation();
   }
   function beginNextPresentation(){
@@ -137,21 +139,32 @@ export function createReactionLabDiscoveryCoordinator({
     if(!session)return false;
     session.state='finished';session=null;
     collection?.setDiscoverySession?.(null);
-    // The earned Collection entry remains open. The user chooses what to do next.
+    // Keep the earned detail open; the Lab returns only when Collection closes.
     return true;
+  }
+  function restoreLabWhenCollectionCloses(){
+    if(!returnToLabOnClose)return;
+    returnToLabOnClose=false;
+    defer(()=>{
+      if(collection?.isOpen?.())return;
+      try{if(openLab()===false)diagnostic('lab-return-rejected','LAB could not reopen after Collection closed.');}
+      catch(error){diagnostic('lab-return-failed','LAB could not reopen after Collection closed.',{error:String(error?.message??error)});}
+    });
   }
   function abortSession(reason){
     if(!session)return;
     if(session.current?.status==='active')session.current.status='failed';
     markPending(session.items,'failed');
     finishSession();
-    // Keep any successfully opened Collection screen, never silently restart LAB.
+    if(!collection?.isOpen?.())restoreLabWhenCollectionCloses();
     diagnostic('presentation-aborted','Discovery sequence ended without changing saved discoveries.',{reason});
   }
   function onCollectionClosed(){
-    if(!session)return;
-    if(['active','presented'].includes(session.current?.status))session.current.status='dismissed';
-    markPending(session.items,'dismissed');finishSession();
+    if(session){
+      if(['active','presented'].includes(session.current?.status))session.current.status='dismissed';
+      markPending(session.items,'dismissed');finishSession();
+    }
+    restoreLabWhenCollectionCloses();
   }
   function handleProductEvent(event){
     const payload=event?.detail??event,validated=validateProductEvent(payload,recordsById);

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import * as THREE from '../vendor/three/three.module.min.js';
 import {ELEMENTS,modelAtomRadius} from '../src/chemistry.js';
 import {createPolymerReferenceModel} from '../src/polymer-reference-model.js';
-import {initializeReferenceAtoms,syncReferenceBondBatch,setReferenceGrowth,advanceReferenceGrowth,discoveryGrowthThreshold} from '../src/polymer-reference-renderer.js';
+import {initializeReferenceAtoms,syncReferenceBondBatch,setReferenceGrowth,advanceReferenceGrowth,discoveryGrowthThreshold,referenceGrowthStartUnits} from '../src/polymer-reference-renderer.js';
 import {readFile} from 'node:fs/promises';
 import {runInNewContext} from 'node:vm';
 const originKey=o=>`${o.instanceId}:${o.sourceAtomIndex}`;
@@ -29,6 +29,14 @@ test('growth waits for a rendered frame and never catches up after a stall',()=>
  assert.equal(advanceReferenceGrowth(growth,120000,100),false);
  growth.lastRenderedAt=120000;
  assert.equal(advanceReferenceGrowth(growth,120150,100),true);assert.equal(growth.units,6);
+});
+test('returning from a discovery resumes the displayed polymer count and continues to 100',()=>{
+ assert.equal(referenceGrowthStartUnits(4,100,28),28,'Do not restart the short chain on Lab return.');
+ assert.equal(referenceGrowthStartUnits(9,100,33),33);
+ assert.equal(referenceGrowthStartUnits(4,100,null),4,'A preview that never started begins at its finite sample.');
+ assert.equal(referenceGrowthStartUnits(4,100,105),100,'Completed growth stays at 100.');
+ const growth={units:referenceGrowthStartUnits(4,100,28),lastRenderedAt:0};
+ assert.equal(advanceReferenceGrowth(growth,150,100),true);assert.equal(growth.units,29);
 });
 test('batched spheres retain every atom, tessellation, material and local transform',()=>{
  const plan=createPolymerReferenceModel(THREE,'nylon-6-6',100),graph={...plan,atomOrigins:plan.atoms.map(a=>({instanceId:`r-${a.unit}`,sourceAtomIndex:a.id}))},before=JSON.stringify(graph);
