@@ -292,3 +292,10 @@
  #supply-dialog #tank-molecules button>img{width:100px;height:72px}
  #supply-dialog .tank-inspector{grid-template-columns:minmax(0,1fr) minmax(130px,30%)}
 }
+
+/* A storage conflict is a protected save, not a paused flight that can resume. */
+.veil-conflict-notice{position:absolute;z-index:4;top:calc(50% - 130px);left:50%;width:min(360px,calc(100% - 36px));transform:translateX(-50%);box-sizing:border-box;padding:18px 20px;border:1px solid #d7a874;border-radius:18px;background:#172632f5;color:#ffeed4;text-align:center;box-shadow:0 12px 40px #0009}
+.veil-conflict-notice strong{font-size:16px;line-height:1.5}
+.veil-conflict-notice p{font-size:12px;line-height:1.7;margin:9px 0 0;color:#efcfb4}
+#veil-view[data-storage-conflict="true"] #veil-resume{top:calc(50% + 110px);white-space:normal;max-width:calc(100% - 36px);border-color:#d7a874;background:#503624;z-index:5}
+@media(max-height:500px){.veil-conflict-notice{top:calc(50% - 105px);padding:12px 16px}.veil-conflict-notice strong{font-size:14px}.veil-conflict-notice p{font-size:11px;margin:4px 0 0}#veil-view[data-storage-conflict="true"] #veil-resume{top:calc(50% + 95px);padding:11px 16px}}

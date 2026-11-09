@@ -35,3 +35,5 @@ jobs:
       - name: Reaction Lab, polymer and TNT contracts
         run: |
           node --test tests/reaction-lab-core.test.mjs tests/reaction-lab-complete-catalog.test.mjs tests/reaction-lab-polymerization.test.mjs tests/reaction-lab-polymer-path.test.mjs tests/reaction-lab-debug-visual.test.mjs tests/polymerization-routes.test.mjs tests/reaction-encyclopedia.test.mjs tests/reaction-recipe-drop.test.mjs tests/tnt-rewards.test.mjs
+      - name: Discovery Lab return and 100-unit growth
+        run: node --test tests/reaction-lab-discovery.test.mjs tests/reaction-lab-polymer-discovery.test.mjs tests/reaction-lab-dialog-lifecycle.test.mjs tests/polymer-reference-renderer.test.mjs

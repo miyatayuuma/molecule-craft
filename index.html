@@ -12,7 +12,7 @@
   <link rel="apple-touch-icon" href="./assets/icon-192.png">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=83">
-  <link rel="stylesheet" href="./veil.css?v=50">
+  <link rel="stylesheet" href="./veil.css?v=51">
   <!-- The optional Quarks VFX bundle must share the exact Three.js instance
        used by the main rope renderer; no second WebGL renderer is created. -->
   <script type="importmap">{"imports":{"three":"./vendor/three/three.module.min.js"}}</script>
@@ -169,9 +169,13 @@
         </button>
       </div>
     </div>
+    <div id="veil-conflict-notice" class="veil-conflict-notice" role="alert" hidden>
+      <strong>ほかの画面で保存が更新されました</strong>
+      <p>この遠征は続行できません。未精算の収集物・ひらめきは保存できないため、再読み込みで最新の保存状態に戻ります。</p>
+    </div>
     <button id="veil-resume" type="button" hidden>飛行を再開</button>
   </section>
-  <script type="module" src="./src/app.js?v=102"></script>
+  <script type="module" src="./src/app.js?v=104"></script>
   <script type="module" src="./src/pwa.js?v=34"></script>
 </body>
 </html>

@@ -63,6 +63,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   const queue=h.coordinator.snapshot().queue;assert.deepEqual(queue.map(item=>item.status),['presented','presented']);
   assert.equal(h.closeCalls,1,'Discovery closes LAB once and leaves Collection open.');
   assert.equal(h.openCalls,0);assert.equal(h.collectionOpen,true);assert.equal(h.sessionView,null);assert.equal(h.vibrationCount,2);
+  h.collectionOpen=false;h.coordinator.onCollectionClosed();await flush();
+  assert.equal(h.labOpen,true,'Closing the earned Collection detail returns to the preserved Lab.');
+  assert.equal(h.openCalls,1);
+  h.coordinator.onCollectionClosed();await flush();assert.equal(h.openCalls,1,'The Lab must reopen only once.');
 }
 
 // Repeated products and later reactions use Collection as their duplicate gate.
@@ -113,10 +117,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   assert.ok(h.collectionState.has('C')&&h.collectionState.has('D'));assert.equal(h.openCalls,0);
 }
 
-// Closing after tapping past the first reveal keeps that registration and dismisses the next active item.
+// Closing during an unfinished sequence keeps registration and returns to the Lab.
 {
   const h=harness();h.coordinator.handleProductEvent(payload(['C','D']));await flush();h.presentations[0].onSettled({status:'presented'});
-  h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['presented','dismissed']);assert.equal(h.openCalls,0);
+  h.collectionOpen=false;h.coordinator.onCollectionClosed();await flush();assert.deepEqual(h.coordinator.snapshot().queue.map(item=>item.status),['presented','dismissed']);assert.equal(h.openCalls,1);
 }
 
 // Presentation startup failure aborts the visual queue, leaves registrations, and safely restores the Lab.
@@ -125,10 +129,10 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
   const collection={registerDiscoveredMolecule(id,{at}){const changed=!known.has(id);if(changed)known.add(id);const result={changed,event:{isNew:changed,at}};registrations.push(id);return result;},setDiscoverySession(){},isOpen:()=>false};
   const failed=createReactionLabDiscoveryCoordinator({records,collection,isLabOpen:()=>labOpen,getBatchGeneration:()=>4,closeLabAndWait:()=>{labOpen=false;},openLab:()=>{labOpen=true;opened++;return true;},present:()=>false,onDiagnostic:item=>diagnostics.push(item)});
   failed.handleProductEvent(payload(['C','D']));await flush();
-  assert.deepEqual(registrations,['C','D']);assert.deepEqual(failed.snapshot().queue.map(item=>item.status),['failed','failed']);assert.deepEqual([...known],['C','D']);assert.equal(opened,0);assert.equal(diagnostics.some(item=>item.code==='presentation-threw'),false);
+  assert.deepEqual(registrations,['C','D']);assert.deepEqual(failed.snapshot().queue.map(item=>item.status),['failed','failed']);assert.deepEqual([...known],['C','D']);assert.equal(opened,1);assert.equal(diagnostics.some(item=>item.code==='presentation-threw'),false);
 }
 
-// A completed discovery keeps Collection open and never restores LAB focus.
+// A completed discovery keeps Collection open; focus returns when the book closes.
 {
   const focusTarget={isConnected:true,disabled:false,closest:()=>null,focus(){}},fallback={isConnected:true,disabled:false,focus(){root.activeElement=this;}};
   const root={activeElement:focusTarget,querySelector:()=>fallback},known=new Set(),view={};let labOpen=true,collectionOpen=false;
@@ -137,8 +141,17 @@ const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
     closeLabAndWait(){labOpen=false;root.activeElement=null;},openLab(){labOpen=true;root.activeElement=fallback;return true;},
     present({onSettled}){collectionOpen=true;onSettled({status:'presented'});return true;},onDiagnostic:()=>{}});
   focusCoordinator.handleProductEvent(payload(['C']));await flush();await flush();
-  assert.equal(labOpen,false,'LAB remains closed after discovery.');
-  assert.equal(root.activeElement,null,'No automatic focus transfer back into LAB.');
+  assert.equal(labOpen,false,'LAB stays closed while the earned detail is displayed.');
+  assert.equal(root.activeElement,null,'No focus transfer before Collection closes.');
+  collectionOpen=false;focusCoordinator.onCollectionClosed();await flush();
+  assert.equal(labOpen,true,'LAB returns after the Collection actually closes.');
+  assert.equal(root.activeElement,fallback);
+}
+
+// Closing an ordinary Collection visit must not start Lab or alter its batch.
+{
+  const h=harness();h.coordinator.onCollectionClosed();await flush();
+  assert.equal(h.openCalls,0);assert.equal(h.closeCalls,0);
 }
 
 // Invalid instance identity is rejected before any registration.

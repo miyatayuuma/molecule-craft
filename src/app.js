@@ -10,7 +10,7 @@ import { createTorsionModel } from './torsion-model.js?v=35';
 import { createConformationEngine } from './conformation-engine.js?v=3';
 import { createWorkspaceView, rotateStructure } from './workspace-view.js?v=23';
 import { ELECTRON_POINTER_TARGET, pickElectronAtPointer } from './electron-interaction.js?v=16';
-import { chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=20';
+import { canBeginCraftPointer, chooseAtomOrElectron, pickBondAtPointer } from './gesture-arbitration.js?v=21';
 import { connectedStructures, chooseMainStructure, createDebrisTracker, DEBRIS_POLICY, structureFrame } from './workspace-model.js?v=20';
 import { createPreviewModel } from './preview-model.js?v=37';
 import { planSpawn } from './spawn-layout.js?v=28';
@@ -32,7 +32,7 @@ import { craftHintElectronKeys, nextCraftBondHint } from './craft-target-hint.js
 import { observeCraftStereo } from './stereo-observation.js?v=1';
 import { createTearGesture, findTearCandidate, projectedTearPull } from './craft-tearoff.js?v=1';
 import { captureDetachedFragment, createDetachedDrag } from './craft-detached-drag.js?v=1';
-import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=8';
+import { createReactionLabDiscoveryCoordinator } from './reaction-lab-discovery.js?v=10';
 import { createReactionCatalogAuthority } from './reaction-catalog-authority.js?v=1';
 import { createReactionProgress } from './reaction-progress.js?v=1';
 import { startGamepadUi } from './gamepad-input.js?v=3';
@@ -124,7 +124,7 @@ loadMoleculeDatabase().then(async result=>{
     const labWarning=document.createElement('p');labWarning.id='lab-save-warning';labWarning.setAttribute('role','status');labWarning.className='storage-message';labWarning.hidden=true;document.querySelector('#reaction-lab').prepend(labWarning);
     collectionGame=await connectCollection({storage:progressStorage,records:moleculeCatalog(),elementPalette,elementAccess:symbol=>resources.canUseElement(symbol),onPlace:template=>addCraftPart(template.id),onSupply:(id,use)=>veilUI?.openSupply(id,use)??false,canOpen:()=>!gameShell.isOpen()&&!reactionLabDialogOpen&&!relaxation&&!bondTransition&&!frameTransition&&!dragState&&!activePointers.size,onOpenChange:open=>{collectionOpen=open;if(!open)reactionLabDiscovery?.onCollectionClosed();}});
     try{
-      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=45');
+      const {createReactionLabViewer}=await import('./reaction-lab-viewer.js?v=47');
       reactionLabViewer=createReactionLabViewer({THREE,dialog:document.querySelector('#reaction-lab-dialog'),root:document.querySelector('#reaction-lab'),records:moleculeCatalog(),collectionState:collectionGame.state,polymerRoutes:collectionGame.polymerRoutes,polymerSitePatterns:collectionGame.polymerSitePatterns,
         polymerNameFor:id=>collectionGame.polymerNameFor(id),isPolymerKnown:id=>collectionGame.polymerState.hasPolymer(id),onOpenPolymer:async id=>{await reactionLabViewer.closeAndWait();return collectionGame.openPolymer(id);},
         onDialogStateChange:open=>{reactionLabDialogOpen=open;},onPointerLockChange:locked=>{reactionLabPointerLocked=locked;}});
@@ -133,8 +133,8 @@ loadMoleculeDatabase().then(async result=>{
       const reactionProgress=createReactionProgress({storage:reactionStorage,authority:reactionAuthority,legacyPolymerEntries:collectionGame.polymerState.entries(),onChange:()=>{veilUI?.refreshPendingRecipes?.();collectionGame?.refreshReactionProgress?.();},onStatus:text=>{const node=document.querySelector('#game-save-status');if(node){node.dataset.reactionStatus=text;const messages=[node.dataset.collectionStatus,text].filter(Boolean);node.textContent=messages.join('　');node.hidden=!messages.length;labWarning.textContent=node.textContent;labWarning.hidden=node.hidden;}}});
       collectionGame.reactionAuthority=reactionAuthority;collectionGame.reactionProgress=reactionProgress;collectionGame.setReactionProgress(reactionAuthority,reactionProgress);const openReactionGuide=async id=>{const entry=reactionAuthority.get(id);if(!entry||reactionProgress.getState(id)==='notFound')return;await collectionGame.closeAndWait();reactionLabViewer.openGuide(entry);};collectionGame.setReactionGuideHandler(openReactionGuide);void veilUI.configureReactionRecipes({authority:reactionAuthority,progress:reactionProgress,collection:collectionGame.state,records:moleculeCatalog(),polymerNameFor:collectionGame.polymerNameFor,onTryReaction:openReactionGuide});
       reactionLabDiscovery=createReactionLabDiscoveryCoordinator({reactionAuthority,reactionProgress,records:moleculeCatalog(),polymerRoutes:collectionGame.polymerRoutes,polymerIds:collectionGame.polymerRoutes.map(route=>route.polymerId),collection:collectionGame,root:document,
-        closeLabAndWait:()=>reactionLabViewer.closeAndWait({preserveState:false}),openLab:()=>reactionLabViewer.open(),isLabOpen:()=>reactionLabViewer.isOpen(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
-        getFocus:()=>document.activeElement,onVibrate:()=>vibrateFeedback(22,'touch')});
+        closeLabAndWait:()=>reactionLabViewer.closeAndWait({preserveState:true}),openLab:()=>reactionLabViewer.open(),getBatchGeneration:()=>reactionLabViewer.getBatchGeneration(),
+        onVibrate:()=>vibrateFeedback(22,'touch')});
       window.addEventListener('molecule-craft:reaction-lab-product',event=>reactionLabDiscovery?.handleProductEvent(event));
       window.addEventListener('molecule-craft:reaction-lab-polymer-sample',event=>reactionLabDiscovery?.handlePolymerSampleEvent(event));
       window.addEventListener('molecule-craft:reaction-lab-polymer-sample-present',event=>reactionLabDiscovery?.handlePolymerSamplePresent(event));
@@ -276,11 +276,12 @@ function handleCraftGamepad(sample,{dialog,now,openKeyboard}={}){
 
 function onPointerDown(e){
   if(bondTransition||frameTransition||collectionOpen||gameShell.isOpen()){pulse('構造変化中 · 視点は固定されています');return;}
+  if(!canBeginCraftPointer(activePointers,e.pointerType))return;
   // Once a drag is committed, a stray second finger cannot steal it or move
   // the camera. Unregistered pointer events are ignored below as well.
   if(activePointers.size&&dragState&&(dragState.moved||dragState.mode!=='molecule-rotate'))return;
   saveWorkspace();if(!activePointers.size)craftHistory.begin();
-  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now()});
+  activePointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY,downAt:performance.now(),pointerType:e.pointerType});
   if(activePointers.size===2){craftHistory.cancel();lastBackgroundTap=null;clearTimeout(bondHoldTimer);conformationEngine.release();beginTwoFinger();dragState=null;hoverElectron=null;return;}if(activePointers.size>1)return;
   if(relaxation){
     const picked=chooseAtomOrElectron(e.clientX,e.clientY,screenAtomCandidates(),pickScreenElectron(e.clientX,e.clientY));

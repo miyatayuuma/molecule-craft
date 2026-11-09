@@ -7,7 +7,7 @@ const read=async path=>JSON.parse(await readFile(new URL(`../${path}`,import.met
 const records=await read('data/molecules.json'),authority=await read('data/polymerization-routes.json'),pet=authority.routes.find(route=>route.routeId==='polyethylene-terephthalate-direct-polycondensation');
 const product=({sampleId='sample-1',batchGeneration=7,route=pet}={})=>({routeId:route.routeId,polymerId:route.polymerId,sampleId,batchGeneration,sourceInstanceIds:Array.from({length:route.completionEvidence.unitCount},(_,index)=>`source-${index}`),byproducts:Array.from({length:route.completionEvidence.byproducts.water},(_,formationIndex)=>({species:'water',instanceId:`water-byproduct-${formationIndex}`,formationIndex}))});
 function harness(knownPolymers=[],knownMolecules=[]){
-  const polymers=new Set(knownPolymers),molecules=new Set(knownMolecules),registrations=[],presentations=[],diagnostics=[];let view=null,labOpen=true,collectionOpen=false;
+  const polymers=new Set(knownPolymers),molecules=new Set(knownMolecules),registrations=[],presentations=[],diagnostics=[];let view=null,labOpen=true,collectionOpen=false,labReopenCount=0;
   const collection={
     registerDiscoveredPolymer(id,{at}){const changed=!polymers.has(id);polymers.add(id);const result={changed,event:{isNew:changed,at}};registrations.push({kind:'polymers',id,at,result});return result;},
     registerDiscoveredMolecule(id,{at}){const changed=!molecules.has(id);molecules.add(id);const result={changed,event:{isNew:changed,at}};registrations.push({kind:'molecules',id,at,result});return result;},
@@ -15,8 +15,8 @@ function harness(knownPolymers=[],knownMolecules=[]){
     openPolymerAward(id,{onSettled}){presentations.push({kind:'polymers',id});collectionOpen=true;onSettled({status:'presented'});return true;},
   };
   const coordinator=createReactionLabDiscoveryCoordinator({records,polymerRoutes:authority.routes,polymerIds:(awaitlessPolymers()),collection,now:()=>1700,isLabOpen:()=>labOpen,getBatchGeneration:()=>7,
-    closeLabAndWait:async()=>{labOpen=false;},openLab:()=>{labOpen=true;return true;},present:options=>{presentations.push(options);collectionOpen=true;return true;},onDiagnostic:item=>diagnostics.push(item)});
-  return{coordinator,collection,polymers,molecules,registrations,presentations,diagnostics,get view(){return view;},get collectionOpen(){return collectionOpen;},set collectionOpen(value){collectionOpen=value;}};
+    closeLabAndWait:async()=>{labOpen=false;},openLab:()=>{labOpen=true;labReopenCount++;return true;},present:options=>{presentations.push(options);collectionOpen=true;return true;},onDiagnostic:item=>diagnostics.push(item)});
+  return{coordinator,collection,polymers,molecules,registrations,presentations,diagnostics,get view(){return view;},get collectionOpen(){return collectionOpen;},set collectionOpen(value){collectionOpen=value;},get labReopenCount(){return labReopenCount;},get labOpen(){return labOpen;}};
 }
 function awaitlessPolymers(){return authority.routes.map(route=>route.polymerId);}
 const flush=()=>new Promise(resolve=>setTimeout(resolve,0));
@@ -44,6 +44,9 @@ test('polymer registration is immediate; after grown-sample presentation, Collec
   assert.equal(h.presentations[1].id,'polyethylene-terephthalate');
   assert.equal(h.collectionOpen,true);
   assert.ok(h.polymers.has(pet.polymerId)&&h.molecules.has('water'));
+  assert.equal(h.labOpen,false,'The final polymer detail stays visible until the player closes it.');
+  h.collectionOpen=false;h.coordinator.onCollectionClosed();await flush();
+  assert.equal(h.labOpen,true);assert.equal(h.labReopenCount,1);
 });
 
 test('known entries are omitted, while all-known samples never open Collection',async()=>{
