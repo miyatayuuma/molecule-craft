@@ -23,8 +23,15 @@ jobs:
         with:
           name: water-piston-screens
           path: shots/*.png
+  comparison:
+    if: github.base_ref == 'work/water-piston-p1'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install playwright==1.56.0 pillow
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
       - name: Compare motion on the same mobile viewport
-        if: github.base_ref == 'work/water-piston-p1'
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
@@ -35,7 +42,6 @@ jobs:
           output="$PWD/shots/motion"
           (cd "$RUNNER_TEMP/water-base" && WATER_COMPARISON="$output/P1" python "$comparison")
           WATER_COMPARISON="$output/P2" python "$comparison"
-          pip install pillow
           python - <<'PY'
           from PIL import Image, ImageDraw
           from pathlib import Path
@@ -53,7 +59,6 @@ jobs:
           frames[0].save('shots/water-p1-p2.webp',save_all=True,append_images=frames[1:],duration=200,loop=0,lossless=True)
           PY
       - uses: actions/upload-artifact@v4
-        if: github.base_ref == 'work/water-piston-p1' && success()
         with:
           name: water-motion-comparison
           path: shots/water-p1-p2.webp

@@ -51,16 +51,14 @@ export function sampleInteractions(particles) {
 export function turnWater(p, i, dt, heat, temperature) {
   // Apply the incremental P1 gas tumble about world axes. This avoids snapping
   // back to an absolute Euler angle when a previously liquid molecule escapes.
+  const previousPhase = p.phase;
   p.phase += p.spin*dt*heat;
-  const current = freeOrientation(p.phase,i);
-  axis.set(0,0,0);
   if (p.free > 0) {
-    p.previousFree.invert();
-    p.previousFree.premultiply(current);
+    p.previousFree.copy(freeOrientation(previousPhase,i)).invert();
+    p.previousFree.premultiply(freeOrientation(p.phase,i));
     step.identity().slerp(p.previousFree,p.free);
     p.orientation.premultiply(step);
   }
-  p.previousFree.copy(freeOrientation(p.phase,i));
   const thermal = .36 + Math.max(0,temperature)*.005;
   axis.set(Math.sin(p.phase+i), Math.cos(p.phase*.71-i), Math.sin(p.phase*.53+i))
     .multiplyScalar(thermal).add(p.torque).multiplyScalar(p.liquid);

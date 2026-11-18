@@ -59,8 +59,8 @@ export function advanceGas(gas, dt) {
     p.liquid=dense*(1-p.frozen);
   }
   gas.interactionClock+=dt;
-  if(gas.interactionClock>=1/30){
-    gas.interactionClock%=1/30;
+  if(gas.interactionClock>=1/20){
+    gas.interactionClock%=1/20;
     sampleInteractions(gas.particles);
   }
   for (let i=0;i<COUNT;i++) {
