@@ -44,12 +44,15 @@ export function advanceGas(gas, dt) {
   gas.velocity += (850*(gas.target-previous)-50*gas.velocity)*dt;
   gas.height=clamp(previous+clamp(gas.velocity,-48,48)*dt,LOW,HIGH);
   const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin;
+  // Carry part of the gas upward with a fast withdrawal. A height gradient keeps
+  // the bottom layer in place and frees the swept volume over several substeps.
+  const expansion=Math.max(0,gas.height-previous)/(previous-2*skin);
   const heat=1+(gas.temperature-160)/100; // Exaggerated visual speed response.
   for (const p of gas.particles) {
     const speed=Math.hypot(p.vx,p.vy,p.vz);
     const gain=1+(p.speed*heat/Math.max(.001,speed)-1)*(1-Math.exp(-2*dt));
     p.vx*=gain; p.vy*=gain; p.vz*=gain;
-    p.x+=p.vx*dt; p.y+=p.vy*dt; p.z+=p.vz*dt;
+    p.x+=p.vx*dt; p.y+=p.vy*dt+.78*(p.y-skin)*expansion; p.z+=p.vz*dt;
     p.phase+=p.spin*dt*heat;
     contain(p,top,pistonSpeed);
   }
