@@ -1,3 +1,4 @@
+import {openWaterPiston, waterPistonTitle} from './water-piston.js';
 import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=7';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
@@ -48,7 +49,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   const q=id=>root.querySelector(`#${id}`),dialog=q('collection-dialog'),list=q('collection-list'),detail=q('collection-detail');
   let reactionAuthority=null,reactionProgress=null,onTryReaction=()=>{},reactionBookController=null;
   let tab='molecules',currentDetail=null,detailViewer=null,detailGeneration=0,listScroll=0,listInnerScroll=0,detailTransitionHandle=null,motifReturnMoleculeId=null,discoverySession=null,collectionDialogOpen=false;
-  let discoveryAward=null;
+  let discoveryAward=null, waterPiston=null;
   const polymerThumbnailCache=new Map();
   let polymerPreviewGeneration=0,polymerPreviewObserver=null,thumbnailQueue=[],activeThumbnailJob=null;
   const closeWaiters=new Set();
@@ -165,6 +166,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     graphFocusId=selectInitialGraphFocus(data.graph,{...options,previousId:graphFocusId,entriesById});return graphFocusId;
   }
   function releaseViewer(){
+    waterPiston?.close();
     detailGeneration++;detailViewer?.dispose();detailViewer=null;
     polymerPreviewGeneration++;polymerPreviewObserver?.disconnect();polymerPreviewObserver=null;
     thumbnailQueue=[];
@@ -644,6 +646,15 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const matches=partMatches(record),motifs=motifMatches(record),catalogEntry=entry(kind,id)??{},stereoSpec=catalogEntry.stereoComparison??null;heading(kind,id,moleculeDisplayName(record),record.formula);
     const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
+    if(id==='water'&&!discoverySession){
+      const launch=button(null,async()=>{
+        const {createPistonScene}=await import('./water-piston-scene.js');
+        if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(createPistonScene,()=>{waterPiston=null;});
+      });
+      launch.id='open-water-piston';
+      launch.innerHTML=waterPistonTitle;
+      detail.append(launch);
+    }
     if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);
     detail.append(encyclopediaSummaryParagraph(catalogEntry.description??'この分子を図鑑に登録しました。','molecules',record.id));
     const extra=section('くわしく');extra.append(el('p',`${record.nameEn} · ${COLLECTION_CATEGORIES[collectionCategory(record)]}`),el('p',`IUPAC: ${record.iupacNameEn}`));
@@ -799,6 +810,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function handleGamepad(sample,now=0,{openKeyboard}={}){
     if(!sample||!dialog.open){gamepadStickLatched=false;gamepadGraphReadyAt=0;gamepadViewerAt=0;return false;}
+    if(waterPiston){if(sample.pressed?.includes(1))waterPiston.close();return true;}
     if(discoveryAward){
       if(sample.pressed?.includes(1))discoveryAward.finish();
       else if(sample.pressed?.includes(0))dialog.gamepadAdvance?.();
