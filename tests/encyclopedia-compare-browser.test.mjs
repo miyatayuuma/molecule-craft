@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {createServer} from 'node:http';
-import {mkdtemp,readFile,rm} from 'node:fs/promises';
+import {mkdir,mkdtemp,readFile,rm,writeFile} from 'node:fs/promises';
 import {spawn,spawnSync} from 'node:child_process';
 import {extname,join,normalize,resolve} from 'node:path';
 import {tmpdir} from 'node:os';
@@ -29,16 +29,36 @@ try{
   let next=0;const waiting=new Map();socket.addEventListener('message',event=>{const result=JSON.parse(event.data);if(waiting.has(result.id)){const resolve=waiting.get(result.id);waiting.delete(result.id);resolve(result);}});
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
-  await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
-  await send('Page.navigate',{url:`http://127.0.0.1:${server.address().port}/__compare_fixture__`});await pause(150);
-  const ready=await evaluate(`(async()=>{
+  const waitFor=async(expression,message)=>{
+    const deadline=Date.now()+6000;
+    do{
+      if(await evaluate(expression))return;
+      await pause(80);
+    }while(Date.now()<deadline);
+    assert.fail(message);
+  };
+  const focusIndex="Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex)";
+  const capture=async filename=>{
+    const directory=process.env.COMPARE_CAPTURE_DIR;
+    if(!directory)return;
+    await evaluate(`document.querySelector('.compare-observation img')?.decode()`);
+    await pause(380);
+    await mkdir(directory,{recursive:true});
+    const {result}=await send('Page.captureScreenshot',{format:'png'});
+    await writeFile(join(directory,filename),Buffer.from(result.data,'base64'));
+  };
+  const setup=`(async()=>{
     const chemistry=await import('/src/chemistry.js'),loaded=await chemistry.loadMoleculeDatabase();if(!loaded.ok)return false;
     const ids=['water','methane','ethanol'],data=new Map(),save={schemaVersion:3,discoveredMolecules:ids.map((id,i)=>({id,at:i+1,order:i+1})),discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
     data.set('molecule-craft.collection.v1',JSON.stringify(save));window.__save=data;
     const storage={getItem:key=>data.get(key)??null,setItem:(key,value)=>data.set(key,String(value)),removeItem:key=>data.delete(key)};
     const {createCollectionUI}=await import('/src/collection-ui.js');window.__collection=await createCollectionUI({records:chemistry.moleculeCatalog(),storage,onPlace:()=>{},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]})});
     document.querySelector('#open-collection').click();return true;
-  })()`);assert.equal(ready,true);
+  })()`;
+  const fixtureUrl=`http://127.0.0.1:${server.address().port}/__compare_fixture__`;
+  await send('Runtime.enable');await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await send('Page.navigate',{url:fixtureUrl});await pause(150);
+  assert.equal(await evaluate(setup),true);
   assert.equal(await evaluate(`!!document.querySelector('.graph-stage:not(.compare-stage)')`),true,'Existing graph remains the default');
   const graphMaterial=await evaluate(`(()=>({border:getComputedStyle(document.querySelector('.graph-node')).borderWidth,material:!!document.getElementById('molecule-craft-shared-bead-material')}))()`);
   assert.equal(graphMaterial.border,'1px');assert.equal(graphMaterial.material,true,'The relation graph uses the polished shared bead material');
@@ -48,12 +68,26 @@ try{
   assert.equal(await evaluate(`getComputedStyle(document.querySelector('.compare-bead')).borderWidth`),'1px','Compare shares the same thin-rimmed bead material');
   assert.equal(first.instructions,false,'On-screen instructions and decorative status labels have been removed');
   assert.equal(first.focus,'ethanol');assert(first.unit.includes('g/mol'));assert.equal(first.ropeCanvas,true);assert.equal(first.overflow,false);assert.equal(first.secret,true,'Undiscovered beads must not expose name, model, ID or properties in the UI');
+  const observation=await evaluate(`(()=>{
+    const stage=document.querySelector('.compare-stage'),layer=stage.querySelector('.compare-observation');
+    const bead=layer.firstElementChild,model=bead.querySelector('img'),front=stage.querySelector('.compare-bead.focus img');
+    const icons=[...document.querySelectorAll('.comparison-mode-switch button,.compare-axis button')];
+    return {
+      sameModel:model.src===front.src,oversize:bead.offsetWidth>stage.clientWidth,
+      passive:getComputedStyle(layer).pointerEvents==='none'&&layer.getAttribute('aria-hidden')==='true',
+      icons:icons.every(button=>button.title===button.getAttribute('aria-label')&&document.querySelector(button.querySelector('use').getAttribute('href'))),
+      labels:icons.map(button=>button.getAttribute('aria-label')),
+    };
+  })()`);
+  assert.deepEqual(observation,{sameModel:true,oversize:true,passive:true,icons:true,labels:['樹形図','くらべる','モル質量','原子数','沸点']});
+  await capture('molecule-craft-compare-mobile.png');
   const released=await evaluate(`(async()=>{const stage=document.querySelector('.compare-stage'),bead=document.querySelector('.compare-bead.focus'),rect=bead.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,neighbour=[...stage.querySelectorAll('.compare-bead')].find(b=>Number(b.dataset.compareIndex)===Number(bead.dataset.compareIndex)+1),before=neighbour?parseFloat(neighbour.style.top):null,neighborIndex=neighbour?.dataset.compareIndex;bead.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:75,button:0,clientX:x,clientY:y}));stage.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:75,button:0,clientX:x+10,clientY:y-60}));const moving=stage.classList.contains('is-bead-dragging'),immediate=neighbour?Math.abs(before-parseFloat(neighbour.style.top)):0;let follows=false;const deadline=performance.now()+1100;while(performance.now()<deadline&&!follows){await new Promise(done=>setTimeout(done,55));const next=stage.querySelector('[data-compare-index="'+neighborIndex+'"]');follows=!!next&&Math.abs(before-parseFloat(next.style.top))>3;}stage.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:75,button:0,clientX:x+10,clientY:y-60}));return{moving,immediate,follows,docking:stage.classList.contains('is-docking'),released:!stage.classList.contains('is-bead-dragging')}})()`);
   assert(released.moving&&released.immediate<3&&released.follows&&released.docking&&released.released,`a held bead moves first; a flexible wave reaches neighbouring particles before gradual docking: ${JSON.stringify(released)}`);
   let locked=false;for(let i=0;i<35;i++){await pause(100);locked=await evaluate(`document.querySelector('.compare-stage')?.classList.contains('is-dock-locked')`);if(locked)break;}
   assert.equal(locked,true,'one bead reaches the socket under a gradual, bounded attraction');
   const selectedId=await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId??null`);
-  await evaluate(`document.querySelector('[data-compare-axis="atomCount"]').click()`);await pause(80);
+  await evaluate(`(()=>{const button=document.querySelector('[data-compare-axis="atomCount"]');button.focus();button.click()})()`);await pause(80);
+  assert.equal(await evaluate(`document.activeElement?.dataset.compareAxis`),'atomCount','Keyboard focus survives axis rerender');
   assert.equal(await evaluate(`document.querySelector('.compare-instrument-reading')?.textContent.includes('個')`),true,'Axis changes but the focused molecule remains');
   assert.equal(await evaluate(`document.querySelector('.compare-bead.focus')?.dataset.graphId??null`),selectedId,'Axis change keeps the bead chosen by the physical release');
   await evaluate(`document.querySelector('[data-compare-axis="molarMass"]').click()`);await pause(80);
@@ -63,9 +97,15 @@ try{
     const target=index+1<order.length&&!["water","methane","ethanol"].includes(order[index+1].id)?index+1:index-1;
     const stage=document.querySelector('.compare-stage');stage.focus();stage.dispatchEvent(new KeyboardEvent('keydown',{key:target>index?'ArrowRight':'ArrowLeft',bubbles:true}));
     return{target:order[target].id,index:target};
-  })()`);await pause(650);
+  })()`);
+  await waitFor(`${focusIndex} === ${unknown.index}`,'Keyboard movement selects the adjacent unknown bead');
   const hidden=await evaluate(`(()=>({index:Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex),name:document.querySelector('.compare-summary')?.textContent,secret:!!document.querySelector('.compare-bead.focus.unknown'),detail:document.querySelector('#collection-detail').hidden}))()`);
   assert.equal(hidden.index,unknown.index);assert.equal(hidden.secret,true);assert(hidden.name.includes('未知の分子')&&!hidden.name.includes('g/mol'));assert.equal(hidden.detail,true);
+  assert.equal(await evaluate(`(()=>{
+    const layer=document.querySelector('.compare-observation');
+    return layer.textContent==='?'&&!layer.querySelector('img,[src],[title],[data-graph-id]')&&
+      document.querySelector('.compare-instrument-value').textContent==='— —';
+  })()`),true,'The previous model is removed and the background only shows the generic unknown bead');
   await evaluate(`window.__collection.handleGamepad({pressed:[0],repeat:[],held:[],axes:[0,0,0,0]},1500)`);
   assert.equal(await evaluate(`document.querySelector('#collection-detail').hidden`),true,'Unknown A-button cannot open details');
   const beforeSave=await evaluate(`window.__save.get('molecule-craft.collection.v1')`);
@@ -78,6 +118,23 @@ try{
   await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);await pause(110);
   const desktop=await evaluate(`(()=>({stage:document.querySelector('.compare-stage')?.getBoundingClientRect().height,controls:!!document.querySelector('.compare-axis'),beads:document.querySelectorAll('.compare-bead').length,scroll:document.documentElement.scrollWidth>innerWidth+1}))()`);
   assert(desktop.stage>300&&desktop.controls&&desktop.beads<25&&!desktop.scroll,'Desktop comparison stays within one viewport');
+  const gamepad=pressed=>evaluate(`window.__collection.handleGamepad({pressed:[${pressed}],repeat:[],held:[],axes:[0,0,0,0]},2000)`);
+  await gamepad(13);
+  assert.equal(await evaluate(`document.querySelector('[data-compare-axis="atomCount"]').getAttribute('aria-pressed')`),'true');
+  assert.equal(await evaluate(`document.querySelector('.compare-instrument-name').textContent`),'原子数');
+  await capture('molecule-craft-compare-desktop.png');
+  await gamepad(13);
+  assert.equal(await evaluate(`document.querySelector('[data-compare-axis="boilingPoint"]').getAttribute('aria-pressed')`),'true');
+  assert.equal(await evaluate(`!!document.querySelector('.compare-observation')`),false,'Boiling stays on the existing separate view');
+  await gamepad(12);
+  const moveIndex=await evaluate(focusIndex),direction=moveIndex>0?-1:1;
+  await gamepad(direction<0?14:15);
+  await waitFor(`${focusIndex} === ${moveIndex+direction}`,'Gamepad navigation selects the adjacent bead');
+  await gamepad(2);
+  assert.equal(await evaluate(`!!document.querySelector('.graph-stage:not(.compare-stage)')`),true);
+  await gamepad(2);
+  assert.equal(await evaluate(`!!document.querySelector('.compare-stage')`),true);
+
   const exceptions=await evaluate(`(async()=>{
     const {renderEncyclopediaComparison}=await import('/src/encyclopedia-compare-physics-view.js');
     const host=document.createElement('div');document.body.append(host);
@@ -93,5 +150,49 @@ try{
   })()`);
   assert(exceptions.first.title.includes('昇華点')&&exceptions.first.note.includes('固体から気体'),'Sublimation has an explicit label and no boiling claim');
   assert(exceptions.second.note.includes('異性体')&&exceptions.second.value.includes('〜'),'Range readout displays all documented values without false precision');
+  const mouse=await evaluate(`(()=>{
+    const rect=document.querySelector('[data-compare-axis="molarMass"]').getBoundingClientRect();
+    return {x:rect.left+rect.width/2,y:rect.top+rect.height/2};
+  })()`);
+  await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...mouse});
+  await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...mouse});
+  assert.equal(await evaluate(`document.querySelector('[data-compare-axis="molarMass"]').getAttribute('aria-pressed')`),'true','Desktop mouse clicks the icon over the observation');
+
+  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
+  await send('Emulation.setTouchEmulationEnabled',{enabled:true,maxTouchPoints:1});
+  const touch=await evaluate(`(()=>{
+    const rect=document.querySelector('.compare-stage').getBoundingClientRect();
+    return {x:Math.round(rect.left+rect.width*.72),y:Math.round(rect.top+rect.height*.16),index:Number(document.querySelector('.compare-bead.focus').dataset.compareIndex)};
+  })()`);
+  for(const [type,offset] of [['touchStart',0],['touchMove',-42],['touchMove',-145],['touchEnd',0]]){
+    await send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x:touch.x+offset,y:touch.y}]});
+  }
+  await waitFor(`Number.isFinite(${focusIndex}) && ${focusIndex} !== ${touch.index}`,'A touch swipe passes through the background');
+
+  const canvasFallback=await evaluate(`(async()=>{
+    const {renderEncyclopediaComparison}=await import('/src/encyclopedia-compare-physics-view.js');
+    const host=document.createElement('div');document.body.append(host);
+    const original=HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext=function(type,...args){
+      return type.startsWith('webgl')?null:original.call(this,type,...args);
+    };
+    try{
+      const controller=renderEncyclopediaComparison({host,records:[{id:'water',atoms:['H','H','O']}],discoveredIds:new Set(['water'])});
+      const canvas=host.querySelector('.compare-physics-canvas'),model=host.querySelector('.compare-observation img');
+      controller.destroy();
+      return !!canvas?.getContext('2d')&&model?.src.endsWith('molecule-water.svg');
+    }finally{HTMLCanvasElement.prototype.getContext=original;host.remove();}
+  })()`);
+  assert.equal(canvasFallback,true,'The WebGL-disabled Canvas rope keeps the shared observation');
+
+  await send('Page.navigate',{url:`${fixtureUrl}?comparePhysics=0`});await pause(150);
+  assert.equal(await evaluate(setup),true);
+  await evaluate(`document.querySelector('[data-comparison-mode="compare"]').click()`);
+  assert.equal(await evaluate(`(()=>{
+    const stage=document.querySelector('.compare-stage');
+    return !!stage.querySelector('.compare-rope-fallback path')&&!stage.querySelector('canvas')&&
+      stage.querySelector('.compare-center-label').textContent==='モル質量'&&
+      stage.querySelector('.compare-observation img').src.endsWith('molecule-ethanol.svg');
+  })()`),true,'The explicit SVG fallback keeps its rope, instrument label and observation');
 }finally{try{socket?.close();}catch{}try{child?.kill('SIGKILL');}catch{}server.close();await rm(profile,{recursive:true,force:true,maxRetries:10,retryDelay:200});}
-console.log('MC-COMPARE-01 browser check passed: mobile/desktop, graph switching, axes, undiscovered secret, discovery reveal, save, gamepad A.');
+console.log('MC-COMPARE-01 browser check passed: mobile/desktop, observation, axes, undiscovered privacy, discovery save, mouse/touch/gamepad, Canvas/SVG fallbacks.');

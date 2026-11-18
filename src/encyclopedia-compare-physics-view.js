@@ -1,6 +1,7 @@
-import {buildComparisonRows,COMPARISON_AXES,comparisonValueLabel,layoutComparisonRows,nearestComparisonIndex} from './encyclopedia-compare.js';
+import {buildComparisonRows,comparisonValueLabel,layoutComparisonRows,nearestComparisonIndex} from './encyclopedia-compare.js';
 import {appendMoleculeNameFurigana} from './molecule-name-furigana.js?v=2';
 import {moleculeDisplayName} from './collection-catalog.js';
+import {comparisonModelUrl,createComparisonAxisControls,createComparisonObservation} from './encyclopedia-compare-presentation.js';
 import {ComparisonRopePhysics} from './compare-rope-physics.js';
 import {ComparisonRopeScene,ComparisonRopeCanvas} from './compare-rope-scene.js';
 import {ensureMoleculeBeadStyles} from './encyclopedia-bead-material.js';
@@ -9,7 +10,6 @@ import {phaseAppearanceFor} from './molecule-phase-appearance.js';
 
 const STYLE_ID='molecule-craft-compare-physics-style';
 const STYLE=`
-.compare-graph{position:relative}.compare-axis{display:flex;align-items:center;justify-content:center;gap:5px;flex-wrap:wrap;padding:0 4px}.compare-axis button{min-height:38px;padding:6px 12px;border:1px solid #456979;border-radius:12px;background:#132e3e;color:#a9cbd3;font-size:12px}.compare-axis button[aria-pressed=true]{border-color:#76d9c8;background:#285550;color:#f2fffb}
 .compare-stage{position:relative;touch-action:pan-y;user-select:none;cursor:grab;background:radial-gradient(ellipse at 50% 43%,#23445a 0,#102a3c 34%,#071724 78%,#06111d 100%)}.compare-stage.is-dragging{cursor:grabbing}.compare-stage.is-bead-dragging{touch-action:none}.compare-physics-canvas{position:absolute;inset:0;display:block;z-index:1;width:100%;height:100%;pointer-events:none}.compare-pedestal-fallback{position:absolute;z-index:0;left:50%;top:calc(43% + 60px);transform:translate(-50%,-50%);width:min(95%,480px);height:auto;pointer-events:none;filter:drop-shadow(0 8px 16px #000a)}
 .compare-instrument{position:absolute;z-index:7;top:min(calc(43% + 128px),calc(100% - 112px));left:50%;transform:translateX(-50%);display:grid;gap:4px;width:clamp(208px,24vw,260px);padding:12px 16px;border:1px solid #8db6c33b;border-radius:12px;background:linear-gradient(155deg,#152b3bdd,#081b2aea);box-shadow:inset 0 1px 0 #dfffff13,0 9px 24px #0006;pointer-events:none;color:#e5ffff;text-align:left}.compare-instrument-name{font-size:12px;font-weight:600;color:#a9c8ce;letter-spacing:.02em}.compare-instrument-reading{display:flex;align-items:baseline;gap:8px;min-height:40px}.compare-instrument-value{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:640;font-size:clamp(29px,3.2vw,40px);line-height:1.12;letter-spacing:-.035em;white-space:nowrap;font-variant-numeric:tabular-nums}.compare-instrument-unit{font-size:12px;font-weight:600;color:#9cc4ce;white-space:nowrap}.compare-instrument-value.undiscovered{letter-spacing:.06em;color:#7097ab}
 .compare-docking{position:absolute;left:50%;top:43%;z-index:3;width:100px;height:100px;transform:translate(-50%,-50%);border:1px solid #75e9d500;border-radius:50%;opacity:0;pointer-events:none}.compare-stage.is-docking .compare-docking{opacity:.38;border-color:#8de9d366;box-shadow:0 0 20px #65dec329}.compare-stage.is-dock-locked .compare-docking{animation:compare-dock-pulse 430ms ease-out}@keyframes compare-dock-pulse{from{opacity:.75;transform:translate(-50%,-50%) scale(.88);border-color:#b8fff2}to{opacity:0;transform:translate(-50%,-50%) scale(1.25)}}
@@ -17,28 +17,14 @@ const STYLE=`
 .compare-summary{display:grid;justify-items:center;gap:4px;min-height:60px;padding:5px 9px;text-align:center}.compare-summary strong{font-size:15px;line-height:1.5}.compare-summary small{font-size:12px;color:#c8e7e3}.compare-summary ruby rt{font-size:.57em}.compare-summary-unknown{color:#b7c4cd}.compare-empty{display:grid;place-items:center;height:100%;color:#97afbc;text-align:center;padding:28px}
 .compare-bead.graph-node.compare-boiling-3d{opacity:0;box-shadow:none;pointer-events:auto}.compare-boiling-label{color:#9fead9}.compare-stage.is-boiling .compare-docking{opacity:.28;border-color:#80ede744;box-shadow:0 0 23px #71e3db24}
 .compare-instrument-note{display:block;min-height:12px;font-size:10px;line-height:1.2;color:#b8cfd7}.compare-instrument-reading.is-uncertain .compare-instrument-value{animation:compare-value-signal 1.35s steps(4,end) infinite;text-shadow:1px 0 #f5b78875,-1px 0 #66b7d175}@keyframes compare-value-signal{0%,85%,100%{text-shadow:none}86%,96%{text-shadow:1px 0 #f5b788a0,-1px 0 #66b7d1a0}}.compare-transition-mark{position:absolute;right:-3px;top:-5px;border:1px solid #80a9ba;border-radius:8px;background:#123343e8;color:#f7d4a0;padding:0 4px;font-size:11px;line-height:17px;z-index:3;pointer-events:none}
-@media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto}#collection-dialog .compare-axis{position:absolute;top:18px;left:12px;z-index:8;background:#0b1e2bdc;border-radius:13px;padding:4px;max-width:44%}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}}
-@media(max-width:650px){.compare-axis{padding:0 5px}.compare-axis button{min-height:36px}.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 112px),calc(100% - 92px));width:min(232px,69vw);gap:3px;padding:9px 12px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:28px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}}
+@media(min-width:1024px) and (min-height:640px){#collection-dialog .compare-graph{grid-template-rows:minmax(0,1fr) auto}#collection-dialog .compare-graph .compare-stage{grid-row:1}#collection-dialog .compare-summary{grid-row:2}}
+@media(max-width:650px){.compare-stage{min-height:320px;height:min(49dvh,470px)}.compare-bead.graph-node.focus{width:76px;height:76px;min-height:76px}.compare-instrument{top:min(calc(43% + 112px),calc(100% - 92px));width:min(232px,69vw);gap:3px;padding:9px 12px}.compare-instrument-name{font-size:11px}.compare-instrument-reading{min-height:28px;gap:5px}.compare-instrument-value{font-size:clamp(25px,7vw,32px)}.compare-instrument-unit{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.compare-bead.graph-node{transition:none}.compare-instrument-reading.is-uncertain .compare-instrument-value{animation:none}}
 `;
 
 function ensureStyles(doc){if(doc.getElementById(STYLE_ID))return;const style=doc.createElement('style');style.id=STYLE_ID;style.textContent=STYLE;doc.head?.append(style);}
 const elem=(doc,tag,className,text)=>{const node=doc.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node;};
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
-export const COMPARISON_MODE_LABELS=Object.freeze({graph:'樹形図',compare:'くらべる'});
-export const COMPARISON_MODE_ACCESSIBLE_LABEL='分子図鑑の表示';
-const ruby=(doc,text,reading)=>{const node=doc.createElement('ruby'),rt=doc.createElement('rt');node.append(doc.createTextNode(text));rt.textContent=reading;node.append(rt);return node;};
-export function appendComparisonModeLabel(button,mode){
-  button.replaceChildren();if(mode==='graph')button.append(ruby(button.ownerDocument,'樹形図','じゅけいず'));
-  else button.textContent=COMPARISON_MODE_LABELS[mode];
-  return button;
-}
-function appendAxisLabel(button,axis){
-  if(axis==='molarMass')button.append('モル',ruby(button.ownerDocument,'質量','しつりょう'));
-  else if(axis==='atomCount')button.append(ruby(button.ownerDocument,'原子数','げんしすう'));
-  else button.append(ruby(button.ownerDocument,'沸点','ふってん'));
-}
-
 export function renderEncyclopediaComparison({
   host,records,discoveredIds=new Set(),axis='molarMass',focusId=null,
   onFocus=()=>{},onDetail=()=>{},onAxis=()=>{},transitionRects=new Map(),win=globalThis.window,
@@ -52,15 +38,12 @@ export function renderEncyclopediaComparison({
     liquid:phaseAppearanceFor(row.record,'liquid'),gas:phaseAppearanceFor(row.record,'gas'),
   }]));
   const reduced=!!win?.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
-  const wrapper=elem(doc,'div','encyclopedia-graph compare-graph'),controls=elem(doc,'div','compare-axis');
-  for(const [key,definition] of Object.entries(COMPARISON_AXES)){
-    const button=elem(doc,'button');button.type='button';button.dataset.compareAxis=key;appendAxisLabel(button,key);
-    button.setAttribute('aria-pressed',String(axis===key));button.addEventListener('click',()=>{if(key!==axis)onAxis(key);});controls.append(button);
-  }
-  wrapper.append(controls);
+  const wrapper=elem(doc,'div','encyclopedia-graph compare-graph');
+  wrapper.append(createComparisonAxisControls(doc,axis,onAxis));
   const stage=elem(doc,'div','graph-stage compare-stage');stage.tabIndex=0;stage.setAttribute('role','group');stage.setAttribute('aria-label','くらべる図鑑。左右に動かして分子を比較');
+  const observeSelection=createComparisonObservation(stage,axis);
   const instrument=elem(doc,'div','compare-instrument');
-  const instrumentName=elem(doc,'span','compare-instrument-name',boilingEnabled?'温度 · 1気圧':'モル質量');
+  const instrumentName=elem(doc,'span','compare-instrument-name');
   const reading=elem(doc,'div','compare-instrument-reading');reading.setAttribute('aria-live','polite');
   const instrumentValue=elem(doc,'strong','compare-instrument-value','— —');
   const instrumentUnit=elem(doc,'span','compare-instrument-unit','g/mol');
@@ -100,10 +83,11 @@ export function renderEncyclopediaComparison({
   }
   const nearest=()=>nearestComparisonIndex(positions,center);
   const updateSummary=()=>{
-    summary.replaceChildren();if(!rows.length){summary.textContent='この軸で比較できる分子はありません。';return;}
     const row=rows[currentIndex];
+    observeSelection?.(row);
+    summary.replaceChildren();if(!rows.length){summary.textContent='この軸で比較できる分子はありません。';return;}
     const transition=row.discovered&&boilingEnabled?row.transition:null;
-    instrumentName.textContent=transition?.kind==='sublimation'?'昇華点 · 1気圧':boilingEnabled?'温度 · 1気圧':axis==='molarMass'?'モル質量':'原子数';
+    instrumentName.textContent=transition?.kind==='sublimation'?'昇華点 · 1気圧':boilingEnabled?'沸点比較 · 温度（1気圧）':axis==='molarMass'?'モル質量':'原子数';
     instrumentValue.textContent=row.discovered?(axis==='molarMass'?row.value.toFixed(2):boilingEnabled?(transition?.kind==='range'?`${transition.lowC.toFixed(1)}〜${transition.highC.toFixed(1)}`:row.value.toFixed(1)):String(row.value)):'— —';
     instrumentUnit.textContent=axis==='molarMass'?'g/mol':boilingEnabled?'°C':'個';
     instrumentValue.classList.toggle('undiscovered',!row.discovered);
@@ -130,7 +114,7 @@ export function renderEncyclopediaComparison({
     button.setAttribute('aria-label',row.discovered?`${moleculeDisplayName(row.record)}、${comparisonValueLabel(row.value,axis,row.transition)}`:'未知の分子');
     button.setAttribute('aria-pressed','false');button.dataset.compareIndex=String(index);
     if(row.discovered){
-      button.dataset.graphId=row.id;const img=elem(doc,'img','graph-focus-thumbnail');img.src=new URL(`../assets/models/molecule-${row.id}.svg`,import.meta.url).href;img.alt='';img.decoding='async';img.addEventListener('error',()=>{img.remove();button.classList.add('thumbnail-unavailable');},{once:true});button.append(img);
+      button.dataset.graphId=row.id;const img=elem(doc,'img','graph-focus-thumbnail');img.src=comparisonModelUrl(row.id);img.alt='';img.decoding='async';img.addEventListener('error',()=>{img.remove();button.classList.add('thumbnail-unavailable');},{once:true});button.append(img);
       if(row.transition?.kind==='sublimation'||row.transition?.kind==='range')button.append(elem(doc,'span','compare-transition-mark',row.transition.kind==='sublimation'?'↗':'≈'));
     }else button.append(elem(doc,'span','compare-question','?'));
     button.addEventListener('click',()=>{if(win.performance.now()-lastDragAt<240)return;if(index===currentIndex&&row.discovered)onDetail(row.id,button);else beginDock(index);});
