@@ -47,11 +47,13 @@ with sync_playwright() as pw:
    for step in range(1,9):touch('Move',[(x,y+step*8)])
    settle(); mid=gauge();assert mid>1
    touch('Move',[(x,y-20)]);settle();assert gauge()<1
-   touch('Move',[(x,h-115)]);settle();compressed=gauge();assert compressed>2.65
+   touch('Move',[(x,h-115)]);p.wait_for_function("Number(document.querySelector('.water-pressure').value)>2.70");settle();compressed=gauge()
    r=p.locator('#water-temp').bounding_box(); xx=r['x']+r['width']-5; yy=r['y']+r['height']/2
    touch('Start',[(x,h-115),(xx,yy)]);settle()
    hot=gauge();assert hot>compressed and hot<3.02,(hot,compressed)
-   touch('Move',[(x,h-115),(r['x']+4,yy)]);settle();assert gauge()<compressed
+   touch('Move',[(x,h-115),(r['x']+8+(r['width']-16)*170/230,yy)])
+   p.wait_for_function("Number(document.querySelector('.water-pressure').value)<"+str(compressed))
+   assert 139<=int(p.locator('#water-temp').input_value())<=141
    touch('End',[]);settle()
    p.screenshot(path=f'shots/water-compressed-{w}.png')
    x,y=box(grip);touch('Start',[(x,y)]);touch('Move',[(x,95)]);touch('End',[]);settle()
@@ -63,10 +65,61 @@ with sync_playwright() as pw:
    xx,yy=box(stage);p.mouse.move(xx,yy);p.mouse.down();p.mouse.move(xx+120,yy);p.mouse.up()
    p.screenshot(path='shots/water-compressed-pc.png')
   p.locator('.water-reset').click();p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'",timeout=6000)
+  phase=p.locator('.water-identity small')
+  slider=p.locator('#water-temp')
+  def heat(t):
+   rect=slider.bounding_box()
+   x=rect['x']+8+(rect['width']-16)*(t+30)/230
+   y=rect['y']+rect['height']/2
+   if w<500:
+    touch('Start',[(x,y)]);touch('End',[])
+   else:p.mouse.click(x,y)
+   # Account for the native thumb inset and integer CSS pixel rounding.
+   diff=t-int(slider.input_value())
+   assert abs(diff)<=4,diff
+   for _ in range(abs(diff)):slider.press('ArrowRight' if diff>0 else 'ArrowLeft')
+   assert int(slider.input_value())==t
+  def at(state,t=None):
+   p.wait_for_function("""([state,t])=>document.querySelector('.water-identity small').dataset.phase===state &&
+    (t===null || Number(document.querySelector('.water-degrees').value)===t)""",arg=[state,t],timeout=45000)
+  def photograph(state):
+   p.screenshot(path=f'shots/water-{state}-{w}.png')
+  heat(25);at('condensing');at('liquid',25);assert abs(gauge()-1)<.02
+  settle();photograph('liquid')
+  heat(-10);at('freezing');heat(25);at('liquid',25)
+  heat(-10);at('ice',-10);p.wait_for_timeout(1800);photograph('ice')
+  heat(104);at('melting');at('boiling');heat(97);at('liquid',97)
+  heat(104);at('gas',104);heat(90);at('condensing');at('liquid',90)
+  x,y=box(grip)
+  def piston(start,end):
+   if w<500:
+    touch('Start',[start]);touch('Move',[end]);touch('End',[])
+   else:
+    p.mouse.move(*start);p.mouse.down();p.mouse.move(*end,steps=5);p.mouse.up()
+  piston((x,y),(x,y-135))
+  at('mixed',90);assert .68<gauge()<.71
+  photograph('coexistence')
+  x,y=box(grip);piston((x,y),(x,y+155));at('liquid',90)
+  p.locator('.water-reset').click();at('gas',160)
+  p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'")
   p.locator('.water-close').click();assert not p.locator('.water-piston').count()
   p.locator('#open-water-piston').click();settle();assert gauge()==1
   p.locator('.water-close').click()
   p.locator('[data-book-tab=groups]').click();assert p.locator('[data-book-tab=groups]').get_attribute('aria-selected')=='true'
   assert save==p.evaluate('JSON.stringify([...data])')
+  if w==390:
+   # Open the real application with a separate, already-discovered fixture.
+   p.add_init_script("""localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({
+    schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],
+    unlockedStructures:[],legacyElements:[],milestones:[]}))""")
+   p.goto(f'http://127.0.0.1:{server.server_port}/?reactionLabTest=1')
+   p.wait_for_function("!document.querySelector('#open-reaction-lab').disabled")
+   p.evaluate("dispatchEvent(new CustomEvent('molecule-craft:open-molecule',{detail:{id:'water'}}))")
+   p.locator('#open-water-piston').click()
+   p.locator('.water-close').click()
+   p.locator('#close-collection').click()
+   p.locator('#open-reaction-lab').click()
+   p.wait_for_selector('#reaction-lab-dialog[open]')
+   p.locator('[data-lab-close]').click()
   assert not errors,errors
   print(w,'passed',flush=True);ctx.close()

@@ -1,4 +1,12 @@
-import { createGas, advanceGas, pressure, clamp, LOW, HIGH, REST } from './water-gas.js';
+import { createGas, advanceGas } from './water-gas.js';
+import { clamp, LOW, HIGH, REST } from './water-phase.js';
+const phaseLabels={
+  gas:'<ruby>気体<rt>きたい</rt></ruby>',liquid:'<ruby>液体<rt>えきたい</rt></ruby>',
+  ice:'<ruby>固体<rt>こたい</rt></ruby>（こおり）',freezing:'こおっている',melting:'とけている',
+  boiling:'<ruby>気体<rt>きたい</rt></ruby>になっている',condensing:'しずくになっている',
+  mixed:'<ruby>液体<rt>えきたい</rt></ruby>と<ruby>気体<rt>きたい</rt></ruby>',
+  slush:'こおりと<ruby>水<rt>みず</rt></ruby>'
+};
 export const waterPistonTitle='<ruby>状態<rt>じょうたい</rt></ruby>のへんか';
 
 const style = `
@@ -40,7 +48,7 @@ export function openWaterPiston(createPistonScene,onClose) {
     <div class="water-stage"><button type="button" class="water-grip" aria-label="ピストンを上下にうごかす" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></button></div>
     <footer><label class="water-reading" for="water-temp"><ruby>温度<rt>おんど</rt></ruby><span><output class="water-degrees">160</output><small>℃</small></span></label>
     <div class="water-reading"><ruby>圧力<rt>あつりょく</rt></ruby><span><output class="water-pressure">1.00</output><small>atm</small></span></div>
-    <input id="water-temp" type="range" min="140" max="200" value="160" step="1"><button class="water-reset" type="button">↺ もとにもどす</button></footer>`;
+    <input id="water-temp" type="range" min="-30" max="200" value="160" step="1"><button class="water-reset" type="button">↺ もとにもどす</button></footer>`;
   document.body.append(dialog); dialog.showModal();
   const stage=dialog.querySelector('.water-stage'), grip=dialog.querySelector('.water-grip');
   const temp=dialog.querySelector('input'), degrees=dialog.querySelector('.water-degrees'), gauge=dialog.querySelector('.water-pressure');
@@ -61,16 +69,35 @@ export function openWaterPiston(createPistonScene,onClose) {
     stage.append(message);
   }
   try {scene=createPistonScene(stage);} catch {unavailable();return {close};}
+  const badge=dialog.querySelector('.water-identity small');
+  let lastIce=0,lastVapor=1,resetting=false;
   function draw(){
     scene.draw(gas,angle,grip);
-    const value=pressure(gas.temperature,gas.height).toFixed(2);
+    const value=gas.pressure.toFixed(2);
+    const reading=String(Math.round(gas.temperature));
+    if(degrees.value!==reading)degrees.value=reading;
+    let phase;
+    if(gas.ice>.999)phase='ice';
+    else if(gas.ice>.001)phase=gas.ice>lastIce?'freezing':gas.ice<lastIce?'melting':'slush';
+    else if(gas.vapor>.999)phase='gas';
+    else if(gas.vapor<.001)phase='liquid';
+    else phase=gas.vapor>lastVapor?'boiling':gas.vapor<lastVapor?'condensing':'mixed';
+    if(badge.dataset.phase!==phase){badge.dataset.phase=phase;badge.innerHTML=phaseLabels[phase];}
+    lastIce=gas.ice;lastVapor=gas.vapor;
     if(gauge.value!==value)gauge.value=value;
     grip.setAttribute('aria-valuenow',String(Math.round(100*(gas.height-LOW)/(HIGH-LOW))));
   }
   function animate(now){
     let elapsed=Math.min((now-(previous||now))/1000,.05);
     previous=now;
-    while(elapsed>.000001){const dt=Math.min(1/120,elapsed);advanceGas(gas,dt);elapsed-=dt;}
+    while(elapsed>.000001){
+      const dt=Math.min(1/120,elapsed);
+      if(resetting&&gas.temperature===160){
+        gas.stroke=REST-gas.height;
+        if(Math.abs(gas.stroke)<.0001)resetting=false;
+      }
+      advanceGas(gas,dt);elapsed-=dt;
+    }
     draw(); frame=requestAnimationFrame(animate);
   }
   function visibility(){
@@ -84,12 +111,12 @@ export function openWaterPiston(createPistonScene,onClose) {
   document.addEventListener('visibilitychange',visibility);
   observer=new ResizeObserver(()=>{scene.resize();draw();});observer.observe(stage);
   draw();visibility();
-  temp.oninput=()=>{gas.temperature=Number(temp.value);degrees.value=temp.value;};
+  temp.oninput=()=>{resetting=false;gas.setting=Number(temp.value);};
   // Native range dragging may ignore the second finger while the piston holds the first.
   let heatPointer=null;
   function slideHeat(e){
     const rect=temp.getBoundingClientRect();
-    temp.value=String(Math.round(140+60*clamp((e.clientX-rect.left-8)/(rect.width-16),0,1)));
+    temp.value=String(Math.round(-30+230*clamp((e.clientX-rect.left-8)/(rect.width-16),0,1)));
     temp.oninput();
   }
   temp.onpointerdown=e=>{
@@ -110,14 +137,16 @@ export function openWaterPiston(createPistonScene,onClose) {
     };
     node.onlostpointercapture=e=>{if(e.pointerId===pointer)pointer=null;};
   }
-  drag(grip,'clientY',dy=>{gas.target=clamp(gas.target-dy*scene.unitsPerPixel(),LOW,HIGH);});
+  drag(grip,'clientY',dy=>{resetting=false;gas.stroke=clamp(gas.stroke-dy*scene.unitsPerPixel(),-HIGH,HIGH);});
   drag(stage,'clientX',dx=>{angle+=dx*.011;});
   grip.onkeydown=e=>{
     const direction={ArrowUp:1,ArrowDown:-1}[e.key];
-    if(direction){e.preventDefault();gas.target=clamp(gas.target+direction*.4,LOW,HIGH);}
+    if(direction){e.preventDefault();resetting=false;gas.stroke+=direction*.4;}
   };
   dialog.querySelector('.water-reset').onclick=()=>{
-    gas.target=REST;gas.temperature=160;temp.value='160';degrees.value='160';angle=0;
+    gas.stroke=0;gas.velocity=0;gas.setting=160;temp.value='160';angle=0;
+    // Once warm, return the same particles and piston to the initial volume.
+    resetting=true;
   };
   return {close};
 }
