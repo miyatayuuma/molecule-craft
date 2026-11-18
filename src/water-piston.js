@@ -9,6 +9,7 @@ const phaseLabels={
 };
 export const waterPistonTitle='<ruby>状態<rt>じょうたい</rt></ruby>のへんか';
 
+const thumbRadius = 8;
 const style = `
 .water-piston[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:min(560px,100vw);height:min(900px,100dvh);max-height:100dvh;max-width:100vw;margin:auto;padding:0;box-sizing:border-box;overflow:hidden;background:#eff5ef;color:#153738;border:1px solid #7c9994;border-radius:22px;font-family:system-ui,sans-serif}
 .water-piston::backdrop{background:#102b30e8;backdrop-filter:none}
@@ -22,7 +23,7 @@ const style = `
 .water-identity small{font-weight:600;color:#376668;border-left:1px solid #9ab1aa;padding-left:9px}
 .water-piston button{border:1px solid #a2b9ae;background:#f5faf5;color:#234647;cursor:pointer;box-shadow:none;min-height:44px}
 .water-piston .water-close{margin-left:auto;width:44px;border-radius:50%;font:26px/1 sans-serif;padding:0}
-.water-stage{position:relative;overflow:hidden;isolation:isolate;touch-action:none;background-color:#153438;background-image:radial-gradient(ellipse at 44% 55%,#33696b88,transparent 68%),radial-gradient(#91c5b92e .8px,transparent 1px);background-size:auto,17px 17px}
+.water-stage{position:relative;overflow:hidden;isolation:isolate;touch-action:none;background-color:#153438;background-image:radial-gradient(ellipse at 44% 55%,#33696b88,transparent 68%),radial-gradient(ellipse at 50% 100%,var(--water-ambient,#a3693d68),transparent 55%),radial-gradient(#91c5b92e .8px,transparent 1px);background-size:auto,auto,17px 17px}
 .water-stage canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .water-stage .water-grip{position:absolute;transform:translate(-50%,-50%);touch-action:none;user-select:none;width:46px;height:58px;min-height:44px;border:2px solid #ffe2a8;border-radius:15px;padding:0;cursor:ns-resize;color:#533317;background:linear-gradient(100deg,#ffc96e,#f2a348);box-shadow:0 3px 0 #915a32,0 5px 13px #001c2266;display:grid;place-content:center;gap:4px}
 .water-grip::before,.water-grip::after{content:"";width:7px;height:7px;margin:auto;border:solid #78532b;border-width:1.5px 1.5px 0 0;transform:rotate(-45deg)}
@@ -33,10 +34,21 @@ const style = `
 .water-reading{display:flex;align-items:baseline;gap:8px;color:#48645e;font-size:13px}
 .water-reading output{color:#183e3d;font:650 25px/1.2 system-ui;font-variant-numeric:tabular-nums}
 .water-reading small{font-size:13px;font-weight:600;margin-left:2px}
-.water-piston input{width:100%;margin:0;height:36px;touch-action:none;accent-color:#20776e;cursor:pointer}
+.water-phase-strip{grid-column:1/-1;display:flex;height:5px;overflow:hidden;border-radius:5px;background:#c4d3cc}
+.water-phase-strip i{flex:var(--share,0) 0 0}
+.water-phase-strip i:first-child{background:repeating-linear-gradient(130deg,#c5dcdd 0 3px,#597781 3px 5px)}
+.water-phase-strip i:nth-child(2){background:#267b71}
+.water-temp-control{position:relative;align-self:center;min-width:0}
+.water-temp-marker{position:absolute;inset:0 ${thumbRadius}px;pointer-events:none}
+.water-temp-marker::after{content:"";position:absolute;left:var(--actual,82.61%);top:26px;transform:translateX(-50%) rotate(45deg);width:6px;height:6px;border-radius:1px;background:#183e3d}
+.water-temp-control input{appearance:none;display:block;width:100%;margin:0;height:36px;background:transparent;touch-action:none;cursor:pointer}
+.water-temp-control input::-webkit-slider-runnable-track{height:5px;border-radius:5px;background:#acbfba}
+.water-temp-control input::-webkit-slider-thumb{appearance:none;width:16px;height:16px;margin-top:-5.5px;border-radius:50%;background:#20776e}
+.water-temp-control input::-moz-range-track{height:5px;border-radius:5px;background:#acbfba}
+.water-temp-control input::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:#20776e}
 .water-piston .water-reset{justify-self:end;border-radius:12px;padding:4px 12px;font-size:13px}
 .water-stage p{position:absolute;inset:40% 10% auto;text-align:center;color:white}
-@media(max-width:580px){.water-piston[open]{border-radius:0;border:0}.water-piston header,.water-piston footer{padding-left:17px;padding-right:17px}}
+@media(max-width:580px){.water-piston[open]{border-radius:0;border:0}.water-piston header{padding-inline:17px}.water-piston footer{padding-inline:32px}}
 `;
 export function openWaterPiston(record,createPistonScene,onClose) {
   const gas=createGas(record);
@@ -47,12 +59,15 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     <div class="water-identity"><img src="./assets/models/molecule-water.svg" alt=""><ruby>水<rt>みず</rt></ruby> H₂O <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
     <button type="button" class="water-close" aria-label="とじる">×</button></header>
     <div class="water-stage"><button type="button" class="water-grip" aria-label="ピストンを上下にうごかす" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></button></div>
-    <footer><label class="water-reading" for="water-temp"><ruby>温度<rt>おんど</rt></ruby><span><output class="water-degrees">160</output><small>℃</small></span></label>
+    <footer><div class="water-phase-strip" aria-hidden="true"><i></i><i></i><i></i></div><label class="water-reading" for="water-temp"><ruby>温度<rt>おんど</rt></ruby><span><output class="water-degrees">160</output><small>℃</small></span></label>
     <div class="water-reading"><ruby>圧力<rt>あつりょく</rt></ruby><span><output class="water-pressure">1.00</output><small>atm</small></span></div>
-    <input id="water-temp" type="range" min="-30" max="200" value="160" step="1"><button class="water-reset" type="button">↺ もとにもどす</button></footer>`;
+    <div class="water-temp-control"><input id="water-temp" type="range" min="-30" max="200" value="160" step="1"><span class="water-temp-marker" aria-hidden="true"></span></div><button class="water-reset" type="button">↺ もとにもどす</button></footer>`;
   document.body.append(dialog); dialog.showModal();
   const stage=dialog.querySelector('.water-stage'), grip=dialog.querySelector('.water-grip');
   const temp=dialog.querySelector('input'), degrees=dialog.querySelector('.water-degrees'), gauge=dialog.querySelector('.water-pressure');
+  const marker=dialog.querySelector('.water-temp-marker');
+  const [solidBand,liquidBand,gasBand]=dialog.querySelectorAll('.water-phase-strip i');
+  const minTemperature=Number(temp.min), temperatureRange=Number(temp.max)-minTemperature;
   let angle=0, frame=0, previous=0, scene, observer, closed=false;
   const close=()=>{
     if(closed)return;
@@ -75,7 +90,11 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     scene.draw(gas,angle,grip);
     const value=gas.pressure.toFixed(2);
     const reading=String(Math.round(gas.temperature));
-    if(degrees.value!==reading)degrees.value=reading;
+    if(degrees.value!==reading){
+      degrees.value=reading;
+      updateTemperatureFeedback();
+    }
+    if(gas.ice!==lastIce || gas.vapor!==lastVapor)updatePhaseStrip();
     let phase;
     if(gas.ice>.999)phase='ice';
     else if(gas.ice>.001)phase=gas.ice>lastIce?'freezing':gas.ice<lastIce?'melting':'slush';
@@ -86,6 +105,22 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     lastIce=gas.ice;lastVapor=gas.vapor;
     if(gauge.value!==value)gauge.value=value;
     grip.setAttribute('aria-valuenow',String(Math.round(100*(gas.height-LOW)/(HIGH-LOW))));
+  }
+  function updateTemperatureFeedback(){
+    const temperature=Number(degrees.value);
+    const fraction=(temperature-minTemperature)/temperatureRange;
+    marker.style.setProperty('--actual',`${fraction*100}%`);
+    // Ambient backdrop only. It tracks the thermometer, including its plateaus.
+    const warm=clamp((temperature-25)/135,0,1);
+    const cold=clamp((25-temperature)/55,0,1);
+    stage.style.setProperty('--water-ambient',
+      warm>0?`rgb(207 118 50 / ${warm*.31})`:`rgb(87 160 223 / ${cold*.38})`);
+  }
+  function updatePhaseStrip(){
+    const condensed=1-gas.vapor;
+    solidBand.style.setProperty('--share',condensed*gas.ice);
+    liquidBand.style.setProperty('--share',condensed*(1-gas.ice));
+    gasBand.style.setProperty('--share',gas.vapor);
   }
   function animate(now){
     let elapsed=Math.min((now-(previous||now))/1000,.05);
@@ -110,13 +145,15 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   });
   document.addEventListener('visibilitychange',visibility);
   observer=new ResizeObserver(()=>{scene.resize();draw();});observer.observe(stage);
+  updateTemperatureFeedback();updatePhaseStrip();
   draw();visibility();
   temp.oninput=()=>{resetting=false;gas.setting=Number(temp.value);};
   // Native range dragging may ignore the second finger while the piston holds the first.
   let heatPointer=null;
   function slideHeat(e){
     const rect=temp.getBoundingClientRect();
-    temp.value=String(Math.round(-30+230*clamp((e.clientX-rect.left-8)/(rect.width-16),0,1)));
+    temp.value=String(Math.round(minTemperature+temperatureRange*clamp(
+      (e.clientX-rect.left-thumbRadius)/(rect.width-2*thumbRadius),0,1)));
     temp.oninput();
   }
   temp.onpointerdown=e=>{

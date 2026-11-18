@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {boiling,saturation} from '../src/water-phase.js';
+import {advanceSample,boiling,createSample,saturation} from '../src/water-phase.js';
 import {createGas,advanceGas} from '../src/water-gas.js';
 
 import {readFileSync} from 'node:fs';
@@ -49,4 +49,41 @@ test('Distinct crystal poses, liquid neighbour exchange, reversible capture',()=
   }
   gas.setting=2;run(.45);gas.setting=-2;run(.3);gas.setting=2;run(4);
   assert.ok(gas.particles.every(p=>!p.site && Math.abs(p.orientation.length()-1)<1e-8));
+});
+
+test('The dial can hold and reverse both kinds of coexistence',()=>{
+  const sample={...createSample(),temperature:0,setting:-10,vapor:0};
+  const dt=1/120;
+  const run=n=>{for(let i=0;i<n;i++)advanceSample(sample,dt);};
+  run(60);
+  const frozen=sample.ice;
+  assert.ok(frozen>0 && frozen<1);
+  sample.setting=0;run(240);
+  assert.equal(sample.temperature,0);
+  assert.equal(sample.ice,frozen);
+  sample.setting=25;run(1);
+  assert.ok(sample.ice<frozen);
+  sample.setting=-10;run(2);
+  assert.ok(sample.ice>frozen);
+  sample.setting=160;
+  while(sample.vapor<1){
+    const before=sample.temperature;
+    run(1);
+    assert.ok(sample.temperature-before<=62*dt+1e-10);
+    if(sample.vapor>0)assert.equal(sample.temperature,boiling(1));
+  }
+  const plateau=sample.temperature;
+  run(1);
+  assert.ok(sample.temperature>plateau && sample.temperature-plateau<=62*dt);
+
+  Object.assign(sample,createSample(),{temperature:90,setting:90,vapor:0,stroke:4});
+  run(240);
+  const fraction=sample.vapor;
+  assert.ok(fraction>0 && fraction<1);
+  assert.ok(Math.abs(sample.pressure-saturation(90))<.00001);
+  run(240);
+  assert.equal(sample.vapor,fraction);
+  sample.stroke=-1;run(60);
+  assert.ok(sample.vapor>0 && sample.vapor<fraction);
+  assert.equal(sample.pressure,saturation(90));
 });
