@@ -1,3 +1,4 @@
+import {openWaterPiston, waterPistonTitle} from './water-piston.js';
 import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=7';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
 import { validateCraftStructures } from './craft-structures.js?v=34';
@@ -647,11 +648,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
     if(id==='water'&&!discoverySession){
       const launch=button(null,async()=>{
-        const {openWaterPiston}=await import('./water-piston.js');
-        if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(()=>{waterPiston=null;});
+        const {createPistonScene}=await import('./water-piston-scene.js');
+        if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(createPistonScene,()=>{waterPiston=null;});
       });
       launch.id='open-water-piston';
-      appendCompleteFuriganaText(launch,'状態のへんか',completeFurigana);
+      launch.innerHTML=waterPistonTitle;
       detail.append(launch);
     }
     if(stereoSpec)stereoComparisonControl(stereoSpec,previewHandle);

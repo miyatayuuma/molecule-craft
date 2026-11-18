@@ -4,7 +4,7 @@ export const REST = 7.6;
 export const LOW = 2.78;
 export const HIGH = 14.45;
 export const COUNT = 72;
-const skin = .24;
+const skin = .28;
 const radius = BORE - skin;
 export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 export const pressure = (temperature, height) => (temperature + 273.15) / 433.15 * REST / height;

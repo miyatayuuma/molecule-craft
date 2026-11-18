@@ -7,7 +7,8 @@ export function createPistonScene(stage) {
   stage.prepend(renderer.domElement);
   const scene=new T.Scene(), camera=new T.OrthographicCamera(-5,5,9,-9,.1,80);
   const instrument=new T.Group(), piston=new T.Group(), gasGroup=new T.Group();
-  scene.add(instrument,gasGroup);
+  const orbit=new T.Group(); orbit.add(camera); scene.add(orbit,instrument,gasGroup);
+  scene.fog=new T.Fog(0x315359,22.5,33);
   instrument.add(piston);
   scene.add(new T.HemisphereLight(0xeaffff,0x486378,2));
   const key=new T.DirectionalLight(0xfff2da,3);
@@ -28,6 +29,17 @@ export function createPistonScene(stage) {
   }
   rim(HIGH+.38,silver); rim(.08,silver);
   for (const side of [-1,1]) cylinder(instrument,.055,HIGH+.4,HIGH/2, silver,side*BORE,0);
+  // Narrow glass reflections make the front surface legible at low pixel densities.
+  const sheen=new T.MeshBasicMaterial({color:0xc0f7ee,transparent:true,opacity:.13,depthWrite:false});
+  for(const [angle,arc] of [[-1.12,.075],[-.98,.026],[1.22,.033]]){
+    const stripe=new T.Mesh(new T.CylinderGeometry(BORE,BORE,HIGH,64,1,true,angle,arc),sheen);
+    stripe.position.y=HIGH/2; instrument.add(stripe);
+  }
+  const shaft=cylinder(instrument,.11,1,0,silver);
+  const bridge=new T.Mesh(new T.BoxGeometry(BORE*2,.15,.32),navy);
+  bridge.position.y=HIGH+.39; instrument.add(bridge);
+  cylinder(instrument,.28,.26,HIGH+.42,silver);
+  cylinder(piston,.36,.18,.34,silver);
   const points=[];
   for(let i=0;i<=28;i++){
     const y=.4+i*.49, x=-BORE-.06;
@@ -75,8 +87,11 @@ export function createPistonScene(stage) {
   const anchor=new T.Vector3();
   function draw(gas,angle,handle) {
     piston.position.y=gas.height;
-    // Orbit the sample in its axisymmetric chamber, keeping the actuator under the finger.
-    gasGroup.rotation.y=angle;
+    shaft.scale.y=HIGH+.4-gas.height;
+    shaft.position.y=(HIGH+.4+gas.height)/2;
+    orbit.rotation.y=angle; orbit.updateMatrixWorld(true);
+    // The control follows the visible side of the circular face throughout an orbit.
+    piston.rotation.y=angle;
     gas.particles.forEach((p,i)=>{
       body.position.set(p.x,p.y,p.z);
       body.rotation.set(p.phase+i,p.phase*.66+i*.41,p.phase*.36+i*.83);
@@ -88,7 +103,7 @@ export function createPistonScene(stage) {
       }
     });
     for(const mesh of [oxygen,hydrogen,links]) mesh.instanceMatrix.needsUpdate=true;
-    anchor.set(BORE+.73,gas.height+.32,0).project(camera);
+    anchor.set(BORE+.73,.32,0); piston.localToWorld(anchor); anchor.project(camera);
     handle.style.left=((anchor.x+1)*width/2)+'px';
     handle.style.top=((1-anchor.y)*height/2)+'px';
     renderer.render(scene,camera);

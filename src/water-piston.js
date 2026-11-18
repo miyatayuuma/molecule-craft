@@ -1,8 +1,9 @@
 import { createGas, advanceGas, pressure, clamp, LOW, HIGH, REST } from './water-gas.js';
-import { createPistonScene } from './water-piston-scene.js';
+export const waterPistonTitle='<ruby>状態<rt>じょうたい</rt></ruby>のへんか';
 
 const style = `
 .water-piston[open]{display:grid;grid-template-rows:auto minmax(0,1fr) auto;width:min(560px,100vw);height:min(900px,100dvh);max-height:100dvh;max-width:100vw;margin:auto;padding:0;box-sizing:border-box;overflow:hidden;background:#eff5ef;color:#153738;border:1px solid #7c9994;border-radius:22px;font-family:system-ui,sans-serif}
+.water-piston::backdrop{background:#102b30e8;backdrop-filter:none}
 .water-piston *{box-sizing:border-box}
 .water-piston header,.water-piston footer{padding:16px 22px}
 .water-piston header{display:flex;align-items:center;border-bottom:1px solid #a7bdb4;gap:12px}
@@ -16,6 +17,8 @@ const style = `
 .water-stage{position:relative;overflow:hidden;isolation:isolate;touch-action:none;background-color:#153438;background-image:radial-gradient(ellipse at 44% 55%,#33696b88,transparent 68%),radial-gradient(#91c5b92e .8px,transparent 1px);background-size:auto,17px 17px}
 .water-stage canvas{display:block;position:absolute;inset:0;width:100%;height:100%;touch-action:none}
 .water-stage .water-grip{position:absolute;transform:translate(-50%,-50%);touch-action:none;user-select:none;width:46px;height:58px;min-height:44px;border:2px solid #ffe2a8;border-radius:15px;padding:0;cursor:ns-resize;color:#533317;background:linear-gradient(100deg,#ffc96e,#f2a348);box-shadow:0 3px 0 #915a32,0 5px 13px #001c2266;display:grid;place-content:center;gap:4px}
+.water-grip::before,.water-grip::after{content:"";width:7px;height:7px;margin:auto;border:solid #78532b;border-width:1.5px 1.5px 0 0;transform:rotate(-45deg)}
+.water-grip::after{transform:rotate(135deg)}
 .water-grip i{display:block;width:20px;height:2px;border-radius:2px;background:#805221}
 .water-grip:active{filter:brightness(1.09)}
 .water-piston footer{display:grid;grid-template-columns:1fr auto;gap:9px 12px;border-top:1px solid #8fa99c;padding-bottom:max(16px,env(safe-area-inset-bottom))}
@@ -27,11 +30,11 @@ const style = `
 .water-stage p{position:absolute;inset:40% 10% auto;text-align:center;color:white}
 @media(max-width:580px){.water-piston[open]{border-radius:0;border:0}.water-piston header,.water-piston footer{padding-left:17px;padding-right:17px}}
 `;
-export function openWaterPiston(onClose) {
+export function openWaterPiston(createPistonScene,onClose) {
   const dialog=document.createElement('dialog');
   dialog.className='water-piston';
   dialog.setAttribute('aria-labelledby','water-title');
-  dialog.innerHTML=`<style>${style}</style><header><div><h2 id="water-title"><ruby>状態<rt>じょうたい</rt></ruby>のへんか</h2>
+  dialog.innerHTML=`<style>${style}</style><header><div><h2 id="water-title">${waterPistonTitle}</h2>
     <div class="water-identity"><img src="./assets/models/molecule-water.svg" alt=""><ruby>水<rt>みず</rt></ruby> H₂O <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
     <button type="button" class="water-close" aria-label="とじる">×</button></header>
     <div class="water-stage"><button type="button" class="water-grip" aria-label="ピストンを上下にうごかす" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></button></div>

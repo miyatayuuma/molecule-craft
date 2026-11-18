@@ -62,7 +62,7 @@ with sync_playwright() as pw:
    p.mouse.move(x,y);p.mouse.down();p.mouse.move(x,y+150,steps=12);p.mouse.up();settle();assert gauge()>2
    xx,yy=box(stage);p.mouse.move(xx,yy);p.mouse.down();p.mouse.move(xx+120,yy);p.mouse.up()
    p.screenshot(path='shots/water-compressed-pc.png')
-  p.locator('.water-reset').click();settle();assert gauge()==1
+  p.locator('.water-reset').click();p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'",timeout=6000)
   p.locator('.water-close').click();assert not p.locator('.water-piston').count()
   p.locator('#open-water-piston').click();settle();assert gauge()==1
   p.locator('.water-close').click()
