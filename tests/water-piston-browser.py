@@ -66,7 +66,17 @@ with sync_playwright() as pw:
   phase=p.locator('.water-identity small')
   slider=p.locator('#water-temp')
   def heat(t):
-   slider.fill(str(t))
+   rect=slider.bounding_box()
+   x=rect['x']+8+(rect['width']-16)*(t+30)/230
+   y=rect['y']+rect['height']/2
+   if w<500:
+    touch('Start',[(x,y)]);touch('End',[])
+   else:p.mouse.click(x,y)
+   # Account for the native thumb inset and integer CSS pixel rounding.
+   diff=t-int(slider.input_value())
+   assert abs(diff)<=4,diff
+   for _ in range(abs(diff)):slider.press('ArrowRight' if diff>0 else 'ArrowLeft')
+   assert int(slider.input_value())==t
   def at(state,t=None):
    p.wait_for_function("""([state,t])=>document.querySelector('.water-identity small').dataset.phase===state &&
     (t===null || Number(document.querySelector('.water-degrees').value)===t)""",arg=[state,t],timeout=45000)
@@ -95,5 +105,19 @@ with sync_playwright() as pw:
   p.locator('.water-close').click()
   p.locator('[data-book-tab=groups]').click();assert p.locator('[data-book-tab=groups]').get_attribute('aria-selected')=='true'
   assert save==p.evaluate('JSON.stringify([...data])')
+  if w==390:
+   # Open the real application with a separate, already-discovered fixture.
+   p.add_init_script("""localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({
+    schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],
+    unlockedStructures:[],legacyElements:[],milestones:[]}))""")
+   p.goto(f'http://127.0.0.1:{server.server_port}/?reactionLabTest=1')
+   p.wait_for_function("!document.querySelector('#open-reaction-lab').disabled")
+   p.evaluate("dispatchEvent(new CustomEvent('molecule-craft:open-molecule',{detail:{id:'water'}}))")
+   p.locator('#open-water-piston').click()
+   p.locator('.water-close').click()
+   p.locator('#close-collection').click()
+   p.locator('#open-reaction-lab').click()
+   p.wait_for_selector('#reaction-lab-dialog[open]')
+   p.locator('[data-lab-close]').click()
   assert not errors,errors
   print(w,'passed',flush=True);ctx.close()
