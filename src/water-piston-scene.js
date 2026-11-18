@@ -66,12 +66,13 @@ export function createPistonScene(stage) {
     part.position.set(x,y,0); part.rotation.set(0,0,angle); part.scale.set(sx,sy,sz);
     part.updateMatrix(); return part.matrix.clone();
   };
-  const core=local(0,-.035,0,.139,.139,.139);
+  const oxygenY=-.215*Math.cos(52.25*Math.PI/180)*2*1.008/(15.999+2*1.008);
+  const core=local(0,oxygenY,0,.139,.139,.139);
   const ends=[], sticks=[];
   for (const sign of [-1,1]){
     const angle=sign*52.25*Math.PI/180, x=Math.sin(angle)*.215, y=Math.cos(angle)*.215;
-    ends.push(local(x,y-.035,0,.089,.089,.089));
-    sticks.push(local(x/2,y/2-.035,-angle,.04,.215,.04));
+    ends.push(local(x,y+oxygenY,0,.089,.089,.089));
+    sticks.push(local(x/2,y/2+oxygenY,-angle,.04,.215,.04));
   }
   let width,height,scale;
   function resize() {
@@ -94,7 +95,7 @@ export function createPistonScene(stage) {
     piston.rotation.y=angle;
     gas.particles.forEach((p,i)=>{
       body.position.set(p.x,p.y,p.z);
-      body.rotation.set(p.phase+i,p.phase*.66+i*.41,p.phase*.36+i*.83);
+      body.quaternion.copy(p.orientation);
       body.updateMatrix();
       oxygen.setMatrixAt(i,matrix.multiplyMatrices(body.matrix,core));
       for(let k=0;k<2;k++){

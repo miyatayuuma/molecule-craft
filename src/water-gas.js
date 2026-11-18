@@ -1,11 +1,12 @@
 export const BORE = 2.85;
 import { advanceSample, createSample, REST, clamp } from './water-phase.js';
-import { iceSites, moveCondensate } from './water-condensate.js';
+import { iceSites, assignIceSite, moveCondensate } from './water-condensate.js';
 export {HIGH} from './water-phase.js';
+import { initializeWater, sampleInteractions, turnWater } from './water-liquid.js';
 export const COUNT = 72;
 const skin = .28;
 const radius = BORE - skin;
-export function createGas() {
+export function createGas(record) {
   const particles = [];
   while (particles.length < COUNT) {
     const angle = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * radius;
@@ -17,10 +18,10 @@ export function createGas() {
     particles.push({x,y,z, vx:speed*horizontal*Math.cos(azimuth), vy:speed*vertical,
       vz:speed*horizontal*Math.sin(azimuth), speed, phase:angle, spin:.7+Math.random()*2});
   }
-  const sites=iceSites(COUNT);
+
   particles.sort((a,b)=>a.y-b.y);
-  particles.forEach((p,i)=>{p.site=sites[i];p.free=1;});
-  return {...createSample(),particles,time:0};
+  particles.forEach((p,i)=>{initializeWater(p,i,record); p.site=null; p.free=1; p.frozen=0; p.liquid=0;});
+  return {...createSample(),particles,sites:iceSites(particles[0].body),time:0,interactionClock:0};
 }
 
 function contain(p, top, pistonSpeed) {
@@ -53,12 +54,23 @@ export function advanceGas(gas, dt) {
     // A molecule leaving the surface picks up a finite outward velocity.
     if(1-dense>p.free)p.vy+=3*(1-dense-p.free);
     p.free=1-dense;
+    p.frozen += (ice-p.frozen)*(1-Math.exp(-9*dt));
+    assignIceSite(p,gas.sites,ice>0);
+    p.liquid=dense*(1-p.frozen);
+  }
+  gas.interactionClock+=dt;
+  if(gas.interactionClock>=1/20){
+    gas.interactionClock%=1/20;
+    sampleInteractions(gas.particles);
+  }
+  for (let i=0;i<COUNT;i++) {
+    const p=gas.particles[i];
     const speed=Math.hypot(p.vx,p.vy,p.vz);
     const gain=1+p.free*(p.speed*heat/Math.max(.001,speed)-1)*(1-Math.exp(-2*dt));
     p.vx*=gain; p.vy*=gain; p.vz*=gain;
-    if(dense>0)moveCondensate(p,gas,dt,dense,ice,i);
+    if(p.site || p.liquid>0)moveCondensate(p,gas,dt,p.liquid,p.frozen,i);
     p.x+=p.vx*dt; p.y+=p.vy*dt+.78*(p.y-skin)*expansion; p.z+=p.vz*dt;
-    p.phase+=p.spin*dt*(1-ice)*((1-dense)*heat+dense*(.7+gas.temperature/120));
+    turnWater(p,i,dt,heat,gas.temperature);
     contain(p,top,pistonSpeed);
   }
   const diameter=skin*2;

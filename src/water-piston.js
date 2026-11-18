@@ -38,7 +38,8 @@ const style = `
 .water-stage p{position:absolute;inset:40% 10% auto;text-align:center;color:white}
 @media(max-width:580px){.water-piston[open]{border-radius:0;border:0}.water-piston header,.water-piston footer{padding-left:17px;padding-right:17px}}
 `;
-export function openWaterPiston(createPistonScene,onClose) {
+export function openWaterPiston(record,createPistonScene,onClose) {
+  const gas=createGas(record);
   const dialog=document.createElement('dialog');
   dialog.className='water-piston';
   dialog.setAttribute('aria-labelledby','water-title');
@@ -52,7 +53,6 @@ export function openWaterPiston(createPistonScene,onClose) {
   document.body.append(dialog); dialog.showModal();
   const stage=dialog.querySelector('.water-stage'), grip=dialog.querySelector('.water-grip');
   const temp=dialog.querySelector('input'), degrees=dialog.querySelector('.water-degrees'), gauge=dialog.querySelector('.water-pressure');
-  const gas=createGas();
   let angle=0, frame=0, previous=0, scene, observer, closed=false;
   const close=()=>{
     if(closed)return;

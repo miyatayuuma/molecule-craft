@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
+import os
 import re
 import shutil
 import threading
@@ -16,10 +17,18 @@ html=Path('index.html').read_text()
 html=re.sub(r'\s*<script type="module" src="./src/(?:app|pwa).js[^"]*"></script>','',html)
 with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--ignore-gpu-blocklist'])
- for w,h in [(390,844),(360,740),(1280,800)]:
+ comparison=os.environ.get('WATER_COMPARISON')
+ for w,h in ([(390,844)] if comparison else [(390,844),(360,740),(1280,800)]):
   ctx=b.new_context(viewport={'width':w,'height':h},has_touch=w<500,is_mobile=w<500,device_scale_factor=1)
   p=ctx.new_page(); errors=[];p.on('pageerror',lambda err:errors.append(str(err)))
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
+  if comparison:
+   p.add_init_script("let seed=124; Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296)")
+   def measure_stage(route):
+    code=Path('src/reaction-lab-stage-a.js').read_text().replace('export function evaluateStageAForces(', 'function evaluateUnmeasured(')
+    code+="\nexport function evaluateStageAForces(...args){const t=performance.now(); const r=evaluateUnmeasured(...args); window.forceTimes?.push(performance.now()-t); return r;}"
+    route.fulfill(body=code,content_type='application/javascript')
+   p.route('**/reaction-lab-stage-a.js',measure_stage)
   p.goto(f'http://127.0.0.1:{server.server_port}/fixture')
   p.evaluate('''async()=>{const c=await import('/src/chemistry.js');await c.loadMoleculeDatabase();
   const ui=await import('/src/collection-ui.js');
@@ -34,6 +43,40 @@ with sync_playwright() as pw:
   def box(loc):
    r=loc.bounding_box();return [r['x']+r['width']/2,r['y']+r['height']/2]
   def settle():p.wait_for_timeout(850)
+  if comparison:
+   out=Path(comparison)
+   out.mkdir(parents=True,exist_ok=True)
+   def set_temp(t):
+    p.locator('#water-temp').evaluate('(e,t)=>{e.value=t;e.dispatchEvent(new Event("input"))}',t)
+   set_temp(25)
+   p.wait_for_selector('[data-phase=liquid]')
+   p.wait_for_timeout(1800)
+   frames,costs=p.evaluate("""async()=>{window.forceTimes=[];const frames=[];
+    let prev=await new Promise(requestAnimationFrame);
+    while(frames.length<180){const t=await new Promise(requestAnimationFrame);frames.push(t-prev);prev=t;}
+    return [frames,window.forceTimes]}""")
+   for label,values in [('frame',frames),('stage-a',costs)]:
+    if values:
+     ordered=sorted(values)
+     print(f'{out.name} {label}: n={len(values)}, median={ordered[len(values)//2]:.2f}, p95={ordered[int(len(values)*.95)]:.2f} ms',flush=True)
+   # Replay from the same seed under a controlled animation clock for paired frames.
+   from datetime import datetime,timezone,timedelta
+   p.clock.install(time=datetime(2024,1,1,tzinfo=timezone.utc))
+   p.clock.pause_at(datetime(2024,1,1,tzinfo=timezone.utc)+timedelta(seconds=1))
+   p.locator('.water-close').evaluate('e=>e.click()')
+   p.evaluate('let s=124; Math.random=()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296)')
+   p.locator('#open-water-piston').evaluate('e=>e.click()')
+   p.wait_for_selector('.water-stage canvas',state='attached')
+   set_temp(25)
+   p.clock.run_for(6500)
+   for sequence,temp in [('liquid',25),('freeze',-10),('melt',8)]:
+    set_temp(temp)
+    for k in range(20):
+     p.clock.run_for(200)
+     p.screenshot(path=str(out/f'{sequence}-{k:02d}.png'))
+   assert not errors,errors
+   ctx.close()
+   continue
   settle()
   assert gauge()==1 and p.locator('.water-stage canvas').count()
   p.screenshot(path=f'shots/water-piston-{w}.png')

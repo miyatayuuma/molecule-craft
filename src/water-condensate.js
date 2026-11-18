@@ -1,15 +1,29 @@
-// Ideal hexagonal diamond (wurtzite oxygen sites): alternating AB basal nets,
-// four tetrahedral neighbours in the bulk. The finite crystallite has free edges.
-export function iceSites(count) {
-  const c=1.80, a=c/Math.sqrt(8/3), sites=[];
-  for(const layer of [0,3/8,1/2,7/8]){
-    const offset=layer>=.5?1/3:0;
-    for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++){
-      const x=a*(i+offset+(j+offset)/2), z=a*Math.sqrt(3)/2*(j+offset);
-      sites.push({x,y:.3+c*layer,z});
+import { Quaternion, Vector3 } from '../vendor/three/three.core.min.js';
+import { crystal } from './water-ice-sites.js';
+import { DISPLAY_PER_ANGSTROM } from './water-liquid.js';
+
+export function iceSites(body) {
+  return crystal.map(([x,y,z,...q]) => {
+    const orientation = new Quaternion(...q).normalize();
+    const offset = new Vector3().fromArray(body.atoms[0].positionAngstrom)
+      .multiplyScalar(DISPLAY_PER_ANGSTROM).applyQuaternion(orientation);
+    return {x:x-offset.x, y:y-offset.y, z:z-offset.z, orientation, occupied:false};
+  });
+}
+
+export function assignIceSite(p, sites, freezing) {
+  if (freezing && !p.site) {
+    let closest = Infinity;
+    for (const site of sites) {
+      if (site.occupied) continue;
+      const distance = (p.x-site.x)**2 + (p.y-site.y)**2 + (p.z-site.z)**2;
+      if (distance < closest) { closest=distance; p.site=site; }
     }
+    p.site.occupied=true;
+  } else if (!freezing && p.site && p.frozen < .005) {
+    p.site.occupied=false;
+    p.site=null;
   }
-  return sites.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z)).slice(0,count);
 }
 
 export function moveCondensate(p,s,dt,liquid,ice,index) {
@@ -19,14 +33,15 @@ export function moveCondensate(p,s,dt,liquid,ice,index) {
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
   const flow=t*warmth+phase;
   const rim=5*Math.max(0,Math.hypot(p.x,p.z)-2.06);
-  const vx=-rim*p.x+warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
-  const vz=-rim*p.z+warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
+  const vx=-rim*p.x+.75*warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
+  const vz=-rim*p.z+.75*warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
   const level=.3+(.5+.5*Math.sin(flow*.95+p.z*.5))*(poolTop-.28);
   const damping=1-Math.exp(-4*liquid*dt);
   p.vx+=(vx-p.vx)*damping;
   p.vz+=(vz-p.vz)*damping;
   p.vy+=(Math.max(-15,4*(level-p.y))-p.vy)*damping;
-  if(ice>0){
+  p.vx+=p.force.x*liquid*dt; p.vy+=p.force.y*liquid*dt; p.vz+=p.force.z*liquid*dt;
+  if(p.site && ice>0){
     const amp=.018+.022*(Math.max(-30,s.temperature)+30)/30;
     const site=p.site, stiffness=1-Math.exp(-12*dt*ice);
     p.vx+=(7*(site.x+amp*Math.sin(15*t+phase)-p.x)-p.vx)*stiffness;
