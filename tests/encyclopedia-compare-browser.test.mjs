@@ -29,6 +29,15 @@ try{
   let next=0;const waiting=new Map();socket.addEventListener('message',event=>{const result=JSON.parse(event.data);if(waiting.has(result.id)){const resolve=waiting.get(result.id);waiting.delete(result.id);resolve(result);}});
   const send=(method,params={})=>new Promise(resolve=>{const id=++next;waiting.set(id,resolve);socket.send(JSON.stringify({id,method,params}));});
   const evaluate=async expression=>{const result=await send('Runtime.evaluate',{expression,returnByValue:true,awaitPromise:true});if(result.error||result.result?.exceptionDetails)throw Error(JSON.stringify(result));return result.result?.result?.value;};
+  const waitFor=async(expression,message)=>{
+    const deadline=Date.now()+6000;
+    do{
+      if(await evaluate(expression))return;
+      await pause(80);
+    }while(Date.now()<deadline);
+    assert.fail(message);
+  };
+  const focusIndex="Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex)";
   const capture=async filename=>{
     const directory=process.env.COMPARE_CAPTURE_DIR;
     if(!directory)return;
@@ -88,7 +97,8 @@ try{
     const target=index+1<order.length&&!["water","methane","ethanol"].includes(order[index+1].id)?index+1:index-1;
     const stage=document.querySelector('.compare-stage');stage.focus();stage.dispatchEvent(new KeyboardEvent('keydown',{key:target>index?'ArrowRight':'ArrowLeft',bubbles:true}));
     return{target:order[target].id,index:target};
-  })()`);await pause(650);
+  })()`);
+  await waitFor(`${focusIndex} === ${unknown.index}`,'Keyboard movement selects the adjacent unknown bead');
   const hidden=await evaluate(`(()=>({index:Number(document.querySelector('.compare-bead.focus')?.dataset.compareIndex),name:document.querySelector('.compare-summary')?.textContent,secret:!!document.querySelector('.compare-bead.focus.unknown'),detail:document.querySelector('#collection-detail').hidden}))()`);
   assert.equal(hidden.index,unknown.index);assert.equal(hidden.secret,true);assert(hidden.name.includes('未知の分子')&&!hidden.name.includes('g/mol'));assert.equal(hidden.detail,true);
   assert.equal(await evaluate(`(()=>{
@@ -117,9 +127,9 @@ try{
   assert.equal(await evaluate(`document.querySelector('[data-compare-axis="boilingPoint"]').getAttribute('aria-pressed')`),'true');
   assert.equal(await evaluate(`!!document.querySelector('.compare-observation')`),false,'Boiling stays on the existing separate view');
   await gamepad(12);
-  const moveIndex=await evaluate(`Number(document.querySelector('.compare-bead.focus').dataset.compareIndex)`);
-  await gamepad(moveIndex>0?14:15);await pause(620);
-  assert.equal(await evaluate(`Number(document.querySelector('.compare-bead.focus').dataset.compareIndex)`),moveIndex+(moveIndex>0?-1:1));
+  const moveIndex=await evaluate(focusIndex),direction=moveIndex>0?-1:1;
+  await gamepad(direction<0?14:15);
+  await waitFor(`${focusIndex} === ${moveIndex+direction}`,'Gamepad navigation selects the adjacent bead');
   await gamepad(2);
   assert.equal(await evaluate(`!!document.querySelector('.graph-stage:not(.compare-stage)')`),true);
   await gamepad(2);
@@ -157,8 +167,7 @@ try{
   for(const [type,offset] of [['touchStart',0],['touchMove',-42],['touchMove',-145],['touchEnd',0]]){
     await send('Input.dispatchTouchEvent',{type,touchPoints:type==='touchEnd'?[]:[{x:touch.x+offset,y:touch.y}]});
   }
-  await pause(1000);
-  assert.notEqual(await evaluate(`Number(document.querySelector('.compare-bead.focus').dataset.compareIndex)`),touch.index,'A touch swipe passes through the background');
+  await waitFor(`Number.isFinite(${focusIndex}) && ${focusIndex} !== ${touch.index}`,'A touch swipe passes through the background');
 
   const canvasFallback=await evaluate(`(async()=>{
     const {renderEncyclopediaComparison}=await import('/src/encyclopedia-compare-physics-view.js');
