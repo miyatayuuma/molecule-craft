@@ -16,7 +16,8 @@ import {furiganaSegmentsForRange,coalesceSegmentsAtRubyBoundaries,completeFuriga
 import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 import {moleculeBasicProperties} from './molecule-basic-properties.js?v=1';
-import {renderEncyclopediaComparison,COMPARISON_MODE_LABELS,COMPARISON_MODE_ACCESSIBLE_LABEL,appendComparisonModeLabel} from './encyclopedia-compare-view.js';
+import {renderEncyclopediaComparison} from './encyclopedia-compare-view.js';
+import {appendComparisonIcon,COMPARISON_MODE_LABELS} from './encyclopedia-compare-presentation.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -487,9 +488,13 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function appendComparisonModeControls(){
     const wrapper=list.querySelector('.encyclopedia-graph');if(!wrapper)return;
-    const switcher=el('div',null,'comparison-mode-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label',COMPARISON_MODE_ACCESSIBLE_LABEL);
-    for(const mode of Object.keys(COMPARISON_MODE_LABELS)){
-      const node=button(null,()=>switchComparisonMode(mode));appendComparisonModeLabel(node,mode);node.setAttribute('aria-pressed',String(comparisonMode===mode));node.dataset.comparisonMode=mode;switcher.append(node);
+    const switcher=el('div',null,'comparison-mode-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label','分子図鑑の表示');
+    for(const [mode,label] of Object.entries(COMPARISON_MODE_LABELS)){
+      const node=button(null,()=>{
+        const restoreFocus=root.activeElement===node;
+        switchComparisonMode(mode);
+        if(restoreFocus)list.querySelector(`[data-comparison-mode="${mode}"]`)?.focus({preventScroll:true});
+      });appendComparisonIcon(node,mode,label);node.setAttribute('aria-pressed',String(comparisonMode===mode));node.dataset.comparisonMode=mode;switcher.append(node);
     }
     wrapper.prepend(switcher);
   }
@@ -500,7 +505,11 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
       comparisonController=(physicalComparison??renderEncyclopediaComparison)({host:list,records,discoveredIds:registeredIds(),axis:comparisonAxis,focusId:id,transitionRects:rects,
         onFocus:id=>{comparisonFocusId=id;},
         onDetail:(id,node)=>showMoleculeDetailFromGraph(id,node),
-        onAxis:axis=>{comparisonTransitionRects=comparisonRects();comparisonAxis=axis;renderBook();},
+        onAxis:axis=>{
+          const restoreFocus=root.activeElement?.matches('[data-compare-axis]');
+          comparisonTransitionRects=comparisonRects();comparisonAxis=axis;renderBook();
+          if(restoreFocus)list.querySelector(`[data-compare-axis="${axis}"]`)?.focus({preventScroll:true});
+        },
       });
       comparisonFocusId=comparisonController.focusId();
     }else renderGraph();
