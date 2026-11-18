@@ -2,7 +2,7 @@
 // are enlarged for the hand-operated model; neither is a measured specific volume.
 export const REST = 7.6, HIGH = 14.45, LOW = 1.7;
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi,x));
-const liquidHeight = 1.82, iceHeight = 1.98;
+const liquidHeight = 1.98, iceHeight = 2.15;
 const compliance = .018, gripTravel = .95;
 const gasVolume = t => REST * (273.15+t)/433.15;
 
@@ -35,9 +35,9 @@ function movePiston(s, delta) {
   const liquid=denseVolume(s)-compliance*(edge-1);
   const vapor=gasVolume(s.temperature)/edge;
   const stroke=heightOf(s)-gripTravel*Math.max(0,s.pressure-edge)*(1-s.vapor)+delta;
-  if(sat>3 && s.ice===0){
+  if(sat>3.00005 && s.ice===0){
     s.vapor=1; s.pressure=clamp(gasVolume(s.temperature)/clamp(stroke,2.78*clamp((s.temperature-130)/30,.65,1),HIGH),.5,3);
-  }else if(sat<.5 || stroke<liquid){
+  }else if(sat<.49995 || stroke<liquid){
     s.vapor=0; s.pressure=clamp(edge+(liquid-stroke)/(gripTravel+compliance),edge,3);
   }else if(stroke<=vapor){
     s.pressure=edge; s.vapor=clamp((stroke-liquid)/(vapor-liquid),0,1);

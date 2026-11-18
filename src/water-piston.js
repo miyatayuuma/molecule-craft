@@ -90,11 +90,14 @@ export function openWaterPiston(createPistonScene,onClose) {
   function animate(now){
     let elapsed=Math.min((now-(previous||now))/1000,.05);
     previous=now;
-    while(elapsed>.000001){const dt=Math.min(1/120,elapsed);if(resetting&&gas.temperature===160){
+    while(elapsed>.000001){
+      const dt=Math.min(1/120,elapsed);
+      if(resetting&&gas.temperature===160){
         gas.stroke=REST-gas.height;
         if(Math.abs(gas.stroke)<.0001)resetting=false;
       }
-      advanceGas(gas,dt);elapsed-=dt;}
+      advanceGas(gas,dt);elapsed-=dt;
+    }
     draw(); frame=requestAnimationFrame(animate);
   }
   function visibility(){
@@ -138,7 +141,7 @@ export function openWaterPiston(createPistonScene,onClose) {
   drag(stage,'clientX',dx=>{angle+=dx*.011;});
   grip.onkeydown=e=>{
     const direction={ArrowUp:1,ArrowDown:-1}[e.key];
-    if(direction){e.preventDefault();gas.stroke+=direction*.4;}
+    if(direction){e.preventDefault();resetting=false;gas.stroke+=direction*.4;}
   };
   dialog.querySelector('.water-reset').onclick=()=>{
     gas.stroke=0;gas.velocity=0;gas.setting=160;temp.value='160';angle=0;

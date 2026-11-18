@@ -47,11 +47,13 @@ with sync_playwright() as pw:
    for step in range(1,9):touch('Move',[(x,y+step*8)])
    settle(); mid=gauge();assert mid>1
    touch('Move',[(x,y-20)]);settle();assert gauge()<1
-   touch('Move',[(x,h-115)]);settle();compressed=gauge();assert compressed>2.65
+   touch('Move',[(x,h-115)]);p.wait_for_function("Number(document.querySelector('.water-pressure').value)>2.70");settle();compressed=gauge()
    r=p.locator('#water-temp').bounding_box(); xx=r['x']+r['width']-5; yy=r['y']+r['height']/2
    touch('Start',[(x,h-115),(xx,yy)]);settle()
    hot=gauge();assert hot>compressed and hot<3.02,(hot,compressed)
-   touch('Move',[(x,h-115),(r['x']+8+(r['width']-16)*170/230,yy)]);settle();assert gauge()<compressed
+   touch('Move',[(x,h-115),(r['x']+8+(r['width']-16)*170/230,yy)])
+   p.wait_for_function("Number(document.querySelector('.water-pressure').value)<"+str(compressed))
+   assert 139<=int(p.locator('#water-temp').input_value())<=141
    touch('End',[]);settle()
    p.screenshot(path=f'shots/water-compressed-{w}.png')
    x,y=box(grip);touch('Start',[(x,y)]);touch('Move',[(x,95)]);touch('End',[]);settle()
@@ -85,7 +87,7 @@ with sync_playwright() as pw:
   heat(25);at('condensing');at('liquid',25);assert abs(gauge()-1)<.02
   settle();photograph('liquid')
   heat(-10);at('freezing');heat(25);at('liquid',25)
-  heat(-10);at('ice',-10);settle();photograph('ice')
+  heat(-10);at('ice',-10);p.wait_for_timeout(1800);photograph('ice')
   heat(104);at('melting');at('boiling');heat(97);at('liquid',97)
   heat(104);at('gas',104);heat(90);at('condensing');at('liquid',90)
   x,y=box(grip)

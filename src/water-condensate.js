@@ -1,7 +1,7 @@
 // Ideal hexagonal diamond (wurtzite oxygen sites): alternating AB basal nets,
 // four tetrahedral neighbours in the bulk. The finite crystallite has free edges.
 export function iceSites(count) {
-  const c=1.57, a=c/Math.sqrt(8/3), sites=[];
+  const c=1.80, a=c/Math.sqrt(8/3), sites=[];
   for(const layer of [0,3/8,1/2,7/8]){
     const offset=layer>=.5?1/3:0;
     for(let i=-4;i<=4;i++)for(let j=-4;j<=4;j++){
@@ -15,11 +15,12 @@ export function iceSites(count) {
 export function moveCondensate(p,s,dt,liquid,ice,index) {
   const t=s.time, phase=index*2.39996;
   const warmth=.7+Math.max(0,s.temperature)/95;
-  const poolTop=.4+1.12*(1-s.vapor);
+  const poolTop=.4+1.20*(1-s.vapor);
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
   const flow=t*warmth+phase;
-  const vx=warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
-  const vz=warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
+  const rim=5*Math.max(0,Math.hypot(p.x,p.z)-2.06);
+  const vx=-rim*p.x+warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
+  const vz=-rim*p.z+warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
   const level=.3+(.5+.5*Math.sin(flow*.95+p.z*.5))*(poolTop-.28);
   const damping=1-Math.exp(-4*liquid*dt);
   p.vx+=(vx-p.vx)*damping;
