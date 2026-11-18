@@ -1,14 +1,10 @@
-// Height represents volume because the bore and the number of molecules are fixed.
 export const BORE = 2.85;
-export const REST = 7.6;
-export const LOW = 2.78;
-export const HIGH = 14.45;
+import { advanceSample, createSample, REST, clamp } from './water-phase.js';
+import { iceSites, moveCondensate } from './water-condensate.js';
+export {HIGH} from './water-phase.js';
 export const COUNT = 72;
 const skin = .28;
 const radius = BORE - skin;
-export const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
-export const pressure = (temperature, height) => (temperature + 273.15) / 433.15 * REST / height;
-
 export function createGas() {
   const particles = [];
   while (particles.length < COUNT) {
@@ -21,7 +17,10 @@ export function createGas() {
     particles.push({x,y,z, vx:speed*horizontal*Math.cos(azimuth), vy:speed*vertical,
       vz:speed*horizontal*Math.sin(azimuth), speed, phase:angle, spin:.7+Math.random()*2});
   }
-  return {particles, height:REST, target:REST, temperature:160, velocity:0};
+  const sites=iceSites(COUNT);
+  particles.sort((a,b)=>a.y-b.y);
+  particles.forEach((p,i)=>{p.site=sites[i];p.free=1;});
+  return {...createSample(),particles,time:0};
 }
 
 function contain(p, top, pistonSpeed) {
@@ -40,20 +39,26 @@ function contain(p, top, pistonSpeed) {
 
 export function advanceGas(gas, dt) {
   const previous=gas.height;
-  // A damped piston follows the finger. Its actual face drives collisions and the gauge.
-  gas.velocity += (850*(gas.target-previous)-50*gas.velocity)*dt;
-  gas.height=clamp(previous+clamp(gas.velocity,-48,48)*dt,LOW,HIGH);
+  advanceSample(gas,dt);
+  gas.time+=dt;
   const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin;
   // Carry part of the gas upward with a fast withdrawal. A height gradient keeps
   // the bottom layer in place and frees the swept volume over several substeps.
   const expansion=Math.max(0,gas.height-previous)/(previous-2*skin);
-  const heat=1+(gas.temperature-160)/100; // Exaggerated visual speed response.
-  for (const p of gas.particles) {
+  const heat=Math.max(.55,1+(gas.temperature-160)/100); // Exaggerated visual speed response.
+  for (let i=0;i<COUNT;i++) {
+    const p=gas.particles[i];
+    const dense=clamp((1-gas.vapor)*COUNT-i,0,1);
+    const ice=clamp(gas.ice*COUNT-i,0,1);
+    // A molecule leaving the surface picks up a finite outward velocity.
+    if(1-dense>p.free)p.vy+=3*(1-dense-p.free);
+    p.free=1-dense;
     const speed=Math.hypot(p.vx,p.vy,p.vz);
-    const gain=1+(p.speed*heat/Math.max(.001,speed)-1)*(1-Math.exp(-2*dt));
+    const gain=1+p.free*(p.speed*heat/Math.max(.001,speed)-1)*(1-Math.exp(-2*dt));
     p.vx*=gain; p.vy*=gain; p.vz*=gain;
+    if(dense>0)moveCondensate(p,gas,dt,dense,ice,i);
     p.x+=p.vx*dt; p.y+=p.vy*dt+.78*(p.y-skin)*expansion; p.z+=p.vz*dt;
-    p.phase+=p.spin*dt*heat;
+    p.phase+=p.spin*dt*(1-ice)*((1-dense)*heat+dense*(.7+gas.temperature/120));
     contain(p,top,pistonSpeed);
   }
   const diameter=skin*2;

@@ -51,7 +51,7 @@ with sync_playwright() as pw:
    r=p.locator('#water-temp').bounding_box(); xx=r['x']+r['width']-5; yy=r['y']+r['height']/2
    touch('Start',[(x,h-115),(xx,yy)]);settle()
    hot=gauge();assert hot>compressed and hot<3.02,(hot,compressed)
-   touch('Move',[(x,h-115),(r['x']+4,yy)]);settle();assert gauge()<compressed
+   touch('Move',[(x,h-115),(r['x']+8+(r['width']-16)*170/230,yy)]);settle();assert gauge()<compressed
    touch('End',[]);settle()
    p.screenshot(path=f'shots/water-compressed-{w}.png')
    x,y=box(grip);touch('Start',[(x,y)]);touch('Move',[(x,95)]);touch('End',[]);settle()
@@ -63,6 +63,33 @@ with sync_playwright() as pw:
    xx,yy=box(stage);p.mouse.move(xx,yy);p.mouse.down();p.mouse.move(xx+120,yy);p.mouse.up()
    p.screenshot(path='shots/water-compressed-pc.png')
   p.locator('.water-reset').click();p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'",timeout=6000)
+  phase=p.locator('.water-identity small')
+  slider=p.locator('#water-temp')
+  def heat(t):
+   slider.fill(str(t))
+  def at(state,t=None):
+   p.wait_for_function("""([state,t])=>document.querySelector('.water-identity small').dataset.phase===state &&
+    (t===null || Number(document.querySelector('.water-degrees').value)===t)""",arg=[state,t],timeout=45000)
+  def photograph(state):
+   p.screenshot(path=f'shots/water-{state}-{w}.png')
+  heat(25);at('condensing');at('liquid',25);assert abs(gauge()-1)<.02
+  settle();photograph('liquid')
+  heat(-10);at('freezing');heat(25);at('liquid',25)
+  heat(-10);at('ice',-10);settle();photograph('ice')
+  heat(104);at('melting');at('boiling');heat(97);at('liquid',97)
+  heat(104);at('gas',104);heat(90);at('condensing');at('liquid',90)
+  x,y=box(grip)
+  def piston(start,end):
+   if w<500:
+    touch('Start',[start]);touch('Move',[end]);touch('End',[])
+   else:
+    p.mouse.move(*start);p.mouse.down();p.mouse.move(*end,steps=5);p.mouse.up()
+  piston((x,y),(x,y-135))
+  at('mixed',90);assert .68<gauge()<.71
+  photograph('coexistence')
+  x,y=box(grip);piston((x,y),(x,y+155));at('liquid',90)
+  p.locator('.water-reset').click();at('gas',160)
+  p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'")
   p.locator('.water-close').click();assert not p.locator('.water-piston').count()
   p.locator('#open-water-piston').click();settle();assert gauge()==1
   p.locator('.water-close').click()
