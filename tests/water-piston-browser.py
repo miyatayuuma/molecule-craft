@@ -24,11 +24,6 @@ with sync_playwright() as pw:
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
   if comparison:
    p.add_init_script("let seed=124; Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296)")
-   def measure_stage(route):
-    code=Path('src/reaction-lab-stage-a.js').read_text().replace('export function evaluateStageAForces(', 'function evaluateUnmeasured(')
-    code+="\nexport function evaluateStageAForces(...args){const t=performance.now(); const r=evaluateUnmeasured(...args); window.forceTimes?.push(performance.now()-t); return r;}"
-    route.fulfill(body=code,content_type='application/javascript')
-   p.route('**/reaction-lab-stage-a.js',measure_stage)
   p.goto(f'http://127.0.0.1:{server.server_port}/fixture')
   p.evaluate('''async()=>{const c=await import('/src/chemistry.js');await c.loadMoleculeDatabase();
   const ui=await import('/src/collection-ui.js');
@@ -48,17 +43,6 @@ with sync_playwright() as pw:
    out.mkdir(parents=True,exist_ok=True)
    def set_temp(t):
     p.locator('#water-temp').evaluate('(e,t)=>{e.value=t;e.dispatchEvent(new Event("input"))}',t)
-   set_temp(25)
-   p.wait_for_selector('[data-phase=liquid]')
-   p.wait_for_timeout(1800)
-   frames,costs=p.evaluate("""async()=>{window.forceTimes=[];const frames=[];
-    let prev=await new Promise(requestAnimationFrame);
-    while(frames.length<180){const t=await new Promise(requestAnimationFrame);frames.push(t-prev);prev=t;}
-    return [frames,window.forceTimes]}""")
-   for label,values in [('frame',frames),('stage-a',costs)]:
-    if values:
-     ordered=sorted(values)
-     print(f'{out.name} {label}: n={len(values)}, median={ordered[len(values)//2]:.2f}, p95={ordered[int(len(values)*.95)]:.2f} ms',flush=True)
    # Replay from the same seed under a controlled animation clock for paired frames.
    from datetime import datetime,timezone,timedelta
    p.clock.install(time=datetime(2024,1,1,tzinfo=timezone.utc))
@@ -110,6 +94,16 @@ with sync_playwright() as pw:
   p.locator('.water-reset').click();p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'",timeout=6000)
   phase=p.locator('.water-identity small')
   slider=p.locator('#water-temp')
+  if w<500:
+   r=slider.bounding_box()
+   assert r['x']>=24 and r['x']+r['width']<=w-24,r
+   r=grip.bounding_box()
+   assert r['x']>=24 and r['x']+r['width']<=w-24,r
+   r=slider.bounding_box()
+   for x,expected in [(r['x']+3,'-30'),(r['x']+r['width']-3,'200')]:
+    touch('Start',[(x,r['y']+r['height']/2)]);touch('End',[])
+    assert slider.input_value()==expected
+   p.locator('.water-reset').click()
   def heat(t):
    rect=slider.bounding_box()
    x=rect['x']+8+(rect['width']-16)*(t+30)/230
@@ -129,7 +123,18 @@ with sync_playwright() as pw:
    p.screenshot(path=f'shots/water-{state}-{w}.png')
   heat(25);at('condensing');at('liquid',25);assert abs(gauge()-1)<.02
   settle();photograph('liquid')
-  heat(-10);at('freezing');heat(25);at('liquid',25)
+  heat(-10);at('freezing')
+  if w<500:
+   p.screenshot(path=f'shots/water-lag-{w}.png')
+   heat(0);at('slush',0)
+   share=p.locator('.water-phase-strip i').first.get_attribute('style')
+   settle()
+   assert p.locator('.water-phase-strip i').first.get_attribute('style')==share
+   assert p.locator('.water-temp-marker').evaluate("e=>parseFloat(e.style.getPropertyValue('--actual'))")==30/230*100
+   photograph('slush')
+   heat(25);at('melting')
+  else:heat(25)
+  at('liquid',25)
   heat(-10);at('ice',-10);p.wait_for_timeout(1800);photograph('ice')
   heat(104);at('melting');at('boiling');heat(97);at('liquid',97)
   heat(104);at('gas',104);heat(90);at('condensing');at('liquid',90)
@@ -141,6 +146,10 @@ with sync_playwright() as pw:
     p.mouse.move(*start);p.mouse.down();p.mouse.move(*end,steps=5);p.mouse.up()
   piston((x,y),(x,y-135))
   at('mixed',90);assert .68<gauge()<.71
+  if w<500:
+   bands=p.locator('.water-phase-strip i')
+   assert bands.nth(1).evaluate('e=>e.offsetWidth')>0
+   assert bands.nth(2).evaluate('e=>e.offsetWidth')>0
   photograph('coexistence')
   x,y=box(grip);piston((x,y),(x,y+155));at('liquid',90)
   p.locator('.water-reset').click();at('gas',160)

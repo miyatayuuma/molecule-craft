@@ -66,7 +66,9 @@ export function advanceSample(s,dt) {
     else if(cooling && s.vapor>0)goal=Math.max(goal,bp);
     else if(heating && s.vapor<1)goal=Math.min(goal,bp);
     else if(cooling && s.ice<1)goal=Math.max(goal,0);
-    s.temperature=approach(s.temperature,goal,95*dt);
+    // Limit how fast the sample catches up to the dial after a plateau.
+    // This also limits the actual pressure change in the fixed-volume regime.
+    s.temperature=approach(s.temperature,goal,62*dt);
   }
   if(hot && s.vapor===1)s.pressure=clamp(gasVolume(s.temperature)/before,.5,3);
   // Take up finger displacement with the P0 damped response; discard force at stops.
