@@ -17,7 +17,7 @@ import {createPolymerCollectionState} from './polymer-collection-state.js?v=1';
 import {createPolymerEncyclopediaModel} from './polymer-encyclopedia.js?v=1';
 import {moleculeBasicProperties} from './molecule-basic-properties.js?v=1';
 import {renderEncyclopediaComparison} from './encyclopedia-compare-view.js';
-import {appendComparisonIcon,COMPARISON_MODE_LABELS} from './encyclopedia-compare-presentation.js';
+import {appendComparisonIcon,COMPARISON_MODE_LABELS,COMPARISON_MODE_ACCESSIBLE_LABEL} from './encyclopedia-compare-presentation.js';
 
 export async function loadCollectionData(){
   const load=async path=>{const response=await fetch(new URL(path,import.meta.url));if(!response.ok)throw new Error(`Collection data HTTP ${response.status}`);return response.json();};
@@ -488,7 +488,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
   }
   function appendComparisonModeControls(){
     const wrapper=list.querySelector('.encyclopedia-graph');if(!wrapper)return;
-    const switcher=el('div',null,'comparison-mode-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label','分子図鑑の表示');
+    const switcher=el('div',null,'comparison-mode-switch');switcher.setAttribute('role','group');switcher.setAttribute('aria-label',COMPARISON_MODE_ACCESSIBLE_LABEL);
     for(const [mode,label] of Object.entries(COMPARISON_MODE_LABELS)){
       const node=button(null,()=>{
         const restoreFocus=root.activeElement===node;

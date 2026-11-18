@@ -1,5 +1,6 @@
 import {COMPARISON_AXES} from './encyclopedia-compare.js';
 
+export const COMPARISON_MODE_ACCESSIBLE_LABEL='分子図鑑の表示';
 export const COMPARISON_MODE_LABELS=Object.freeze({graph:'樹形図',compare:'くらべる'});
 const ICONS={
   graph:'ui-compare-tree',
