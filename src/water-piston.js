@@ -1,3 +1,4 @@
+import { moleculeRecord } from './chemistry.js';
 import { createGas, advanceGas } from './water-gas.js';
 import { clamp, LOW, HIGH, REST } from './water-phase.js';
 const phaseLabels={
@@ -52,7 +53,7 @@ export function openWaterPiston(createPistonScene,onClose) {
   document.body.append(dialog); dialog.showModal();
   const stage=dialog.querySelector('.water-stage'), grip=dialog.querySelector('.water-grip');
   const temp=dialog.querySelector('input'), degrees=dialog.querySelector('.water-degrees'), gauge=dialog.querySelector('.water-pressure');
-  const gas=createGas();
+  const gas=createGas(moleculeRecord('water'));
   let angle=0, frame=0, previous=0, scene, observer, closed=false;
   const close=()=>{
     if(closed)return;

@@ -23,3 +23,37 @@ jobs:
         with:
           name: water-piston-screens
           path: shots/*.png
+      - name: Compare motion on the same mobile viewport
+        if: github.base_ref == 'work/water-piston-p1'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --depth=1 origin "$BASE_SHA"
+          git worktree add --detach "$RUNNER_TEMP/water-base" "$BASE_SHA"
+          comparison="$PWD/tests/water-piston-browser.py"
+          mkdir -p "$PWD/shots/motion"
+          output="$PWD/shots/motion"
+          (cd "$RUNNER_TEMP/water-base" && WATER_COMPARISON="$output/P1" python "$comparison")
+          WATER_COMPARISON="$output/P2" python "$comparison"
+          pip install pillow
+          python - <<'PY'
+          from PIL import Image, ImageDraw
+          from pathlib import Path
+          root=Path('shots/motion')
+          frames=[]
+          for phase in ['liquid','freeze','melt']:
+              for a in sorted((root/'P1').glob(f'{phase}-*.png')):
+                  pair=Image.new('RGB',(780,440),'#153438')
+                  draw=ImageDraw.Draw(pair)
+                  for x,version in [(0,'P1'),(390,'P2')]:
+                      shot=Image.open(root/version/a.name)
+                      pair.paste(shot.crop((0,410,390,825)),(x,25))
+                      draw.text((x+12,5),f'{version}   {phase}',fill='white')
+                  frames.append(pair)
+          frames[0].save('shots/water-p1-p2.webp',save_all=True,append_images=frames[1:],duration=200,loop=0,lossless=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        if: github.base_ref == 'work/water-piston-p1' && success()
+        with:
+          name: water-motion-comparison
+          path: shots/water-p1-p2.webp
