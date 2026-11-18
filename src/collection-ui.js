@@ -649,7 +649,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     if(id==='water'&&!discoverySession){
       const launch=button(null,async()=>{
         const {createPistonScene}=await import('./water-piston-scene.js');
-        if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(createPistonScene,()=>{waterPiston=null;});
+        if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(record,createPistonScene,()=>{waterPiston=null;});
       });
       launch.id='open-water-piston';
       launch.innerHTML=waterPistonTitle;
