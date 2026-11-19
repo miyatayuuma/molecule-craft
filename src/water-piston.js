@@ -5,7 +5,10 @@ const phaseLabels={
   ice:'<ruby>固体<rt>こたい</rt></ruby>（こおり）',freezing:'こおっている',melting:'とけている',
   boiling:'<ruby>気体<rt>きたい</rt></ruby>になっている',condensing:'しずくになっている',
   mixed:'<ruby>液体<rt>えきたい</rt></ruby>と<ruby>気体<rt>きたい</rt></ruby>',
-  slush:'こおりと<ruby>水<rt>みず</rt></ruby>'
+  slush:'こおりと<ruby>水<rt>みず</rt></ruby>',
+  sublimating:'<ruby>昇華<rt>しょうか</rt></ruby>している',
+  depositing:'<ruby>凝華<rt>ぎょうか</rt></ruby>している',
+  solidGas:'<ruby>固体<rt>こたい</rt></ruby>と<ruby>気体<rt>きたい</rt></ruby>'
 };
 export const waterPistonTitle='<ruby>状態<rt>じょうたい</rt></ruby>のへんか';
 
@@ -58,7 +61,7 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   dialog.className='water-piston';
   dialog.setAttribute('aria-labelledby','water-title');
   dialog.innerHTML=`<style>${style}</style><header><div><h2 id="water-title">${waterPistonTitle}</h2>
-    <div class="water-identity"><img src="./assets/models/molecule-${record.id}.svg" alt="">${waterIce?'<ruby>水<rt>みず</rt></ruby>':record.nameJa} ${record.formula.replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d])} <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
+    <div class="water-identity"><img src="./assets/models/molecule-${record.id}.svg" alt="">${waterIce?'<ruby>水<rt>みず</rt></ruby>':record.id==='carbon-dioxide'?'<ruby>二酸化炭素<rt>にさんかたんそ</rt></ruby>':record.nameJa} ${record.formula.replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d])} <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
     <button type="button" class="water-close" aria-label="とじる">×</button></header>
     <div class="water-stage"><button type="button" class="water-grip" aria-label="ピストンを上下にうごかす" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></button></div>
     <footer><div class="water-phase-strip" aria-hidden="true"><i></i><i></i><i></i></div><label class="water-reading" for="water-temp"><ruby>温度<rt>おんど</rt></ruby><span><output class="water-degrees">${profile.start}</output><small>℃</small></span></label>
@@ -99,6 +102,7 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     if(gas.phase.solid!==lastIce || gas.phase.gas!==lastVapor)updatePhaseStrip();
     let phase;
     if(gas.phase.solid>.999)phase='ice';
+    else if(profile.sublimes && gas.phase.solid>.001)phase=gas.phase.gas>lastVapor?'sublimating':gas.phase.gas<lastVapor?'depositing':'solidGas';
     else if(gas.phase.solid>.001)phase=gas.phase.solid>lastIce?'freezing':gas.phase.solid<lastIce?'melting':'slush';
     else if(gas.phase.gas>.999)phase='gas';
     else if(gas.phase.gas<.001)phase='liquid';

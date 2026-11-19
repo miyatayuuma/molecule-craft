@@ -1,8 +1,29 @@
 import { Quaternion, Vector3 } from '../vendor/three/three.core.min.js';
 import { crystal } from './water-ice-sites.js';
+import { ethanolCrystalSites } from './phase-ethanol-crystal.js';
 
 
 export function iceSites(body,profile) {
+  if(profile.lattice==='ethanol-pc')return ethanolCrystalSites(body,profile);
+  if(profile.lattice==='dry-ice'){
+    // Pa-3, a=5.056 Å, https://som.web.cmu.edu/structures/S104-CO2.html
+    // The four face-centred sites carry different body-diagonal axes.
+    const basis=[
+      [[0,0,0],[1,1,1]], [[.5,.5,0],[1,-1,-1]],
+      [[0,.5,.5],[-1,1,-1]], [[.5,0,.5],[-1,-1,1]]
+    ];
+    const axis=new Vector3().fromArray(body.atoms[1].positionAngstrom)
+      .sub(new Vector3().fromArray(body.atoms[2].positionAngstrom)).normalize();
+    const edge=5.056*profile.scale;
+    const sites=[];
+    for(const [[u,v,w],direction] of basis){
+      const orientation=new Quaternion().setFromUnitVectors(axis,new Vector3(...direction).normalize());
+      for(let j=0;j+v<=1;j++)for(let i=-3;i<=3;i++)for(let k=-3;k<=3;k++){
+        sites.push({x:edge*(i+u),y:.42+edge*(j+v),z:edge*(k+w),orientation,occupied:false});
+      }
+    }
+    return sites.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z)).slice(0,profile.count);
+  }
   if(profile.lattice==='fcc'){
     // Conventional FCC basis, cut three (001) layers inside the bore.
     // Phase I: https://doi.org/10.1103/7hxd-hhjf
@@ -37,7 +58,8 @@ export function assignIceSite(p, sites, freezing) {
 
 export function moveCondensate(p,s,dt,liquid,ice,index) {
   const t=s.time, phase=index*2.39996;
-  const warmth=.7+Math.max(0,(s.temperature-s.profile.melt))/95;
+  const boundary=s.profile.melt??s.profile.vaporTemperature(s.pressure);
+  const warmth=.7+Math.max(0,s.temperature-boundary)/95;
   const poolTop=.4+1.20*(1-s.phase.gas);
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
   const flow=t*warmth+phase;
@@ -51,7 +73,7 @@ export function moveCondensate(p,s,dt,liquid,ice,index) {
   p.vy+=(Math.max(-15,4*(level-p.y))-p.vy)*damping;
   p.vx+=p.force.x*liquid*dt; p.vy+=p.force.y*liquid*dt; p.vz+=p.force.z*liquid*dt;
   if(p.site && ice>0){
-    const amp=.018+.022*(Math.max(-30,(s.temperature-s.profile.melt))+30)/30;
+    const amp=.018+.022*(Math.max(-30,(s.temperature-boundary))+30)/30;
     const site=p.site, stiffness=1-Math.exp(-12*dt*ice);
     p.vx+=(7*(site.x+amp*Math.sin(15*t+phase)-p.x)-p.vx)*stiffness;
     p.vy+=(7*(site.y+amp*Math.cos(18*t+phase)-p.y)-p.vy)*stiffness;
