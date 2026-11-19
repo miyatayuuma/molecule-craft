@@ -157,6 +157,7 @@ with sync_playwright() as pw:
    r=loc.bounding_box();return [r['x']+r['width']/2,r['y']+r['height']/2]
   def settle():p.wait_for_timeout(850)
   if new_substance:
+   p.wait_for_selector('.water-stage canvas',state='attached')
    client=ctx.new_cdp_session(p)
    def touch(kind,points):
     client.send('Input.dispatchTouchEvent',{'type':'touch'+kind,'touchPoints':[{'x':x,'y':y,'id':i+1} for i,(x,y) in enumerate(points)]})
