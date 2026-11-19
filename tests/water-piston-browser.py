@@ -255,7 +255,15 @@ with sync_playwright() as pw:
    p.mouse.move(x,y);p.mouse.down();p.mouse.move(x,y+150,steps=12);p.mouse.up();settle();assert gauge()>2
    xx,yy=box(stage);p.mouse.move(xx,yy);p.mouse.down();p.mouse.move(xx+120,yy);p.mouse.up()
    p.screenshot(path='shots/water-compressed-pc.png')
-  p.locator('.water-reset').click();p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'",timeout=6000)
+  def reset_water():
+   p.locator('.water-reset').click()
+   p.wait_for_function("""()=>document.querySelector('.water-pressure').value==='1.00' &&
+    document.querySelector('.water-degrees').value==='160' &&
+    document.querySelector('.water-identity small').dataset.phase==='gas'""",timeout=20000)
+   # Let the damped piston finish moving before the next dial event cancels reset.
+   settle()
+   assert gauge()==1
+  reset_water()
   phase=p.locator('.water-identity small')
   slider=p.locator('#water-temp')
   if w<500:
@@ -267,7 +275,7 @@ with sync_playwright() as pw:
    for x,expected in [(r['x']+3,'-30'),(r['x']+r['width']-3,'200')]:
     touch('Start',[(x,r['y']+r['height']/2)]);touch('End',[])
     assert slider.input_value()==expected
-   p.locator('.water-reset').click()
+   reset_water()
   def heat(t):
    rect=slider.bounding_box()
    x=rect['x']+8+(rect['width']-16)*(t+30)/230
@@ -316,8 +324,7 @@ with sync_playwright() as pw:
    assert bands.nth(2).evaluate('e=>e.offsetWidth')>0
   photograph('coexistence')
   x,y=box(grip);piston((x,y),(x,y+155));at('liquid',90)
-  p.locator('.water-reset').click();at('gas',160)
-  p.wait_for_function("document.querySelector('.water-pressure').value==='1.00'")
+  reset_water()
   p.locator('.water-close').click();assert not p.locator('.water-piston').count()
   p.locator('#open-water-piston').click();settle();assert gauge()==1
   p.locator('.water-close').click()
