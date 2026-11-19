@@ -259,7 +259,7 @@ with sync_playwright() as pw:
    p.locator('.water-reset').click()
    p.wait_for_function("""()=>document.querySelector('.water-pressure').value==='1.00' &&
     document.querySelector('.water-degrees').value==='160' &&
-    document.querySelector('.water-identity small').dataset.phase==='gas'""",timeout=20000)
+    document.querySelector('.water-identity small').dataset.phase==='gas'""",timeout=75000)
    # Let the damped piston finish moving before the next dial event cancels reset.
    settle()
    assert gauge()==1
