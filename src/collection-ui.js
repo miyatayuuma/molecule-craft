@@ -1,3 +1,4 @@
+import {profiles as phaseProfiles} from './phase-profiles.js';
 import {openWaterPiston, waterPistonTitle} from './water-piston.js';
 import {reactionGroups,renderReactionBook,playReactionStarCeremony} from './reaction-encyclopedia.js?v=7';
 import { validateFunctionalGroups } from './functional-groups.js?v=22';
@@ -646,7 +647,7 @@ export async function createCollectionUI({records,onPlace,canOpen=()=>true,onOpe
     const matches=partMatches(record),motifs=motifMatches(record),catalogEntry=entry(kind,id)??{},stereoSpec=catalogEntry.stereoComparison??null;heading(kind,id,moleculeDisplayName(record),record.formula);
     const defaultStereo=stereoSpec?{kind:stereoSpec.kind,relation:stereoSpec.defaultRelation??stereoSpec.states?.[0]?.relation}:null;
     const previewHandle=preview(record,moleculeDisplayName(record),{graphReturn:true,presentation:defaultStereo});
-    if(id==='water'&&!discoverySession){
+    if(Object.hasOwn(phaseProfiles,id)&&!discoverySession){
       const launch=button(null,async()=>{
         const {createPistonScene}=await import('./water-piston-scene.js');
         if(!waterPiston&&dialog.open&&launch.isConnected)waterPiston=openWaterPiston(record,createPistonScene,()=>{waterPiston=null;});

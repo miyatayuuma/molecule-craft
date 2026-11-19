@@ -3,16 +3,25 @@ import { createStageABody, evaluateStageAForces } from './reaction-lab-stage-a.j
 
 // 0.215 display units per O–H bond in the P1 model. Both the drawn atom
 // offsets and Stage A sites are relative to the same molecular centre of mass.
-export const DISPLAY_PER_ANGSTROM = .215 / .9572;
+import * as THREE from '../vendor/three/three.core.min.js';
+import { createPreviewModel } from './preview-model.js';
+import { REACTION_LAB_WORLD_UNITS_PER_ANGSTROM } from './reaction-lab-stage-a.js';
 const halfAngle = 52.25 * Math.PI / 180;
 const tipX = .9572 * Math.sin(halfAngle), tipY = .9572 * Math.cos(halfAngle);
 const localSites = [[0,0,0], [-tipX,tipY,0], [tipX,tipY,0]];
 const euler = new Euler(), step = new Quaternion(), axis = new Vector3();
 const freeOrientation = (phase, i) => step.setFromEuler(euler.set(phase+i,phase*.66+i*.41,phase*.36+i*.83));
 
-export function initializeWater(p, i, record) {
+export function moleculeSites(record,profile){
+  if(profile.donorFrame)return localSites; // GenIce local donor frame
+  const preview=createPreviewModel(THREE,record);
+  for(let i=0;i<80;i++)preview.step();
+  return preview.snapshot().atoms.map(atom=>atom.point.divideScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM).toArray());
+}
+
+export function initializeWater(p, i, record, sites, profile) {
   const atoms = record.atoms.map((element,k) => ({
-    element, positionAngstrom:localSites[k], chargeE:record.nonbonded.atomicChargesE[k],
+    element, positionAngstrom:sites[k], chargeE:record.nonbonded.atomicChargesE[k],
     sigmaAngstrom:record.nonbonded.sigmaAngstrom[k], epsilonKcalMol:record.nonbonded.epsilonKcalMol[k]
   }));
   p.body = createStageABody({id:i, positionAngstrom:[0,0,0], atoms});
@@ -27,15 +36,15 @@ function bounded(out, values, gain, limit) {
   out.fromArray(values).multiplyScalar(gain).clampLength(0,limit);
 }
 
-export function sampleInteractions(particles) {
+export function sampleInteractions(particles,profile) {
   const active = [];
   for (const p of particles) {
     p.force.set(0,0,0);
     p.torque.set(0,0,0);
     if (p.liquid <= .001) continue;
-    p.body.positionAngstrom[0] = p.x / DISPLAY_PER_ANGSTROM;
-    p.body.positionAngstrom[1] = p.y / DISPLAY_PER_ANGSTROM;
-    p.body.positionAngstrom[2] = p.z / DISPLAY_PER_ANGSTROM;
+    p.body.positionAngstrom[0] = p.x / profile.scale;
+    p.body.positionAngstrom[1] = p.y / profile.scale;
+    p.body.positionAngstrom[2] = p.z / profile.scale;
     p.orientation.toArray(p.body.orientation);
     active.push(p.body);
   }
@@ -43,8 +52,8 @@ export function sampleInteractions(particles) {
   const result = evaluateStageAForces(active, {collectPairDiagnostics:false});
   for (const body of active) {
     const p = particles[body.id], state = result.bodies.get(body.id);
-    bounded(p.torque,state.torqueKcalMolAngstrom,.64,4.2);
-    bounded(p.force,state.forceKcalMolAngstrom,.48,2.8);
+    bounded(p.torque,state.torqueKcalMolAngstrom,profile.torqueGain,4.2);
+    bounded(p.force,state.forceKcalMolAngstrom,profile.forceGain,2.8);
   }
 }
 
@@ -68,6 +77,10 @@ export function turnWater(p, i, dt, heat, temperature) {
     axis.copy(p.spinVelocity).divideScalar(speed);
     p.orientation.premultiply(step.setFromAxisAngle(axis,speed*dt*p.liquid));
   }
-  if (p.site) p.orientation.slerp(p.site.orientation,1-Math.exp(-9*p.frozen*dt));
+  if(p.site && !p.site.orientation){
+    axis.set(Math.cos(i),.7,Math.sin(i)).normalize();
+    p.orientation.premultiply(step.setFromAxisAngle(axis,dt*p.frozen*p.spin*Math.max(.18,.65+temperature/45)));
+  }
+  if (p.site?.orientation) p.orientation.slerp(p.site.orientation,1-Math.exp(-9*p.frozen*dt));
   p.orientation.normalize();
 }

@@ -26,7 +26,7 @@ jobs:
   comparison:
     if: startsWith(github.head_ref, 'work/water-piston-')
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 16
     steps:
       - uses: actions/checkout@v5
       - run: pip install playwright==1.56.0 pillow
@@ -42,6 +42,7 @@ jobs:
           output="$PWD/shots/motion"
           (cd "$RUNNER_TEMP/water-base" && WATER_COMPARISON="$output/Base" python "$comparison")
           WATER_COMPARISON="$output/Updated" python "$comparison"
+          PISTON_SUBSTANCE=methane WATER_COMPARISON="$output/Methane" python "$comparison"
           python - <<'PY'
           from PIL import Image, ImageDraw
           from pathlib import Path
@@ -58,8 +59,17 @@ jobs:
                   frames.append(pair)
           frames[29].save('shots/water-comparison.png')
           frames[0].save('shots/water-comparison.webp',save_all=True,append_images=frames[1:],duration=200,loop=0,lossless=True)
+          methane=root/'Methane'
+          shots=[Image.open(p).convert('RGB') for sequence in ['liquid','freeze','melt','gas'] for p in sorted(methane.glob(sequence+'-*.png'))]
+          shots[0].save('shots/methane.webp',save_all=True,append_images=shots[1:],duration=200,loop=0,lossless=True)
+          panel=Image.new('RGB',(1170,844))
+          for i,k in enumerate([39,19,79]):panel.paste(shots[k],(390*i,0))
+          panel.save('shots/methane.png')
           PY
       - uses: actions/upload-artifact@v4
         with:
           name: water-motion-comparison
-          path: shots/water-comparison.*
+          path: |
+            shots/water-comparison.*
+            shots/methane.*
+            shots/motion/Methane/coexistence.png
