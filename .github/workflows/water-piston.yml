@@ -5,6 +5,7 @@ on:
       - 'src/water-*.js'
       - 'src/collection-ui.js'
       - 'tests/water-piston-browser.py'
+      - 'tests/water-phase.test.mjs'
       - '.github/workflows/water-piston.yml'
 permissions:
   contents: read

@@ -1,6 +1,7 @@
 import test from 'node:test';
+import {profiles} from '../src/phase-profiles.js';
 import assert from 'node:assert/strict';
-import {advanceSample,boiling,createSample,saturation} from '../src/water-phase.js';
+import {advanceSample,boiling,createSample,HIGH,LOW,saturation} from '../src/water-phase.js';
 import {createGas,advanceGas} from '../src/water-gas.js';
 
 import {readFileSync} from 'node:fs';
@@ -111,4 +112,35 @@ test('Methane phase I, liquid and real coexistence boundaries',()=>{
   assert.equal(s.pressure,profile.saturation(-165));
   s.stroke=-4;run(2);assert.equal(s.phase.liquid,1);
   assert.equal(s.particles.length,60);
+});
+
+test('Water and methane stay within chamber limits while heating and cooling at full extension',()=>{
+  const dt=1/120, tolerance=1e-9;
+  for(const [id,profile] of Object.entries(profiles)){
+    const sample=createSample(profile);
+    const step=()=>{
+      advanceSample(sample,dt);
+      assert.ok(sample.pressure>=.5-tolerance && sample.pressure<=3+tolerance,id);
+      assert.ok(sample.height>=LOW-tolerance && sample.height<=HIGH+tolerance,id);
+      const shares=Object.values(sample.phase);
+      assert.ok(shares.every(share=>share>=0 && share<=1),id);
+      assert.ok(Math.abs(shares.reduce((sum,share)=>sum+share,0)-1)<tolerance,id);
+    };
+    sample.stroke=HIGH;
+    for(let i=0;i<120;i++)step();
+    assert.ok(Math.abs(sample.height-HIGH)<.0001,id);
+
+    const expandedPressure=sample.pressure;
+    sample.setting=profile.max;
+    for(let i=0;i<240;i++)step();
+    assert.equal(sample.temperature,profile.max,id);
+    assert.ok(Math.abs(sample.height-HIGH)<.0001,id);
+    assert.ok(sample.pressure>expandedPressure,id);
+
+    sample.setting=profile.start-10;
+    for(let i=0;i<480;i++)step();
+    assert.equal(sample.temperature,sample.setting,id);
+    assert.ok(sample.height>.75*HIGH,id);
+    assert.equal(sample.phase.gas,1,id);
+  }
 });
