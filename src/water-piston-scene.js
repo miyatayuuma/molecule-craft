@@ -62,7 +62,7 @@ export function createPistonScene(stage,sample) {
   const {profile,record,particles}=sample;
   const body=new T.Object3D(), part=new T.Object3D(), matrix=new T.Matrix4();
   const atoms=particles[0].body.atoms;
-  const points=atoms.map(atom=>new T.Vector3(...atom.positionAngstrom).multiplyScalar(profile.scale));
+  const atomPoints=atoms.map(atom=>new T.Vector3(...atom.positionAngstrom).multiplyScalar(profile.scale));
   const batches=[];
   function batch(geometry,color,locals){
     batches.push({mesh:instance(geometry,metal(color),particles.length*locals.length),locals});
@@ -71,7 +71,7 @@ export function createPistonScene(stage,sample) {
     const locals=[];
     atoms.forEach((atom,i)=>{
       if(atom.element!==element)return;
-      part.position.copy(points[i]);
+      part.position.copy(atomPoints[i]);
       part.scale.setScalar(({O:.139,H:.089})[element]??ELEMENTS[element].radius*.34);
       part.updateMatrix();locals.push(part.matrix.clone());
     });
@@ -79,10 +79,10 @@ export function createPistonScene(stage,sample) {
   }
   const up=new T.Vector3(0,1,0);
   batch(bond,0xc3cdd1,record.bonds.map(([a,b])=>{
-    const delta=points[b].clone().sub(points[a]);
+    const delta=atomPoints[b].clone().sub(atomPoints[a]);
     part.scale.set(.04,delta.length(),.04);
     part.quaternion.setFromUnitVectors(up,delta.normalize());
-    part.position.copy(points[a]).lerp(points[b],.5);
+    part.position.copy(atomPoints[a]).lerp(atomPoints[b],.5);
     part.updateMatrix();return part.matrix.clone();
   }));
   let width,height,scale;
