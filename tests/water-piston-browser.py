@@ -1,5 +1,6 @@
 from playwright.sync_api import sync_playwright
 from pathlib import Path
+import json
 import os
 import re
 import shutil
@@ -15,9 +16,30 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 Path('shots').mkdir(exist_ok=True)
 html=Path('index.html').read_text()
 html=re.sub(r'\s*<script type="module" src="./src/(?:app|pwa).js[^"]*"></script>','',html)
-def verify_dry_ice(page, touch, box):
+def verify_phase_chamber(page, touch, box, substance):
  from datetime import datetime, timezone, timedelta
 
+ dry_ice=substance=='carbon-dioxide'
+ name='co2' if dry_ice else 'ethanol'
+ motion_dir=os.environ.get('PHASE_MOTION')
+ frame=0
+ if motion_dir:
+  motion_dir=Path(motion_dir)/name
+  motion_dir.mkdir(parents=True,exist_ok=True)
+ slider=page.locator('#water-temp')
+ if not dry_ice:
+  slider.evaluate('(e)=>{e.value=30; e.dispatchEvent(new Event("input"))}')
+  page.wait_for_function("document.querySelector('.water-identity small').dataset.phase==='liquid' && document.querySelector('.water-degrees').value==='30'",timeout=45000)
+  frame_times,force_times=page.evaluate('''async()=>{window.forceTimes=[];let frames=[],last=await new Promise(requestAnimationFrame);
+   while(frames.length<100){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
+   return [frames,window.forceTimes]}''')
+  assert len(force_times)>10
+  for label,values in [('frame',frame_times),('Stage A',force_times)]:
+   values.sort()
+   print(name,label,'median/p95 ms',values[len(values)//2],values[int(.95*len(values))],flush=True)
+  page.locator('.water-close').evaluate('e=>e.click()')
+  page.locator('#open-water-piston').evaluate('e=>e.click()')
+  page.wait_for_selector('.water-stage canvas',state='attached')
  clock=page.clock
  start=datetime(2024,1,1,tzinfo=timezone.utc)
  clock.install(time=start)
@@ -44,31 +66,54 @@ def verify_dry_ice(page, touch, box):
 
  def expect(state):
   assert phase.get_attribute('data-phase')==state,phase.inner_text()
-  assert bands.nth(1).evaluate("e=>e.style.getPropertyValue('--share')")=='0'
+  if dry_ice:assert bands.nth(1).evaluate("e=>e.style.getPropertyValue('--share')")=='0'
   assert .5<=pressure()<=3
   assert grip.bounding_box()['x']+grip.bounding_box()['width']<=390-16
 
+ def advance(ms):
+  nonlocal frame
+  if not motion_dir:
+   clock.run_for(ms)
+   return
+  while ms>0:
+   interval=min(ms,166)
+   clock.run_for(interval)
+   page.screenshot(path=str(motion_dir/f'{frame:04d}.png'))
+   frame+=1
+   ms-=interval
+
+ def shot(state):page.screenshot(path=f'shots/{name}-{state}.png')
+
  assert page.locator('.water-stage canvas').count()
- expect('gas')
- heat(-100)
- clock.run_for(2450);expect('depositing')
- clock.run_for(3900);expect('ice')
- page.screenshot(path='shots/co2-solid.png')
-
- heat(-80);clock.run_for(1800)
- piston(-110);clock.run_for(2100);expect('solidGas')
- assert .87<pressure()<.90
+ expect('gas');shot('gas')
  share=lambda: float(bands.nth(2).evaluate("e=>e.style.getPropertyValue('--share')"))
- vapor=share()
- assert .30<vapor<.85,vapor
- clock.run_for(700);assert share()==vapor
- page.screenshot(path='shots/co2-coexistence.png')
-
- piston(58);clock.run_for(2200);expect('solidGas')
- assert 0<share()<vapor
- heat(-40);clock.run_for(500);expect('sublimating')
- clock.run_for(4800);expect('gas')
- page.screenshot(path='shots/co2-gas.png')
+ if dry_ice:
+  heat(-100)
+  advance(2450);expect('depositing')
+  advance(3900);expect('ice');shot('solid')
+  heat(-80);advance(1800)
+  piston(-110);advance(2100);expect('solidGas')
+  assert .87<pressure()<.90
+  vapor=share()
+  assert .30<vapor<.85,vapor
+  advance(700);assert share()==vapor
+  shot('coexistence')
+  piston(58);advance(2200);expect('solidGas')
+  assert 0<share()<vapor
+  heat(-40);advance(500);expect('sublimating')
+  advance(4800);expect('gas')
+ else:
+  heat(72);advance(4300);expect('liquid');shot('liquid')
+  piston(-116);advance(2300);expect('mixed')
+  vapor=share()
+  assert .25<vapor<.8 and .75<pressure()<.80,(vapor,pressure())
+  shot('coexistence')
+  piston(65);advance(2100);expect('mixed')
+  assert 0<share()<vapor
+  piston(90);advance(1900);expect('liquid')
+  heat(-130);advance(7000);expect('ice');shot('solid')
+  heat(130);advance(3500);expect('liquid')
+  advance(5300);expect('gas')
 
  page.locator('.water-reset').evaluate('e=>e.click()')
  clock.run_for(7000);expect('gas')
@@ -84,13 +129,14 @@ with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--ignore-gpu-blocklist'])
  substance=os.environ.get('PISTON_SUBSTANCE','water')
  comparison=os.environ.get('WATER_COMPARISON')
- for w,h in ([(390,844)] if comparison or substance=='carbon-dioxide' else [(390,844),(360,740),(1280,800)]):
+ new_substance=substance in ('carbon-dioxide','ethanol')
+ for w,h in ([(390,844)] if comparison or new_substance else [(390,844),(360,740),(1280,800)]):
   ctx=b.new_context(viewport={'width':w,'height':h},has_touch=w<500,is_mobile=w<500,device_scale_factor=1)
   p=ctx.new_page(); errors=[];p.on('pageerror',lambda err:errors.append(str(err)))
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
-  if comparison:
+  if comparison or new_substance:
    p.add_init_script("let seed=124; Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296)")
-  if comparison:
+  if comparison or substance=='ethanol':
    def instrument(route):
     code=Path('src/reaction-lab-stage-a.js').read_text().replace('export function evaluateStageAForces(', 'function evaluateUnmeasured(')
     code+="\nexport function evaluateStageAForces(...args){const t=performance.now();const result=evaluateUnmeasured(...args);window.forceTimes?.push(performance.now()-t);return result}"
@@ -110,12 +156,22 @@ with sync_playwright() as pw:
   def box(loc):
    r=loc.bounding_box();return [r['x']+r['width']/2,r['y']+r['height']/2]
   def settle():p.wait_for_timeout(850)
-  if substance=='carbon-dioxide':
+  if new_substance:
    client=ctx.new_cdp_session(p)
    def touch(kind,points):
     client.send('Input.dispatchTouchEvent',{'type':'touch'+kind,'touchPoints':[{'x':x,'y':y,'id':i+1} for i,(x,y) in enumerate(points)]})
-   verify_dry_ice(p,touch,box)
+   verify_phase_chamber(p,touch,box,substance)
    assert save==p.evaluate('JSON.stringify([...data])')
+   p.add_init_script('''(id=>localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({
+    schemaVersion:3,discoveredMolecules:[{id,at:1,order:1}],discoveredGroups:[],
+    unlockedStructures:[],legacyElements:[],milestones:[]})))(''' + json.dumps(substance) + ')')
+   p.goto(f'http://127.0.0.1:{server.server_port}/?reactionLabTest=1')
+   p.wait_for_function("!document.querySelector('#open-reaction-lab').disabled")
+   p.evaluate("id=>dispatchEvent(new CustomEvent('molecule-craft:open-molecule',{detail:{id}}))",substance)
+   p.locator('#open-water-piston').click()
+   p.wait_for_selector('.water-stage canvas',state='attached')
+   p.locator('.water-close').click()
+   assert p.locator('#open-water-piston').is_visible()
    assert not errors,errors
    print(w,substance,'passed',flush=True)
    ctx.close()

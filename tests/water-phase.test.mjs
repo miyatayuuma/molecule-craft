@@ -198,3 +198,57 @@ test('Carbon dioxide has a reversible solid–gas boundary and a Pa-3 crystal',(
   assert.ok(s.phase.gas>0 && s.phase.gas<mixed);
   s.stroke=-3;run(1);assert.equal(s.phase.gas,0);
 });
+
+test('Ethanol uses a rigid DB model in liquid and measured Pc oxygen chains when frozen',()=>{
+  const record=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url)))
+    .find(m=>m.id==='ethanol');
+  const s=createGas(record), {profile,particles}=s;
+  assert.equal(profile.melt,-114);
+  for(const [p,expected] of [[.5,61.82],[1,78.42],[2,97.08],[3,109.13]]){
+    const t=profile.vaporTemperature(p);
+    assert.ok(Math.abs(t-expected)<.01);
+    assert.ok(Math.abs(profile.saturation(t)-p)<1e-9);
+  }
+  const atoms=particles[0].body.atoms;
+  assert.equal(atoms.length,9);
+  assert.equal(record.bonds.length,8);
+  const geometry=atoms.map(({positionAngstrom})=>[...positionAngstrom]);
+  const dt=1/120;
+  const run=seconds=>{
+    for(let i=0;i<Math.round(seconds/dt);i++){
+      advanceGas(s,dt);
+      const {gas,liquid,solid}=s.phase;
+      assert.ok(Math.min(gas,liquid,solid)>=0 && Math.abs(gas+liquid+solid-1)<1e-9);
+      assert.ok(s.pressure>=.5 && s.pressure<=3 && s.height>=LOW && s.height<=HIGH+1e-9);
+    }
+  };
+  s.setting=72;run(4);
+  assert.equal(s.phase.liquid,1);
+  assert.ok(particles.some(p=>p.torque.length()>.1 && p.force.length()>.1));
+  s.stroke=3;run(1);
+  const vapor=s.phase.gas;
+  assert.ok(vapor>.4 && vapor<.8);
+  assert.ok(Math.abs(s.pressure-profile.saturation(72))<1e-9);
+  s.stroke=-1;run(1);
+  assert.ok(s.phase.gas>0 && s.phase.gas<vapor);
+  s.stroke=-3;run(1);assert.equal(s.phase.liquid,1);
+
+  s.setting=-130;run(7);
+  assert.equal(s.phase.solid,1);
+  assert.ok(particles.every(p=>p.orientation.angleTo(p.site.orientation)<.05
+    && Math.hypot(p.x-p.site.x,p.y-p.site.y,p.z-p.site.z)<.08));
+  const oxygens=s.sites.map(site=>particles[0].force.clone().fromArray(geometry[2]).applyQuaternion(site.orientation)
+    .add(particles[0].force.clone().set(site.x,site.y,site.z).divideScalar(profile.scale)));
+  for(const expected of [2.716,2.730]){
+    assert.ok(oxygens.some(a=>oxygens.some(b=>Math.abs(a.distanceTo(b)-expected)<.002)));
+  }
+  assert.ok(particles.every(p=>p.body.atoms.every((atom,i)=>
+    atom.positionAngstrom.every((coordinate,k)=>coordinate===geometry[i][k]))));
+
+  s.setting=130;run(.9);
+  assert.ok(s.phase.solid>0 && s.phase.liquid>0);
+  s.setting=130;run(9);
+  assert.equal(s.phase.gas,1);
+  assert.equal(s.particles,particles);
+  assert.equal(particles.length,40);
+});

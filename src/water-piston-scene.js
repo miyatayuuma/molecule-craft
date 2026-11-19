@@ -3,7 +3,8 @@ import * as T from '../vendor/three/three.module.min.js';
 import { BORE, HIGH } from './water-gas.js';
 
 export function createPistonScene(stage,sample) {
-  const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
+  const {profile,record,particles}=sample;
+  const renderer=new T.WebGLRenderer({alpha:true,antialias:!profile.compactRendering,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
   stage.prepend(renderer.domElement);
   const scene=new T.Scene(), camera=new T.OrthographicCamera(-5,5,9,-9,.1,80);
@@ -53,13 +54,13 @@ export function createPistonScene(stage,sample) {
   const arm=new T.Mesh(new T.BoxGeometry(BORE+1,.13,.23),silver);
   arm.position.set((BORE+1)/2,.32,0); piston.add(arm);
 
-  const sphere=new T.SphereGeometry(1,10,8), bond=new T.CylinderGeometry(1,1,1,6);
+  const sphere=profile.compactRendering?new T.SphereGeometry(1,8,6):new T.SphereGeometry(1,10,8);
+  const bond=new T.CylinderGeometry(1,1,1,6);
   const instance=(geometry,material,count)=>{
     const batch=new T.InstancedMesh(geometry,material,count);
     batch.instanceMatrix.setUsage(T.DynamicDrawUsage);
     batch.frustumCulled=false; gasGroup.add(batch); return batch;
   };
-  const {profile,record,particles}=sample;
   const body=new T.Object3D(), part=new T.Object3D(), matrix=new T.Matrix4();
   const atoms=particles[0].body.atoms;
   const atomPoints=atoms.map(atom=>new T.Vector3(...atom.positionAngstrom).multiplyScalar(profile.scale));
@@ -67,12 +68,15 @@ export function createPistonScene(stage,sample) {
   function batch(geometry,color,locals){
     batches.push({mesh:instance(geometry,metal(color),particles.length*locals.length),locals});
   }
+  const multipleBondAtoms=new Set(record.bonds.filter(([, ,order])=>order>1).flatMap(([a,b])=>[a,b]));
   for(const element of new Set(record.atoms)){
     const locals=[];
     atoms.forEach((atom,i)=>{
       if(atom.element!==element)return;
       part.position.copy(atomPoints[i]);
-      part.scale.setScalar(({O:.139,H:.089})[element]??ELEMENTS[element].radius*.34);
+      const radius=({O:.139,H:.089})[element]??ELEMENTS[element].radius*.34;
+      // Leave room between the spheres for the parallel rails to read at phone scale.
+      part.scale.setScalar(multipleBondAtoms.has(i)?radius*.76:radius);
       part.updateMatrix();locals.push(part.matrix.clone());
     });
     batch(sphere,({O:0xe34e40,H:0xf6fcff})[element]??ELEMENTS[element].color,locals);
