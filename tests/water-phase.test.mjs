@@ -1,6 +1,7 @@
 import test from 'node:test';
+import {profiles} from '../src/phase-profiles.js';
 import assert from 'node:assert/strict';
-import {advanceSample,boiling,createSample,saturation} from '../src/water-phase.js';
+import {advanceSample,boiling,createSample,HIGH,LOW,saturation} from '../src/water-phase.js';
 import {createGas,advanceGas} from '../src/water-gas.js';
 
 import {readFileSync} from 'node:fs';
@@ -12,19 +13,19 @@ test('Steam table checkpoints and fixed-load cooling',()=>{
   const sample=createGas(water), particles=[...sample.particles];
   const run=seconds=>{for(let i=0;i<seconds*120;i++)advanceGas(sample,1/120);};
   sample.setting=25;run(6);
-  assert.equal(sample.vapor,0);assert.equal(sample.pressure,1);
+  assert.equal(sample.phase.gas,0);assert.equal(sample.pressure,1);
   const liquidHeight=sample.height;
   sample.setting=-10;run(4);
-  assert.equal(sample.ice,1);assert.ok(sample.height>liquidHeight);
+  assert.equal(sample.phase.solid,1);assert.ok(sample.height>liquidHeight);
   const sites=particles.map(p=>({...p}));
   run(.7);
   assert.ok(particles.every((p,i)=>Math.hypot(p.x-sites[i].x,p.y-sites[i].y,p.z-sites[i].z)<.12));
   sample.setting=90;run(5);
   sample.stroke=4;run(1);
-  assert.ok(sample.vapor>.35&&sample.vapor<.7);
+  assert.ok(sample.phase.gas>.35&&sample.phase.gas<.7);
   assert.ok(Math.abs(sample.pressure-saturation(90))<.002);
   sample.stroke=-2;run(1);
-  assert.ok(sample.vapor>0&&sample.vapor<.35);
+  assert.ok(sample.phase.gas>0&&sample.phase.gas<.35);
   sample.stroke=-8;run(1);
   assert.ok(Math.abs(sample.pressure-3)<.001);
   assert.ok(sample.height>liquidHeight*.97);
@@ -52,38 +53,94 @@ test('Distinct crystal poses, liquid neighbour exchange, reversible capture',()=
 });
 
 test('The dial can hold and reverse both kinds of coexistence',()=>{
-  const sample={...createSample(),temperature:0,setting:-10,vapor:0};
+  const sample={...createSample(),temperature:0,setting:-10};
+  sample.phase.gas=0;
   const dt=1/120;
   const run=n=>{for(let i=0;i<n;i++)advanceSample(sample,dt);};
   run(60);
-  const frozen=sample.ice;
+  const frozen=sample.phase.solid;
   assert.ok(frozen>0 && frozen<1);
   sample.setting=0;run(240);
   assert.equal(sample.temperature,0);
-  assert.equal(sample.ice,frozen);
+  assert.equal(sample.phase.solid,frozen);
   sample.setting=25;run(1);
-  assert.ok(sample.ice<frozen);
+  assert.ok(sample.phase.solid<frozen);
   sample.setting=-10;run(2);
-  assert.ok(sample.ice>frozen);
+  assert.ok(sample.phase.solid>frozen);
   sample.setting=160;
-  while(sample.vapor<1){
+  while(sample.phase.gas<1){
     const before=sample.temperature;
     run(1);
     assert.ok(sample.temperature-before<=62*dt+1e-10);
-    if(sample.vapor>0)assert.equal(sample.temperature,boiling(1));
+    if(sample.phase.gas>0)assert.equal(sample.temperature,boiling(1));
   }
   const plateau=sample.temperature;
   run(1);
   assert.ok(sample.temperature>plateau && sample.temperature-plateau<=62*dt);
 
-  Object.assign(sample,createSample(),{temperature:90,setting:90,vapor:0,stroke:4});
-  run(240);
-  const fraction=sample.vapor;
+  Object.assign(sample,createSample(),{temperature:90,setting:90,stroke:4});
+  sample.phase.gas=0;run(240);
+  const fraction=sample.phase.gas;
   assert.ok(fraction>0 && fraction<1);
   assert.ok(Math.abs(sample.pressure-saturation(90))<.00001);
   run(240);
-  assert.equal(sample.vapor,fraction);
+  assert.equal(sample.phase.gas,fraction);
   sample.stroke=-1;run(60);
-  assert.ok(sample.vapor>0 && sample.vapor<fraction);
+  assert.ok(sample.phase.gas>0 && sample.phase.gas<fraction);
   assert.equal(sample.pressure,saturation(90));
+});
+
+test('Methane phase I, liquid and real coexistence boundaries',()=>{
+  const methane=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url))).find(m=>m.id==='methane');
+  const s=createGas(methane), {profile}=s;
+  for(const p of [.5,1,2,3]){
+    const nist=443.028/(3.9895-Math.log10(1.01325*p))+.49-273.15;
+    assert.ok(Math.abs(profile.boiling(p)-nist)<.2);
+    assert.ok(Math.abs(profile.saturation(profile.boiling(p))-p)<1e-6);
+  }
+  const run=t=>{for(let i=0;i<t*120;i++)advanceGas(s,1/120);};
+  s.setting=-195;run(6.4);
+  assert.ok(s.phase.solid>0 && s.phase.solid<1);
+  const held=s.phase.solid;s.setting=profile.melt;run(1);
+  assert.equal(s.phase.solid,held);
+  s.setting=-195;run(4);
+  const before=s.particles[0].orientation.clone();run(.5);
+  assert.ok(before.angleTo(s.particles[0].orientation)>.01);
+  assert.ok(s.particles.every(p=>Math.hypot(p.x-p.site.x,p.y-p.site.y,p.z-p.site.z)<.1));
+  s.setting=-165;run(5);assert.equal(s.phase.liquid,1);
+  s.stroke=3;run(2);assert.ok(s.phase.gas>0 && s.phase.gas<1);
+  assert.equal(s.pressure,profile.saturation(-165));
+  s.stroke=-4;run(2);assert.equal(s.phase.liquid,1);
+  assert.equal(s.particles.length,60);
+});
+
+test('Water and methane stay within chamber limits while heating and cooling at full extension',()=>{
+  const dt=1/120, tolerance=1e-9;
+  for(const [id,profile] of Object.entries(profiles)){
+    const sample=createSample(profile);
+    const step=()=>{
+      advanceSample(sample,dt);
+      assert.ok(sample.pressure>=.5-tolerance && sample.pressure<=3+tolerance,id);
+      assert.ok(sample.height>=LOW-tolerance && sample.height<=HIGH+tolerance,id);
+      const shares=Object.values(sample.phase);
+      assert.ok(shares.every(share=>share>=0 && share<=1),id);
+      assert.ok(Math.abs(shares.reduce((sum,share)=>sum+share,0)-1)<tolerance,id);
+    };
+    sample.stroke=HIGH;
+    for(let i=0;i<120;i++)step();
+    assert.ok(Math.abs(sample.height-HIGH)<.0001,id);
+
+    const expandedPressure=sample.pressure;
+    sample.setting=profile.max;
+    for(let i=0;i<240;i++)step();
+    assert.equal(sample.temperature,profile.max,id);
+    assert.ok(Math.abs(sample.height-HIGH)<.0001,id);
+    assert.ok(sample.pressure>expandedPressure,id);
+
+    sample.setting=profile.start-10;
+    for(let i=0;i<480;i++)step();
+    assert.equal(sample.temperature,sample.setting,id);
+    assert.ok(sample.height>.75*HIGH,id);
+    assert.equal(sample.phase.gas,1,id);
+  }
 });

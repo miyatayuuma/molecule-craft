@@ -17,6 +17,7 @@ html=Path('index.html').read_text()
 html=re.sub(r'\s*<script type="module" src="./src/(?:app|pwa).js[^"]*"></script>','',html)
 with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--ignore-gpu-blocklist'])
+ substance=os.environ.get('PISTON_SUBSTANCE','water')
  comparison=os.environ.get('WATER_COMPARISON')
  for w,h in ([(390,844)] if comparison else [(390,844),(360,740),(1280,800)]):
   ctx=b.new_context(viewport={'width':w,'height':h},has_touch=w<500,is_mobile=w<500,device_scale_factor=1)
@@ -24,13 +25,19 @@ with sync_playwright() as pw:
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
   if comparison:
    p.add_init_script("let seed=124; Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/4294967296)")
+  if comparison:
+   def instrument(route):
+    code=Path('src/reaction-lab-stage-a.js').read_text().replace('export function evaluateStageAForces(', 'function evaluateUnmeasured(')
+    code+="\nexport function evaluateStageAForces(...args){const t=performance.now();const result=evaluateUnmeasured(...args);window.forceTimes?.push(performance.now()-t);return result}"
+    route.fulfill(body=code,content_type='application/javascript')
+   p.route('**/reaction-lab-stage-a.js',instrument)
   p.goto(f'http://127.0.0.1:{server.server_port}/fixture')
-  p.evaluate('''async()=>{const c=await import('/src/chemistry.js');await c.loadMoleculeDatabase();
+  p.evaluate('''async(id)=>{const c=await import('/src/chemistry.js');await c.loadMoleculeDatabase();
   const ui=await import('/src/collection-ui.js');
-  const preset={schemaVersion:3,discoveredMolecules:[{id:'water',at:1,order:1}],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
+  const preset={schemaVersion:3,discoveredMolecules:[{id,at:1,order:1}],discoveredGroups:[],unlockedStructures:[],legacyElements:[],milestones:[]};
   const data=new Map([['molecule-craft.collection.v1',JSON.stringify(preset)]]);window.data=data;
   window.book=await ui.createCollectionUI({records:c.moleculeCatalog(),storage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v),removeItem:k=>data.delete(k)},onPlace(){},canOpen:()=>true,elementAccess:()=>true,recipeState:()=>({recipes:[],hints:[]})});
-  book.openEntry('molecules','water');}''')
+  book.openEntry('molecules',id);}''',substance)
   save=p.evaluate('JSON.stringify([...data])')
   p.locator('#open-water-piston').click()
   grip=p.locator('.water-grip'); stage=p.locator('.water-stage')
@@ -43,6 +50,15 @@ with sync_playwright() as pw:
    out.mkdir(parents=True,exist_ok=True)
    def set_temp(t):
     p.locator('#water-temp').evaluate('(e,t)=>{e.value=t;e.dispatchEvent(new Event("input"))}',t)
+   liquid=25 if substance=='water' else -170
+   set_temp(liquid)
+   p.wait_for_selector('[data-phase=liquid]')
+   frames,costs=p.evaluate("""async()=>{window.forceTimes=[];let frames=[],last=await new Promise(requestAnimationFrame);
+    while(frames.length<100){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
+    return [frames,window.forceTimes]}""")
+   for label,values in [('frame',frames),('interaction',costs)]:
+    values.sort()
+    print(out.name,label,'median/p95 ms',values[len(values)//2],values[int(.95*len(values))],flush=True)
    # Replay from the same seed under a controlled animation clock for paired frames.
    from datetime import datetime,timezone,timedelta
    p.clock.install(time=datetime(2024,1,1,tzinfo=timezone.utc))
@@ -51,13 +67,29 @@ with sync_playwright() as pw:
    p.evaluate('let s=124; Math.random=()=>((s=(Math.imul(s,1664525)+1013904223)>>>0)/4294967296)')
    p.locator('#open-water-piston').evaluate('e=>e.click()')
    p.wait_for_selector('.water-stage canvas',state='attached')
-   set_temp(25)
+   set_temp(liquid)
    p.clock.run_for(6500)
-   for sequence,temp in [('liquid',25),('freeze',-10),('melt',8)]:
+   for sequence,temp in ([('liquid',25),('freeze',-10),('melt',8)] if substance=='water' else [('liquid',liquid),('freeze',-195),('melt',-120),('gas',-120)]):
     set_temp(temp)
     for k in range(20):
      p.clock.run_for(200)
      p.screenshot(path=str(out/f'{sequence}-{k:02d}.png'))
+   if substance=='methane':
+    assert p.locator('[data-phase=gas]').count()
+    set_temp(-165);p.clock.run_for(6000)
+    assert p.locator('[data-phase=liquid]').count()
+    for _ in range(8):grip.press('ArrowUp')
+    p.clock.run_for(2000)
+    assert p.locator('[data-phase=mixed]').count()
+    p.screenshot(path=str(out/'coexistence.png'))
+    for _ in range(10):grip.press('ArrowDown')
+    p.clock.run_for(2000)
+    assert p.locator('[data-phase=liquid]').count()
+    p.locator('.water-reset').evaluate('e=>e.click()')
+    p.clock.run_for(7500)
+    assert gauge()==1 and p.locator('[data-phase=gas]').count()
+    p.locator('.water-close').evaluate('e=>e.click()')
+    assert p.locator('#open-water-piston').is_visible()
    assert not errors,errors
    ctx.close()
    continue

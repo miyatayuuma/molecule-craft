@@ -1,7 +1,8 @@
+import {ELEMENTS} from './chemistry.js?v=20';
 import * as T from '../vendor/three/three.module.min.js';
-import { BORE, HIGH, COUNT } from './water-gas.js';
+import { BORE, HIGH } from './water-gas.js';
 
-export function createPistonScene(stage) {
+export function createPistonScene(stage,sample) {
   const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
   stage.prepend(renderer.domElement);
@@ -58,22 +59,32 @@ export function createPistonScene(stage) {
     batch.instanceMatrix.setUsage(T.DynamicDrawUsage);
     batch.frustumCulled=false; gasGroup.add(batch); return batch;
   };
-  const oxygen=instance(sphere,metal(0xe34e40),COUNT);
-  const hydrogen=instance(sphere,metal(0xf6fcff),COUNT*2);
-  const links=instance(bond,metal(0xc3cdd1),COUNT*2);
+  const {profile,record,particles}=sample;
   const body=new T.Object3D(), part=new T.Object3D(), matrix=new T.Matrix4();
-  const local=(x,y,angle,sx,sy,sz)=>{
-    part.position.set(x,y,0); part.rotation.set(0,0,angle); part.scale.set(sx,sy,sz);
-    part.updateMatrix(); return part.matrix.clone();
-  };
-  const oxygenY=-.215*Math.cos(52.25*Math.PI/180)*2*1.008/(15.999+2*1.008);
-  const core=local(0,oxygenY,0,.139,.139,.139);
-  const ends=[], sticks=[];
-  for (const sign of [-1,1]){
-    const angle=sign*52.25*Math.PI/180, x=Math.sin(angle)*.215, y=Math.cos(angle)*.215;
-    ends.push(local(x,y+oxygenY,0,.089,.089,.089));
-    sticks.push(local(x/2,y/2+oxygenY,-angle,.04,.215,.04));
+  const atoms=particles[0].body.atoms;
+  const atomPoints=atoms.map(atom=>new T.Vector3(...atom.positionAngstrom).multiplyScalar(profile.scale));
+  const batches=[];
+  function batch(geometry,color,locals){
+    batches.push({mesh:instance(geometry,metal(color),particles.length*locals.length),locals});
   }
+  for(const element of new Set(record.atoms)){
+    const locals=[];
+    atoms.forEach((atom,i)=>{
+      if(atom.element!==element)return;
+      part.position.copy(atomPoints[i]);
+      part.scale.setScalar(({O:.139,H:.089})[element]??ELEMENTS[element].radius*.34);
+      part.updateMatrix();locals.push(part.matrix.clone());
+    });
+    batch(sphere,({O:0xe34e40,H:0xf6fcff})[element]??ELEMENTS[element].color,locals);
+  }
+  const up=new T.Vector3(0,1,0);
+  batch(bond,0xc3cdd1,record.bonds.map(([a,b])=>{
+    const delta=atomPoints[b].clone().sub(atomPoints[a]);
+    part.scale.set(.04,delta.length(),.04);
+    part.quaternion.setFromUnitVectors(up,delta.normalize());
+    part.position.copy(atomPoints[a]).lerp(atomPoints[b],.5);
+    part.updateMatrix();return part.matrix.clone();
+  }));
   let width,height,scale;
   function resize() {
     width=stage.clientWidth; height=stage.clientHeight;
@@ -97,13 +108,11 @@ export function createPistonScene(stage) {
       body.position.set(p.x,p.y,p.z);
       body.quaternion.copy(p.orientation);
       body.updateMatrix();
-      oxygen.setMatrixAt(i,matrix.multiplyMatrices(body.matrix,core));
-      for(let k=0;k<2;k++){
-        hydrogen.setMatrixAt(2*i+k,matrix.multiplyMatrices(body.matrix,ends[k]));
-        links.setMatrixAt(2*i+k,matrix.multiplyMatrices(body.matrix,sticks[k]));
+      for(const {mesh,locals} of batches){
+        for(let k=0;k<locals.length;k++)mesh.setMatrixAt(i*locals.length+k,matrix.multiplyMatrices(body.matrix,locals[k]));
       }
     });
-    for(const mesh of [oxygen,hydrogen,links]) mesh.instanceMatrix.needsUpdate=true;
+    for(const {mesh} of batches)mesh.instanceMatrix.needsUpdate=true;
     anchor.set(BORE+.73,.32,0); piston.localToWorld(anchor); anchor.project(camera);
     handle.style.left=((anchor.x+1)*width/2)+'px';
     handle.style.top=((1-anchor.y)*height/2)+'px';
