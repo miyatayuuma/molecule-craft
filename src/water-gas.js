@@ -40,8 +40,9 @@ function contain(p, top, pistonSpeed,skin) {
 }
 
 export function advanceGas(gas, dt) {
-  const {count,skin,hz,start,melt}=gas.profile;
+  const {count,skin,hz,start,melt,sublimes}=gas.profile;
   const previous=gas.height;
+  const thermalReference=melt??gas.profile.vaporTemperature(gas.pressure);
   advanceSample(gas,dt);
   gas.time+=dt;
   const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin;
@@ -58,10 +59,10 @@ export function advanceGas(gas, dt) {
     p.free=1-dense;
     p.frozen += (ice-p.frozen)*(1-Math.exp(-9*dt));
     assignIceSite(p,gas.sites,ice>0);
-    p.liquid=dense*(1-p.frozen);
+    p.liquid=sublimes?0:dense*(1-p.frozen);
   }
   gas.interactionClock+=dt;
-  if(gas.interactionClock>=1/hz){
+  if(hz && gas.interactionClock>=1/hz){
     gas.interactionClock%=1/hz;
     sampleInteractions(gas.particles,gas.profile);
   }
@@ -72,14 +73,18 @@ export function advanceGas(gas, dt) {
     p.vx*=gain; p.vy*=gain; p.vz*=gain;
     if(p.site || p.liquid>0)moveCondensate(p,gas,dt,p.liquid,p.frozen,i);
     p.x+=p.vx*dt; p.y+=p.vy*dt+.78*(p.y-skin)*expansion; p.z+=p.vz*dt;
-    turnWater(p,i,dt,heat,gas.temperature-melt);
+    turnWater(p,i,dt,heat,gas.temperature-thermalReference);
     contain(p,top,pistonSpeed,skin);
   }
   const diameter=skin*2;
   for (let i=0;i<gas.particles.length;i++) {
     const a=gas.particles[i];
     for (let j=0;j<i;j++) {
-      const b=gas.particles[j], dx=a.x-b.x, dy=a.y-b.y, dz=a.z-b.z;
+      const b=gas.particles[j];
+      // Solid lattice targets already enforce spacing. A hard-sphere impulse
+      // can keep two newly captured molecules wedged outside their own sites.
+      if(gas.profile.orderedLattice && a.frozen>.95 && b.frozen>.95)continue;
+      const dx=a.x-b.x, dy=a.y-b.y, dz=a.z-b.z;
       const squared=dx*dx+dy*dy+dz*dz;
       if (squared>=diameter*diameter || squared===0) continue;
       const d=Math.sqrt(squared), nx=dx/d, ny=dy/d, nz=dz/d;

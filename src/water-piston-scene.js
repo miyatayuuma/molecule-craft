@@ -78,12 +78,16 @@ export function createPistonScene(stage,sample) {
     batch(sphere,({O:0xe34e40,H:0xf6fcff})[element]??ELEMENTS[element].color,locals);
   }
   const up=new T.Vector3(0,1,0);
-  batch(bond,0xc3cdd1,record.bonds.map(([a,b])=>{
+  batch(bond,0xc3cdd1,record.bonds.flatMap(([a,b,order=1])=>{
     const delta=atomPoints[b].clone().sub(atomPoints[a]);
-    part.scale.set(.04,delta.length(),.04);
+    part.scale.set(order===1?.04:.029,delta.length(),order===1?.04:.029);
     part.quaternion.setFromUnitVectors(up,delta.normalize());
-    part.position.copy(atomPoints[a]).lerp(atomPoints[b],.5);
-    part.updateMatrix();return part.matrix.clone();
+    const midpoint=atomPoints[a].clone().lerp(atomPoints[b],.5);
+    const offset=new T.Vector3(1,0,0).applyQuaternion(part.quaternion);
+    return Array.from({length:order},(_,i)=>{
+      part.position.copy(midpoint).addScaledVector(offset,(i-(order-1)/2)*.088);
+      part.updateMatrix();return part.matrix.clone();
+    });
   }));
   let width,height,scale;
   function resize() {

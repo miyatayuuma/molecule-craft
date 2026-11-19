@@ -15,11 +15,76 @@ threading.Thread(target=server.serve_forever,daemon=True).start()
 Path('shots').mkdir(exist_ok=True)
 html=Path('index.html').read_text()
 html=re.sub(r'\s*<script type="module" src="./src/(?:app|pwa).js[^"]*"></script>','',html)
+def verify_dry_ice(page, touch, box):
+ from datetime import datetime, timezone, timedelta
+
+ clock=page.clock
+ start=datetime(2024,1,1,tzinfo=timezone.utc)
+ clock.install(time=start)
+ clock.pause_at(start+timedelta(seconds=1))
+ slider=page.locator('#water-temp')
+ grip=page.locator('.water-grip')
+ phase=page.locator('.water-identity small')
+ bands=page.locator('.water-phase-strip i')
+ pressure=lambda: float(page.locator('.water-pressure').inner_text())
+
+ def heat(t):
+  rect=slider.bounding_box()
+  lo,hi,step=[float(slider.get_attribute(attr)) for attr in ('min','max','step')]
+  x=rect['x']+8+(rect['width']-16)*(t-lo)/(hi-lo)
+  y=rect['y']+rect['height']/2
+  touch('Start',[(x,y)]);touch('End',[])
+  diff=round((t-float(slider.input_value()))/step)
+  for _ in range(abs(diff)):slider.press('ArrowRight' if diff>0 else 'ArrowLeft')
+  assert float(slider.input_value())==t
+
+ def piston(dy):
+  x,y=box(grip)
+  touch('Start',[(x,y)]);touch('Move',[(x,y+dy)]);touch('End',[])
+
+ def expect(state):
+  assert phase.get_attribute('data-phase')==state,phase.inner_text()
+  assert bands.nth(1).evaluate("e=>e.style.getPropertyValue('--share')")=='0'
+  assert .5<=pressure()<=3
+  assert grip.bounding_box()['x']+grip.bounding_box()['width']<=390-16
+
+ assert page.locator('.water-stage canvas').count()
+ expect('gas')
+ heat(-100)
+ clock.run_for(2450);expect('depositing')
+ clock.run_for(3900);expect('ice')
+ page.screenshot(path='shots/co2-solid.png')
+
+ heat(-80);clock.run_for(1800)
+ piston(-110);clock.run_for(2100);expect('solidGas')
+ assert .87<pressure()<.90
+ share=lambda: float(bands.nth(2).evaluate("e=>e.style.getPropertyValue('--share')"))
+ vapor=share()
+ assert .30<vapor<.85,vapor
+ clock.run_for(700);assert share()==vapor
+ page.screenshot(path='shots/co2-coexistence.png')
+
+ piston(58);clock.run_for(2200);expect('solidGas')
+ assert 0<share()<vapor
+ heat(-40);clock.run_for(500);expect('sublimating')
+ clock.run_for(4800);expect('gas')
+ page.screenshot(path='shots/co2-gas.png')
+
+ page.locator('.water-reset').evaluate('e=>e.click()')
+ clock.run_for(7000);expect('gas')
+ assert pressure()==1
+ page.locator('.water-close').evaluate('e=>e.click()')
+ assert page.locator('#open-water-piston').is_visible()
+ page.locator('#open-water-piston').evaluate('e=>e.click()')
+ page.wait_for_selector('.water-stage canvas',state='attached')
+ expect('gas');assert pressure()==1
+ page.locator('.water-close').evaluate('e=>e.click()')
+
 with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--ignore-gpu-blocklist'])
  substance=os.environ.get('PISTON_SUBSTANCE','water')
  comparison=os.environ.get('WATER_COMPARISON')
- for w,h in ([(390,844)] if comparison else [(390,844),(360,740),(1280,800)]):
+ for w,h in ([(390,844)] if comparison or substance=='carbon-dioxide' else [(390,844),(360,740),(1280,800)]):
   ctx=b.new_context(viewport={'width':w,'height':h},has_touch=w<500,is_mobile=w<500,device_scale_factor=1)
   p=ctx.new_page(); errors=[];p.on('pageerror',lambda err:errors.append(str(err)))
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
@@ -45,6 +110,16 @@ with sync_playwright() as pw:
   def box(loc):
    r=loc.bounding_box();return [r['x']+r['width']/2,r['y']+r['height']/2]
   def settle():p.wait_for_timeout(850)
+  if substance=='carbon-dioxide':
+   client=ctx.new_cdp_session(p)
+   def touch(kind,points):
+    client.send('Input.dispatchTouchEvent',{'type':'touch'+kind,'touchPoints':[{'x':x,'y':y,'id':i+1} for i,(x,y) in enumerate(points)]})
+   verify_dry_ice(p,touch,box)
+   assert save==p.evaluate('JSON.stringify([...data])')
+   assert not errors,errors
+   print(w,substance,'passed',flush=True)
+   ctx.close()
+   continue
   if comparison:
    out=Path(comparison)
    out.mkdir(parents=True,exist_ok=True)

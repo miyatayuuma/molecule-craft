@@ -95,8 +95,8 @@ test('Methane phase I, liquid and real coexistence boundaries',()=>{
   const s=createGas(methane), {profile}=s;
   for(const p of [.5,1,2,3]){
     const nist=443.028/(3.9895-Math.log10(1.01325*p))+.49-273.15;
-    assert.ok(Math.abs(profile.boiling(p)-nist)<.2);
-    assert.ok(Math.abs(profile.saturation(profile.boiling(p))-p)<1e-6);
+    assert.ok(Math.abs(profile.vaporTemperature(p)-nist)<.2);
+    assert.ok(Math.abs(profile.saturation(profile.vaporTemperature(p))-p)<1e-6);
   }
   const run=t=>{for(let i=0;i<t*120;i++)advanceGas(s,1/120);};
   s.setting=-195;run(6.4);
@@ -116,7 +116,8 @@ test('Methane phase I, liquid and real coexistence boundaries',()=>{
 
 test('Water and methane stay within chamber limits while heating and cooling at full extension',()=>{
   const dt=1/120, tolerance=1e-9;
-  for(const [id,profile] of Object.entries(profiles)){
+  for(const id of ['water','methane']){
+    const profile=profiles[id];
     const sample=createSample(profile);
     const step=()=>{
       advanceSample(sample,dt);
@@ -143,4 +144,57 @@ test('Water and methane stay within chamber limits while heating and cooling at 
     assert.ok(sample.height>.75*HIGH,id);
     assert.equal(sample.phase.gas,1,id);
   }
+});
+
+test('Carbon dioxide has a reversible solid–gas boundary and a Pa-3 crystal',()=>{
+  const record=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url)))
+    .find(m=>m.id==='carbon-dioxide');
+  const s=createGas(record), {profile}=s;
+  for(const [p,expected] of [[.5,-86.57],[1,-78.46],[2,-69.66],[3,-64.17]]){
+    const t=profile.vaporTemperature(p);
+    assert.ok(Math.abs(t-expected)<.01);
+    assert.ok(Math.abs(profile.saturation(t)-p)<1e-9);
+  }
+  const run=(seconds,particles=false)=>{
+    for(let i=0;i<seconds*120;i++){
+      (particles?advanceGas:advanceSample)(s,1/120);
+      assert.equal(s.phase.liquid,0);
+      assert.equal(s.phase.gas+s.phase.solid,1);
+      assert.ok(s.phase.gas>=0 && s.phase.gas<=1);
+      assert.ok(s.pressure>=.5 && s.pressure<=3+1e-10);
+      assert.ok(s.height>=LOW && s.height<=HIGH+1e-10);
+    }
+  };
+  s.stroke=HIGH;run(1);
+  s.setting=profile.max;run(3);
+  assert.ok(Math.abs(s.height-HIGH)<1e-9);
+  s.stroke=-HIGH;run(2);
+  assert.ok(Math.abs(s.pressure-3)<.0001);
+  s.setting=-100;run(3.3);
+  assert.ok(Math.abs(s.temperature-profile.vaporTemperature(3))<.001);
+  assert.ok(s.phase.gas>0 && s.phase.gas<1);
+  const first=s.phase.gas;s.setting=-64;run(1);
+  assert.equal(s.phase.gas,first);
+  s.setting=-40;run(.5);
+  assert.ok(s.phase.gas>first);
+  s.setting=-100;run(5,true);
+  assert.equal(s.phase.solid,1);
+  assert.ok(s.particles.every(p=>p.liquid===0 && p.force.length()===0 && p.torque.length()===0));
+  assert.ok(s.particles.every(p=>Math.hypot(p.x-p.site.x,p.y-p.site.y,p.z-p.site.z)<.12
+    && p.orientation.angleTo(p.site.orientation)<.08));
+  const atomAxis=s.particles[0].force.clone().fromArray(s.particles[0].body.atoms[1].positionAngstrom).normalize();
+  const axes=new Set(s.sites.map(site=>atomAxis.clone().applyQuaternion(site.orientation)
+    .toArray().map(v=>Math.round(v*Math.sqrt(3))).join(',')));
+  assert.equal(axes.size,4);
+  assert.ok([...axes].every(axis=>axis.split(',').every(v=>Math.abs(Number(v))===1)));
+
+  s.setting=-80;run(3);assert.equal(s.phase.gas,0);
+  s.stroke=4;run(2);
+  assert.ok(s.phase.gas>.25 && s.phase.gas<.75);
+  assert.ok(Math.abs(s.pressure-profile.saturation(-80))<1e-9);
+  const mixed=s.phase.gas;run(1);
+  assert.equal(s.phase.gas,mixed);
+  s.stroke=-1;run(2);
+  assert.ok(s.phase.gas>0 && s.phase.gas<mixed);
+  s.stroke=-3;run(1);assert.equal(s.phase.gas,0);
 });
