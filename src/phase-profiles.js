@@ -42,6 +42,17 @@ const ethanolTemperatures = [
   108.090709, 108.615778, 109.133696
 ];
 
+// CoolProp 8.1.0 (HEOS DimethylEther), on the same pressure grid as ethanol.
+const dimethylEtherTemperatures = [
+  -39.611230, -37.694182, -35.911864, -34.244421, -32.676203, -31.194641, -29.789479, -28.452232,
+  -27.175798, -25.954164, -24.782196, -23.655471, -22.570150, -21.522879, -20.510708, -19.531030,
+  -18.581526, -17.660126, -16.764973, -15.894395, -15.046879, -14.221053, -13.415670, -12.629589,
+  -11.861766, -11.111243, -10.377137, -9.658636, -8.954986, -8.265490, -7.589501, -6.926416,
+  -6.275674, -5.636750, -5.009154, -4.392428, -3.786140, -3.189885, -2.603284, -2.025977,
+  -1.457626, -0.897913, -0.346535, 0.196794, 0.732344, 1.260371, 1.781120, 2.294821,
+  2.801696, 3.301953, 3.795793
+];
+
 function vaporBoundary(temperatures){
   const min=.5, increment=.05, last=temperatures.length-1;
   return {
@@ -78,6 +89,11 @@ export const profiles={
     min:-110,max:0,step:.5,start:-40,rate:22,holdAtDisplayedBoundary:true,
     solidHeight:1.96,count:64,scale:.225,skin:.37,lattice:'dry-ice',orderedLattice:true,fixedVolumeFrom:Infinity},
   // NIST SRD 69 (CAS 64-17-5) reports 159 ± 2 K for fusion.
+  'dimethyl-ether':{melt:-141.5,...vaporBoundary(dimethylEtherTemperatures),
+    min:-160,max:40,step:.5,start:25,rate:51,holdAtDisplayedBoundary:true,
+    solidHeight:2.16*.882/.975,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.40,
+    compactRendering:true,lattice:'ether-rings',orderedLattice:true,fixedVolumeFrom:Infinity,
+    torqueGain:.25,forceGain:.32},
   ethanol:{melt:-114,...vaporBoundary(ethanolTemperatures),
     min:-140,max:160,step:.5,start:130,rate:66,holdAtDisplayedBoundary:true,
     solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.37,compactRendering:true,

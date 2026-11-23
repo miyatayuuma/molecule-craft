@@ -1,10 +1,12 @@
 import { Quaternion, Vector3 } from '../vendor/three/three.core.min.js';
 import { crystal } from './water-ice-sites.js';
 import { ethanolCrystalSites } from './phase-ethanol-crystal.js';
+import { etherCrystalSites } from './phase-ether-crystal.js';
 
 
 export function iceSites(body,profile) {
   if(profile.lattice==='ethanol-pc')return ethanolCrystalSites(body,profile);
+  if(profile.lattice==='ether-rings')return etherCrystalSites(body,profile);
   if(profile.lattice==='dry-ice'){
     // Pa-3, a=5.056 Å, https://som.web.cmu.edu/structures/S104-CO2.html
     // The four face-centred sites carry different body-diagonal axes.
