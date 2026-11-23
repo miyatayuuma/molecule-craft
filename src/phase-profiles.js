@@ -53,6 +53,20 @@ const dimethylEtherTemperatures = [
   2.801696, 3.301953, 3.795793
 ];
 
+// Perry's Chemical Engineers' Handbook, Table 2-8, DIPPR Eq. 101.
+// ln(p/Pa) = 53.27 - 6304.5/T - 4.2985 ln(T) + 8.8865e-18 T^6, 289.81–591.95 K.
+const aceticAcidTemperatures = [
+  96.807562, 99.568419, 102.129869, 104.521549, 106.766788, 108.884301, 110.889340, 112.794508,
+  114.610349, 116.345774, 118.008389, 119.604740, 121.140502, 122.620632, 124.049484, 125.430906,
+  126.768313, 128.064757, 129.322971, 130.545415, 131.734312, 132.891679, 134.019349, 135.118994,
+  136.192146, 137.240210, 138.264479, 139.266143, 140.246305, 141.205984, 142.146128, 143.067617,
+  143.971271, 144.857856, 145.728087, 146.582635, 147.422127, 148.247153, 149.058269, 149.855995,
+  150.640825, 151.413224, 152.173629, 152.922458, 153.660102, 154.386936, 155.103313, 155.809570,
+  156.506026, 157.192985, 157.870736
+];
+
+export const roundTemperature = (value,step) => Math.round(value/step)/(1/step);
+
 function vaporBoundary(temperatures){
   const min=.5, increment=.05, last=temperatures.length-1;
   return {
@@ -94,6 +108,11 @@ export const profiles={
     solidHeight:2.16*.882/.975,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.40,
     compactRendering:true,lattice:'ether-rings',orderedLattice:true,fixedVolumeFrom:Infinity,
     torqueGain:.25,forceGain:.32},
+  'acetic-acid':{melt:16.6,...vaporBoundary(aceticAcidTemperatures),
+    min:-10,max:180,step:.1,start:150,rate:46,holdAtDisplayedBoundary:true,
+    solidHeight:2.28*1.053/1.266,liquidHeight:2.28,bore:3.20,count:50,hz:10,scale:.175,skin:.42,
+    compactRendering:true,lattice:'acetic-acid-pna21',orderedLattice:true,fixedVolumeFrom:Infinity,
+    torqueGain:.19,forceGain:.27},
   ethanol:{melt:-114,...vaporBoundary(ethanolTemperatures),
     min:-140,max:160,step:.5,start:130,rate:66,holdAtDisplayedBoundary:true,
     solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.37,compactRendering:true,

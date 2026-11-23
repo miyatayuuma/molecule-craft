@@ -1,3 +1,4 @@
+import { roundTemperature } from './phase-profiles.js';
 import { createGas, advanceGas } from './water-gas.js';
 import { clamp, LOW, HIGH, REST } from './water-phase.js';
 const phaseLabels={
@@ -94,7 +95,7 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   function draw(){
     scene.draw(gas,angle,grip);
     const value=gas.pressure.toFixed(2);
-    const reading=String(Math.round(gas.temperature/profile.step)*profile.step);
+    const reading=String(roundTemperature(gas.temperature,profile.step));
     if(degrees.value!==reading){
       degrees.value=reading;
       updateTemperatureFeedback();
@@ -157,8 +158,8 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   let heatPointer=null;
   function slideHeat(e){
     const rect=temp.getBoundingClientRect();
-    temp.value=String(minTemperature+profile.step*Math.round(temperatureRange/profile.step*clamp(
-      (e.clientX-rect.left-thumbRadius)/(rect.width-2*thumbRadius),0,1)));
+    temp.value=String(roundTemperature(minTemperature+temperatureRange*clamp(
+      (e.clientX-rect.left-thumbRadius)/(rect.width-2*thumbRadius),0,1),profile.step));
     temp.oninput();
   }
   temp.onpointerdown=e=>{
