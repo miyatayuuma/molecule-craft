@@ -4,7 +4,11 @@ export function etherCrystalSites(body,profile){
   // An observation lattice based on the rotated rings in the ambient-pressure
   // tetragonal alpha phase, with cell volume derived from 0.975 g/cm³ at 93 K.
   // See docs/phase-chamber-data.md for the diffraction and density sources.
-  const cellWidth=8.8, layerSpacing=4.055;
+  const cellWidth=9.09, layerSpacing=4*78.5/cellWidth**2;
+  // Tilt the DB conformers and stagger adjacent layers to leave room between
+  // methyl groups while keeping the volume per molecule fixed.
+  const tilt=new Quaternion().setFromAxisAngle(new Vector3(0,0,1),-.706)
+    .multiply(new Quaternion().setFromAxisAngle(new Vector3(1,0,0),-.213));
   const [carbon,oxygen,otherCarbon]=body.atoms.slice(0,3).map(atom=>new Vector3(...atom.positionAngstrom));
   const tangent=otherCarbon.clone().sub(carbon).normalize();
   const bisector=carbon.clone().lerp(otherCarbon,.5).sub(oxygen).normalize();
@@ -14,16 +18,16 @@ export function etherCrystalSites(body,profile){
   const sites=[];
   for(let layer=0;layer<2;layer++){
     for(let turn=0;turn<4;turn++){
-      const angle=turn*Math.PI/2+layer*Math.PI/4;
+      const angle=turn*Math.PI/2+.48+layer*.51;
       const radial=new Vector3(Math.cos(angle),0,Math.sin(angle));
       const orientation=new Quaternion().setFromRotationMatrix(
         new Matrix4().makeBasis(new Vector3(-radial.z,0,radial.x),radial.clone().negate(),new Vector3(0,-1,0)))
-        .multiply(frame);
+        .multiply(tilt).multiply(frame);
       for(let a=-2;a<=2;a++)for(let b=-2;b<=2;b++){
-        const x=(a*cellWidth+2.65*radial.x)*profile.scale;
-        const z=(b*cellWidth+2.65*radial.z)*profile.scale;
+        const x=(a*cellWidth+3.19*radial.x+.8*layer)*profile.scale;
+        const z=(b*cellWidth+3.19*radial.z+.8*layer)*profile.scale;
         if(Math.hypot(x,z)<=profile.bore-profile.skin)
-          sites.push({x,y:.46+layer*layerSpacing*profile.scale,z,orientation,occupied:false});
+          sites.push({x,y:.53+layer*layerSpacing*profile.scale,z,orientation,occupied:false});
       }
     }
   }

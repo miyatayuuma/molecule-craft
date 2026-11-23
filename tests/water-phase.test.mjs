@@ -260,15 +260,24 @@ function assertCrystalFits(sample){
   assert.equal(sample.sites.length,profile.count);
   assert.equal(new Set(sample.sites.map(({x,y,z})=>[x,y,z].join(','))).size,profile.count);
   const point=sample.particles[0].force.clone();
+  const clusters=[];
   for(const site of sample.sites){
     assert.ok(Math.hypot(site.x,site.z)<=profile.bore-profile.skin);
     assert.ok(site.y>=profile.skin && site.y<=profile.solidHeight-profile.skin);
+    const atoms=[];
     for(const atom of body.atoms){
       point.fromArray(atom.positionAngstrom).applyQuaternion(site.orientation).multiplyScalar(profile.scale);
       // Upper bound on rendered atom radius plus a margin for thermal motion.
       assert.ok(Math.hypot(point.x+site.x,point.z+site.z)+.20<profile.bore);
       assert.ok(point.y+site.y>.20 && point.y+site.y+.20<profile.solidHeight);
+      const world=point.clone().add(point.clone().set(site.x,site.y,site.z));
+      for(const cluster of clusters)for(const other of cluster){
+        const heavy=atom.element!=='H' && other.element!=='H';
+        assert.ok(world.distanceTo(other.point)>(heavy?2.35:1.50)*profile.scale);
+      }
+      atoms.push({point:world,element:atom.element});
     }
+    clusters.push(atoms);
   }
 }
 
