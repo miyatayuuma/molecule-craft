@@ -102,19 +102,19 @@ export const profiles={
   'carbon-dioxide':{sublimes:true,...vaporBoundary(carbonDioxideTemperatures),
     min:-110,max:0,step:.5,start:-40,rate:22,holdAtDisplayedBoundary:true,
     solidHeight:1.96,count:64,scale:.225,skin:.37,lattice:'dry-ice',orderedLattice:true,fixedVolumeFrom:Infinity},
-  // NIST SRD 69 (CAS 64-17-5) reports 159 ± 2 K for fusion.
   'dimethyl-ether':{melt:-141.5,...vaporBoundary(dimethylEtherTemperatures),
     min:-160,max:40,step:.5,start:25,rate:51,holdAtDisplayedBoundary:true,
-    solidHeight:2.16*.882/.975,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.40,
+    solidHeight:2.16*.882/.975,liquidHeight:2.16,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.40,
     compactRendering:true,lattice:'ether-rings',orderedLattice:true,fixedVolumeFrom:Infinity,
     torqueGain:.25,forceGain:.32},
   'acetic-acid':{melt:16.6,...vaporBoundary(aceticAcidTemperatures),
     min:-10,max:180,step:.1,start:150,rate:46,holdAtDisplayedBoundary:true,
-    solidHeight:2.28*1.053/1.266,liquidHeight:2.28,bore:3.20,count:50,hz:10,scale:.175,skin:.42,
+    solidHeight:2.28*1.053/1.266,liquidHeight:2.28,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.42,
     compactRendering:true,lattice:'acetic-acid-pna21',orderedLattice:true,fixedVolumeFrom:Infinity,
     torqueGain:.19,forceGain:.27},
+  // NIST SRD 69 (CAS 64-17-5) reports 159 ± 2 K for fusion.
   ethanol:{melt:-114,...vaporBoundary(ethanolTemperatures),
     min:-140,max:160,step:.5,start:130,rate:66,holdAtDisplayedBoundary:true,
-    solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,scale:.175,skin:.37,compactRendering:true,
+    solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.37,compactRendering:true,
     lattice:'ethanol-pc',orderedLattice:true,fixedVolumeFrom:Infinity,torqueGain:.28,forceGain:.34}
 };

@@ -251,4 +251,86 @@ test('Ethanol uses a rigid DB model in liquid and measured Pc oxygen chains when
   assert.equal(s.phase.gas,1);
   assert.equal(s.particles,particles);
   assert.equal(particles.length,50);
+  assertCrystalFits(s);
+});
+
+function assertCrystalFits(sample){
+  const {profile}=sample;
+  const body=sample.particles[0].body;
+  assert.equal(sample.sites.length,profile.count);
+  assert.equal(new Set(sample.sites.map(({x,y,z})=>[x,y,z].join(','))).size,profile.count);
+  const point=sample.particles[0].force.clone();
+  for(const site of sample.sites){
+    assert.ok(Math.hypot(site.x,site.z)<=profile.bore-profile.skin);
+    assert.ok(site.y>=profile.skin && site.y<=profile.solidHeight-profile.skin);
+    for(const atom of body.atoms){
+      point.fromArray(atom.positionAngstrom).applyQuaternion(site.orientation).multiplyScalar(profile.scale);
+      // Upper bound on rendered atom radius plus a margin for thermal motion.
+      assert.ok(Math.hypot(point.x+site.x,point.z+site.z)+.20<profile.bore);
+      assert.ok(point.y+site.y>.20 && point.y+site.y+.20<profile.solidHeight);
+    }
+  }
+}
+
+const additions=[
+  ['dimethyl-ether',[-39.61,-24.78,-7.59,3.80],-141.5,-150,-30],
+  ['acetic-acid',[96.81,118.01,142.15,157.87],16.6,10,110]
+];
+for(const [id,temperatures,melt,cold,nearBoiling] of additions){
+  test(id+' preserves phase balance and its ordered crystal across repeated cycles',()=>{
+    const record=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url))).find(m=>m.id===id);
+    const s=createGas(record), {profile}=s;
+    assert.equal(profile.melt,melt);
+    assert.equal(s.phase.gas,1);
+    assert.equal(s.pressure,1);
+    for(const [i,pressure] of [.5,1,2,3].entries()){
+      const boiling=profile.vaporTemperature(pressure);
+      assert.ok(Math.abs(boiling-temperatures[i])<.02);
+      assert.ok(Math.abs(profile.saturation(boiling)-pressure)<1e-8);
+    }
+    assertCrystalFits(s);
+
+    const run=(seconds)=>{
+      for(let i=0;i<seconds*120;i++){
+        advanceGas(s,1/120);
+        const {solid,liquid,gas}=s.phase;
+        assert.ok(Math.min(solid,liquid,gas)>=-1e-9 && Math.abs(solid+liquid+gas-1)<1e-9);
+        assert.ok(s.pressure>=.5 && s.pressure<=3 && s.height>=LOW && s.height<=HIGH+1e-9);
+      }
+    };
+    s.setting=nearBoiling;run(5);
+    assert.equal(s.phase.liquid,1);
+    s.stroke=3.5;run(1.5);
+    assert.ok(s.phase.gas>0 && s.phase.gas<1);
+    const vapor=s.phase.gas;
+    s.stroke=-1;run(1.5);
+    assert.ok(s.phase.gas>0 && s.phase.gas<vapor);
+    s.stroke=-5;run(1.5);
+    assert.equal(s.phase.liquid,1);
+    for(let cycle=0;cycle<2;cycle++){
+      s.setting=id==='acetic-acid'?20:-125;run(5);
+      assert.equal(s.phase.liquid,1);
+      s.setting=cold;run(7);
+      assert.equal(s.phase.solid,1);
+      assert.equal(new Set(s.particles.map(p=>p.site)).size,profile.count);
+      assert.ok(s.particles.every(p=>p.orientation.angleTo(p.site.orientation)<.05
+        && Math.hypot(p.x-p.site.x,p.y-p.site.y,p.z-p.site.z)<.085));
+      s.setting=melt;run(1);
+      assert.equal(s.phase.solid,1);
+    }
+    s.setting=profile.max;run(12);
+    assert.equal(s.phase.gas,1);
+    assert.ok(s.particles.every(p=>p.site===null));
+  });
+}
+
+test('At 25 °C and 1 atm ethanol is liquid while its ether isomer is gas',()=>{
+  for(const [id,expected] of [['ethanol',0],['dimethyl-ether',1]]){
+    const s=createSample(profiles[id]);
+    s.setting=25;
+    for(let i=0;i<900;i++)advanceSample(s,1/120);
+    assert.equal(s.temperature,25);
+    assert.equal(s.pressure,1);
+    assert.equal(s.phase.gas,expected);
+  }
 });

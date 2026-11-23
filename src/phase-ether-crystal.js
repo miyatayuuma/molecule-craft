@@ -4,7 +4,7 @@ export function etherCrystalSites(body,profile){
   // An observation lattice based on the rotated rings in the ambient-pressure
   // tetragonal alpha phase, with cell volume derived from 0.975 g/cm³ at 93 K.
   // See docs/phase-chamber-data.md for the diffraction and density sources.
-  const cellWidth=8.8, layerSpacing=3.998;
+  const cellWidth=8.8, layerSpacing=4.055;
   const [carbon,oxygen,otherCarbon]=body.atoms.slice(0,3).map(atom=>new Vector3(...atom.positionAngstrom));
   const tangent=otherCarbon.clone().sub(carbon).normalize();
   const bisector=carbon.clone().lerp(otherCarbon,.5).sub(oxygen).normalize();

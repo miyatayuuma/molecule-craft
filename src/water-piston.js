@@ -57,12 +57,17 @@ const style = `
 export function openWaterPiston(record,createPistonScene,onClose) {
   const gas=createGas(record), profile=gas.profile;
   const waterIce=profile.iceLabels;
+  const nameWithReading={
+    water:'<ruby>水<rt>みず</rt></ruby>',
+    'carbon-dioxide':'<ruby>二酸化炭素<rt>にさんかたんそ</rt></ruby>',
+    'acetic-acid':'<ruby>酢酸<rt>さくさん</rt></ruby>'
+  };
   const labels=waterIce?phaseLabels:{...phaseLabels,ice:'<ruby>固体<rt>こたい</rt></ruby>',slush:'<ruby>固体<rt>こたい</rt></ruby>と<ruby>液体<rt>えきたい</rt></ruby>',freezing:'かたまっている'};
   const dialog=document.createElement('dialog');
   dialog.className='water-piston';
   dialog.setAttribute('aria-labelledby','water-title');
   dialog.innerHTML=`<style>${style}</style><header><div><h2 id="water-title">${waterPistonTitle}</h2>
-    <div class="water-identity"><img src="./assets/models/molecule-${record.id}.svg" alt="">${waterIce?'<ruby>水<rt>みず</rt></ruby>':record.id==='carbon-dioxide'?'<ruby>二酸化炭素<rt>にさんかたんそ</rt></ruby>':record.nameJa} ${record.formula.replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d])} <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
+    <div class="water-identity"><img src="./assets/models/molecule-${record.id}.svg" alt="">${nameWithReading[record.id]??record.nameJa} ${record.formula.replace(/\d/g,d=>'₀₁₂₃₄₅₆₇₈₉'[d])} <small><ruby>気体<rt>きたい</rt></ruby></small></div></div>
     <button type="button" class="water-close" aria-label="とじる">×</button></header>
     <div class="water-stage"><button type="button" class="water-grip" aria-label="ピストンを上下にうごかす" role="slider" aria-orientation="vertical" aria-valuemin="0" aria-valuemax="100"><i></i><i></i><i></i></button></div>
     <footer><div class="water-phase-strip" aria-hidden="true"><i></i><i></i><i></i></div><label class="water-reading" for="water-temp"><ruby>温度<rt>おんど</rt></ruby><span><output class="water-degrees">${profile.start}</output><small>℃</small></span></label>
