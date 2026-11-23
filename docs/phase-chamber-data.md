@@ -22,7 +22,7 @@
 
 ## ジメチルエーテル
 
-- [Akasaka ほかの状態方程式](https://www.nist.gov/system/files/documents/srd/jpcrd402011An.pdf) を実装した [CoolProp 8.1.0 の HEOS](https://coolprop.org/fluid_properties/fluids/DimethylEther.html) で `PropsSI('T','P',pPa,'Q',0,'DimethylEther')` を各格子圧で評価した。融解境界は三重点 131.66 K を温度バーの刻みに合わせて −141.5 °C とした。
+- [Wu・Zhou・Lemmon の状態方程式](https://www.nist.gov/system/files/documents/srd/jpcrd402011An.pdf) を実装した [CoolProp 8.1.0 の HEOS](https://coolprop.org/fluid_properties/fluids/DimethylEther.html) で `PropsSI('T','P',pPa,'Q',0,'DimethylEther')` を各格子圧で評価した。融解境界は三重点 131.66 K を温度バーの刻みに合わせて −141.5 °C とした。
 - [Vojinović ほかの低温回折](https://doi.org/10.1039/B405684A)、[Sacharczuk ほかの正方晶 P4₂/n と環状配列の記述](https://doi.org/10.1107/S2052252523009995)、[Yarnall・Hudson の密度表](https://science.gsfc.nasa.gov/691/cosmicice/reprints/Yarnall-2022-2931.pdf) に基づき、回転した分子の環を交互に積む近似格子を使う。分子座標は回折値を使わず、密度 0.975 g/cm³（93 K）から見積もった分子あたり約 78.5 Å³ を使って配置する。液密度 0.882 g/cm³ は状態方程式の三重点飽和液を参照した。温度が異なるため、体積比は凝固時の収縮を表す目安とした。
 
 ## 酢酸
