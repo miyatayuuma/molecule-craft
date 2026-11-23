@@ -1,9 +1,10 @@
 import {ELEMENTS} from './chemistry.js?v=20';
 import * as T from '../vendor/three/three.module.min.js';
-import { BORE, HIGH } from './water-gas.js';
+import { DEFAULT_BORE, HIGH } from './water-gas.js';
 
 export function createPistonScene(stage,sample) {
   const {profile,record,particles}=sample;
+  const bore=profile.bore??DEFAULT_BORE, extra=bore-DEFAULT_BORE;
   const renderer=new T.WebGLRenderer({alpha:true,antialias:!profile.compactRendering,powerPreference:'low-power'});
   renderer.setPixelRatio(Math.min(devicePixelRatio,1.75));
   stage.prepend(renderer.domElement);
@@ -22,37 +23,37 @@ export function createPistonScene(stage,sample) {
     const mesh=new T.Mesh(new T.CylinderGeometry(r,r,h,64,1,open),material);
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
   }
-  cylinder(instrument,BORE,HIGH+.38,(HIGH+.38)/2,glass,0,0,true);
-  cylinder(instrument,BORE+.16,.35,-.18,navy);
-  cylinder(instrument,BORE+.10,.09,-.03,silver);
+  cylinder(instrument,bore,HIGH+.38,(HIGH+.38)/2,glass,0,0,true);
+  cylinder(instrument,bore+.16,.35,-.18,navy);
+  cylinder(instrument,bore+.10,.09,-.03,silver);
   function rim(y,material) {
-    const ring=new T.Mesh(new T.TorusGeometry(BORE,.055,8,80),material);
+    const ring=new T.Mesh(new T.TorusGeometry(bore,.055,8,80),material);
     ring.rotation.x=Math.PI/2; ring.position.y=y; instrument.add(ring);
   }
   rim(HIGH+.38,silver); rim(.08,silver);
-  for (const side of [-1,1]) cylinder(instrument,.055,HIGH+.4,HIGH/2, silver,side*BORE,0);
+  for (const side of [-1,1]) cylinder(instrument,.055,HIGH+.4,HIGH/2, silver,side*bore,0);
   // Narrow glass reflections make the front surface legible at low pixel densities.
   const sheen=new T.MeshBasicMaterial({color:0xc0f7ee,transparent:true,opacity:.13,depthWrite:false});
   for(const [angle,arc] of [[-1.12,.075],[-.98,.026],[1.22,.033]]){
-    const stripe=new T.Mesh(new T.CylinderGeometry(BORE,BORE,HIGH,64,1,true,angle,arc),sheen);
+    const stripe=new T.Mesh(new T.CylinderGeometry(bore,bore,HIGH,64,1,true,angle,arc),sheen);
     stripe.position.y=HIGH/2; instrument.add(stripe);
   }
   const shaft=cylinder(instrument,.11,1,0,silver);
-  const bridge=new T.Mesh(new T.BoxGeometry(BORE*2,.15,.32),navy);
+  const bridge=new T.Mesh(new T.BoxGeometry(bore*2,.15,.32),navy);
   bridge.position.y=HIGH+.39; instrument.add(bridge);
   cylinder(instrument,.28,.26,HIGH+.42,silver);
   cylinder(piston,.36,.18,.34,silver);
   const points=[];
   for(let i=0;i<=28;i++){
-    const y=.4+i*.49, x=-BORE-.06;
+    const y=.4+i*.49, x=-bore-.06;
     points.push(new T.Vector3(x,y,.12),new T.Vector3(x+(i%4===0?.38:.17),y,.12));
   }
   instrument.add(new T.LineSegments(new T.BufferGeometry().setFromPoints(points),new T.LineBasicMaterial({color:0x92c2ca})));
-  cylinder(piston,BORE-.035,.27,.135,navy);
-  cylinder(piston,BORE-.025,.09,.24,silver);
-  cylinder(piston,BORE-.025,.055,.07,signal);
-  const arm=new T.Mesh(new T.BoxGeometry(BORE+1,.13,.23),silver);
-  arm.position.set((BORE+1)/2,.32,0); piston.add(arm);
+  cylinder(piston,bore-.035,.27,.135,navy);
+  cylinder(piston,bore-.025,.09,.24,silver);
+  cylinder(piston,bore-.025,.055,.07,signal);
+  const arm=new T.Mesh(new T.BoxGeometry(bore+1,.13,.23),silver);
+  arm.position.set((bore+1)/2,.32,0); piston.add(arm);
 
   const sphere=profile.compactRendering?new T.SphereGeometry(1,8,6):new T.SphereGeometry(1,10,8);
   const bond=new T.CylinderGeometry(1,1,1,6);
@@ -97,10 +98,10 @@ export function createPistonScene(stage,sample) {
   function resize() {
     width=stage.clientWidth; height=stage.clientHeight;
     if(!width||!height)return;
-    scale=Math.min(width/9.35,height/16.6);
+    scale=Math.min(width/(9.35+2*extra),height/16.6);
     camera.left=-width/(2*scale); camera.right=-camera.left;
     camera.top=height/(2*scale); camera.bottom=-camera.top;
-    camera.position.set(.43,10.75,24); camera.lookAt(.43,HIGH/2,0);
+    camera.position.set(.43+extra*.6,10.75,24); camera.lookAt(.43+extra*.6,HIGH/2,0);
     camera.updateProjectionMatrix(); camera.updateMatrixWorld();
     renderer.setSize(width,height,false);
   }
@@ -121,7 +122,7 @@ export function createPistonScene(stage,sample) {
       }
     });
     for(const {mesh} of batches)mesh.instanceMatrix.needsUpdate=true;
-    anchor.set(BORE+.73,.32,0); piston.localToWorld(anchor); anchor.project(camera);
+    anchor.set(bore+.73,.32,0); piston.localToWorld(anchor); anchor.project(camera);
     handle.style.left=((anchor.x+1)*width/2)+'px';
     handle.style.top=((1-anchor.y)*height/2)+'px';
     renderer.render(scene,camera);

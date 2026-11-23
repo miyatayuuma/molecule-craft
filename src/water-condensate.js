@@ -63,7 +63,8 @@ export function moveCondensate(p,s,dt,liquid,ice,index) {
   const poolTop=.4+1.20*(1-s.phase.gas);
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
   const flow=t*warmth+phase;
-  const rim=5*Math.max(0,Math.hypot(p.x,p.z)-2.06);
+  const poolRadius=s.profile.bore ? s.profile.bore-s.profile.skin-.3 : 2.06;
+  const rim=5*Math.max(0,Math.hypot(p.x,p.z)-poolRadius);
   const vx=-rim*p.x+.75*warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
   const vz=-rim*p.z+.75*warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
   const level=.3+(.5+.5*Math.sin(flow*.95+p.z*.5))*(poolTop-.28);

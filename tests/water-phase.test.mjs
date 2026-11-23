@@ -250,5 +250,5 @@ test('Ethanol uses a rigid DB model in liquid and measured Pc oxygen chains when
   s.setting=130;run(9);
   assert.equal(s.phase.gas,1);
   assert.equal(s.particles,particles);
-  assert.equal(particles.length,40);
+  assert.equal(particles.length,50);
 });

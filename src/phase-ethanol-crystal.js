@@ -40,7 +40,8 @@ export function ethanolCrystalSites(body,profile){
       const offset=cartesian([a,0,c]).add(centre);
       offset.y-=floorY;
       const {x,y,z}=offset.multiplyScalar(profile.scale);
-      sites.push({x,y:y+.45,z,orientation,occupied:false});
+      if(Math.hypot(x,z)<=profile.bore-profile.skin)
+        sites.push({x,y:y+.45,z,orientation,occupied:false});
     }
   }
   return sites.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z)).slice(0,profile.count);

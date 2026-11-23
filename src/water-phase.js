@@ -1,6 +1,7 @@
 import {profiles} from './phase-profiles.js';
 export {saturation,boiling} from './phase-profiles.js';
-// Heights are display volumes in a constant bore. Condensed volumes and compliance
+// Heights represent normalized display volumes within each profile. The rendered
+// bore varies independently. Condensed volumes and compliance
 // are enlarged for the hand-operated model; neither is a measured specific volume.
 export const REST = 7.6, HIGH = 14.45, LOW = 1.7;
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi,x));
