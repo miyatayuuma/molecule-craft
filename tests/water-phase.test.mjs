@@ -502,3 +502,31 @@ test('Glycol gains mobility with temperature while DMSO has no hydrogen-associat
   assert.ok(dmso.particles.some(p=>p.torque.length()>0));
   assert.ok(dmso.particles.every(p=>p.force.length()===0 && !p.hydrogenBond));
 });
+
+
+test('All profiles respect the upper piston stop during low-pressure heating and repeated expansion',()=>{
+  for(const [id,profile] of Object.entries(profiles)){
+    const sample=createSample(profile);
+    const step=()=>{
+      advanceSample(sample,1/120);
+      assert.ok(Number.isFinite(sample.height)&&sample.height<=HIGH+1e-8,id+' piston above chamber');
+      assert.ok(sample.pressure>=.5&&sample.pressure<=3,id+' pressure out of range');
+      const {gas,solid,liquid}=sample.phase;
+      assert.ok(Math.min(gas,solid,liquid)>=-1e-9&&Math.abs(gas+solid+liquid-1)<1e-9,id+' phase balance');
+    };
+    const run=seconds=>{for(let i=0;i<seconds*120;i++)step();};
+    sample.setting=profile.min;run(16);
+    sample.stroke=HIGH;run(2);
+    sample.setting=profile.max;run(20);
+    for(let i=0;i<3;i++){sample.stroke=HIGH;run(2);}
+    if(id==='hydrogen-fluoride'){
+      assert.equal(sample.temperature,62);
+      assert.equal(sample.phase.gas,1);
+      assert.ok(Math.abs(sample.height-HIGH)<1e-8);
+      assert.ok(Math.abs(sample.pressure-.75605)<.0001);
+      sample.stroke=-2;run(2);
+      assert.ok(sample.height<HIGH-1);
+      assert.ok(sample.pressure>.75605);
+    }
+  }
+});
