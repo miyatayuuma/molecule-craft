@@ -19,8 +19,8 @@ export function heightOf(s) {
 export function createSample(profile=profiles.water) {
   const phase=profile.sublimes
     ? {gas:1,get solid(){return 1-this.gas;},liquid:0}
-    : {solid:0,gas:1,get liquid(){return Math.max(0,1-this.solid-this.gas);}};
-  return {profile,temperature:profile.start,setting:profile.start,pressure:1,phase,height:REST,stroke:0,velocity:0};
+    : {solid:0,gas:profile.liquidOnlyRange?0:1,get liquid(){return Math.max(0,1-this.solid-this.gas);}};
+  return {profile,temperature:profile.start,setting:profile.start,pressure:1,phase,height:profile.liquidOnlyRange?profile.liquidHeight:REST,stroke:0,velocity:0};
 }
 // Finger travel below the bubble point mostly loads the piston spring. In the
 // two-phase interval, volume is shared by the condensed phase and saturated vapor.
@@ -45,7 +45,10 @@ export function advanceSample(s,dt) {
   // P0 fixed-volume response when the temperature dial stays in its original range.
   const before=heightOf(s), hot=s.temperature>=s.profile.fixedVolumeFrom && s.setting>=s.profile.fixedVolumeFrom;
   const bp=s.profile.vaporTemperature(s.pressure);
-  const setting=s.profile.holdAtDisplayedBoundary && roundTemperature(bp,s.profile.step)===s.setting
+  // The displayed saturation mark can hold a thermal transition. During a
+  // piston stroke the dial still specifies the same absolute temperature.
+  const steadyPiston=Math.abs(s.stroke)+Math.abs(s.velocity)<.0001;
+  const setting=s.profile.holdAtDisplayedBoundary && steadyPiston && roundTemperature(bp,s.profile.step)===s.setting
     ? bp : s.setting;
   const heating=setting>s.temperature+.0001, cooling=setting<s.temperature-.0001;
   // A subliming substance uses the same vapor transition and skips fusion.

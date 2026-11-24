@@ -1,6 +1,8 @@
 import {ELEMENTS} from './chemistry.js?v=20';
 import * as T from '../vendor/three/three.module.min.js';
 import { DEFAULT_BORE, HIGH } from './water-gas.js';
+import { phaseAppearanceFor } from './molecule-phase-appearance.js';
+import { clamp } from './water-phase.js';
 
 export function createPistonScene(stage,sample) {
   const {profile,record,particles}=sample;
@@ -22,6 +24,17 @@ export function createPistonScene(stage,sample) {
   function cylinder(parent,r,h,y,material,x=0,z=0,open=false) {
     const mesh=new T.Mesh(new T.CylinderGeometry(r,r,h,64,1,open),material);
     mesh.position.set(x,y,z); parent.add(mesh); return mesh;
+  }
+  const coloredPhases={};
+  for(const phase of ['liquid','gas']){
+    const appearance=phaseAppearanceFor(record,phase);
+    if(appearance.kind!=='colored')continue;
+    const material=new T.MeshBasicMaterial({
+      color:appearance.renderColor,transparent:true,opacity:0,depthWrite:false,side:T.DoubleSide
+    });
+    const tint=cylinder(instrument,bore-.09,1,.5,material,0,0,phase==='gas');
+    tint.renderOrder=phase==='gas'?1:2;
+    coloredPhases[phase]=tint;
   }
   cylinder(instrument,bore,HIGH+.38,(HIGH+.38)/2,glass,0,0,true);
   cylinder(instrument,bore+.16,.35,-.18,navy);
@@ -55,7 +68,10 @@ export function createPistonScene(stage,sample) {
   const arm=new T.Mesh(new T.BoxGeometry(bore+1,.13,.23),silver);
   arm.position.set((bore+1)/2,.32,0); piston.add(arm);
 
+  const atoms=particles[0].body.atoms;
+  const largeMolecule=profile.compactRendering&&atoms.length>=12;
   const sphere=profile.compactRendering?new T.SphereGeometry(1,8,6):new T.SphereGeometry(1,10,8);
+  const hydrogenSphere=largeMolecule?new T.SphereGeometry(1,6,4):sphere;
   const bond=new T.CylinderGeometry(1,1,1,6);
   const instance=(geometry,material,count)=>{
     const batch=new T.InstancedMesh(geometry,material,count);
@@ -63,11 +79,18 @@ export function createPistonScene(stage,sample) {
     batch.frustumCulled=false; gasGroup.add(batch); return batch;
   };
   const body=new T.Object3D(), part=new T.Object3D(), matrix=new T.Matrix4();
-  const atoms=particles[0].body.atoms;
   const atomPoints=atoms.map(atom=>new T.Vector3(...atom.positionAngstrom).multiplyScalar(profile.scale));
+  // Catalogue n-butane: rotate the C2 side of bond C1–C2 as a single group.
+  const movingAtoms=new Set(profile.torsion?[2,3,9,10,11,12,13]:[]);
+  const pivot=profile.torsion?atomPoints[2]:null;
+  const torsionAxis=pivot?.clone().sub(atomPoints[1]).normalize();
+  const torsion=new T.Matrix4(), rotatedBody=new T.Matrix4(), pivotOffset=new T.Vector3();
   const batches=[];
   function batch(geometry,color,locals){
-    batches.push({mesh:instance(geometry,metal(color),particles.length*locals.length),locals});
+    const material=largeMolecule
+      ? new T.MeshPhongMaterial({color,shininess:38,specular:0x303030})
+      : metal(color);
+    batches.push({mesh:instance(geometry,material,particles.length*locals.length),locals});
   }
   const multipleBondAtoms=new Set(record.bonds.filter(([, ,order])=>order>1).flatMap(([a,b])=>[a,b]));
   for(const element of new Set(record.atoms)){
@@ -78,9 +101,9 @@ export function createPistonScene(stage,sample) {
       const radius=({O:.139,H:.089})[element]??ELEMENTS[element].radius*.34;
       // Leave room between the spheres for the parallel rails to read at phone scale.
       part.scale.setScalar(multipleBondAtoms.has(i)?radius*.76:radius);
-      part.updateMatrix();locals.push(part.matrix.clone());
+      part.updateMatrix();locals.push({matrix:part.matrix.clone(),rotates:movingAtoms.has(i)});
     });
-    batch(sphere,({O:0xe34e40,H:0xf6fcff})[element]??ELEMENTS[element].color,locals);
+    batch(element==='H'?hydrogenSphere:sphere,({O:0xe34e40,H:0xf6fcff})[element]??ELEMENTS[element].color,locals);
   }
   const up=new T.Vector3(0,1,0);
   batch(bond,0xc3cdd1,record.bonds.flatMap(([a,b,order=1])=>{
@@ -91,7 +114,7 @@ export function createPistonScene(stage,sample) {
     const offset=new T.Vector3(1,0,0).applyQuaternion(part.quaternion);
     return Array.from({length:order},(_,i)=>{
       part.position.copy(midpoint).addScaledVector(offset,(i-(order-1)/2)*.088);
-      part.updateMatrix();return part.matrix.clone();
+      part.updateMatrix();return {matrix:part.matrix.clone(),rotates:movingAtoms.has(a)&&movingAtoms.has(b)};
     });
   }));
   let width,height,scale;
@@ -113,12 +136,38 @@ export function createPistonScene(stage,sample) {
     orbit.rotation.y=angle; orbit.updateMatrixWorld(true);
     // The control follows the visible side of the circular face throughout an orbit.
     piston.rotation.y=angle;
+    const denseTop=gas.phase.solid*profile.solidHeight+gas.phase.liquid*(profile.liquidHeight??0);
+    if(coloredPhases.liquid){
+      const depth=gas.phase.liquid*profile.liquidHeight;
+      const tint=coloredPhases.liquid;
+      tint.visible=depth>.01;
+      tint.position.y=denseTop-depth/2;
+      tint.scale.y=Math.max(.01,depth);
+      tint.material.opacity=.31;
+    }
+    if(coloredPhases.gas){
+      const tint=coloredPhases.gas, depth=gas.height-denseTop;
+      tint.visible=gas.phase.gas>.001&&depth>.01;
+      tint.position.y=denseTop+depth/2;
+      tint.scale.y=Math.max(.01,depth);
+      tint.material.opacity=clamp(.15*gas.pressure*(273.15+profile.start)/(273.15+gas.temperature),.045,.27)
+        *Math.min(1,gas.phase.gas*12);
+    }
     gas.particles.forEach((p,i)=>{
       body.position.set(p.x,p.y,p.z);
       body.quaternion.copy(p.orientation);
       body.updateMatrix();
+      if(pivot){
+        const bend=.40*Math.sin(gas.time*(1.1+p.spin*.4)+i*2.4)*(1-p.frozen);
+        torsion.makeRotationAxis(torsionAxis,bend);
+        torsion.setPosition(pivotOffset.copy(pivot).applyMatrix4(torsion).negate().add(pivot));
+        rotatedBody.multiplyMatrices(body.matrix,torsion);
+      }
       for(const {mesh,locals} of batches){
-        for(let k=0;k<locals.length;k++)mesh.setMatrixAt(i*locals.length+k,matrix.multiplyMatrices(body.matrix,locals[k]));
+        for(let k=0;k<locals.length;k++){
+          const local=locals[k];
+          mesh.setMatrixAt(i*locals.length+k,matrix.multiplyMatrices(local.rotates?rotatedBody:body.matrix,local.matrix));
+        }
       }
     });
     for(const {mesh} of batches)mesh.instanceMatrix.needsUpdate=true;

@@ -1,3 +1,5 @@
+import {additionalPhaseProfiles} from './phase-substances.js';
+
 // IAPWS SR1-86 saturation pressure (Eq. 1), https://iapws.org/relguide/Supp-sat.html
 export function saturation(t) {
   const k = Math.max(273.16,t+273.15), x = 1-k/647.096;
@@ -116,5 +118,6 @@ export const profiles={
   ethanol:{melt:-114,...vaporBoundary(ethanolTemperatures),
     min:-140,max:160,step:.5,start:130,rate:66,holdAtDisplayedBoundary:true,
     solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.37,compactRendering:true,
-    lattice:'ethanol-pc',orderedLattice:true,fixedVolumeFrom:Infinity,torqueGain:.28,forceGain:.34}
+    lattice:'ethanol-pc',orderedLattice:true,fixedVolumeFrom:Infinity,torqueGain:.28,forceGain:.34},
+  ...additionalPhaseProfiles(vaporBoundary)
 };

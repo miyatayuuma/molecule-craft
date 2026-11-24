@@ -6,6 +6,7 @@ on:
       - 'src/phase-*.js'
       - 'src/collection-ui.js'
       - 'tests/water-piston-browser.py'
+      - 'tests/phase-chambers-p35-browser.py'
       - 'tests/water-phase.test.mjs'
       - '.github/workflows/water-piston.yml'
 permissions:
@@ -55,6 +56,22 @@ jobs:
           path: |
             shots/*.png
             shots/*.mp4
+  phase-p35:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install playwright==1.56.0
+      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Nine new chambers on a phone viewport
+        env:
+          PHASE_MEASURE: '1'
+        run: python tests/phase-chambers-p35-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase-p35-screens
+          path: shots/p35/*.png
   comparison:
     if: startsWith(github.head_ref, 'work/water-piston-')
     runs-on: ubuntu-latest
