@@ -375,7 +375,6 @@ test('n-butane compresses through a fixed-temperature coexistence plateau at roo
 });
 
 test('New chamber boundaries, bounded motion and complete crystal-site capture',()=>{
-  assert.equal(Object.keys(profiles).length,15);
   for(const [id,[melt,boil]] of Object.entries(p35Boundaries)){
     const profile=profiles[id], sample=createSample(profile);
     assert.equal(profile.melt,melt,id);
@@ -404,4 +403,102 @@ test('New chamber boundaries, bounded motion and complete crystal-site capture',
     assert.ok(particles.particles.every(p=>p.y>=profile.skin&&p.y<=particles.height-profile.skin
       && Math.hypot(p.x,p.z)<=profile.bore-profile.skin+1e-8),id);
   }
+});
+
+const p36Boundaries={
+  'p-xylene':[13.25,138.32],ethylbenzene:[-95,136.16],toluene:[-95.2,110.60],
+  phenol:[40.9,181.93],'hydrogen-fluoride':[-83.4,19.52],'hydrogen-chloride':[-114.1,-84.98],
+  propane:[-187.6,-42.11],'ethylene-glycol':[-12.9,197.08],'dimethyl-sulfoxide':[18.5,Infinity]
+};
+
+const chamber=id=>createGas(p35Molecules.find(molecule=>molecule.id===id));
+
+test('All nine profiles freeze and melt with complete, bounded molecular populations',()=>{
+  assert.equal(Object.keys(profiles).length,24);
+  for(const [id,[melt,boil]] of Object.entries(p36Boundaries)){
+    const s=chamber(id), {profile,particles}=s;
+    assert.equal(profile.melt,melt,id);
+    assert.equal(Number(profile.vaporTemperature(1).toFixed(2)),boil,id);
+    for(const pressure of [.5,1,2,3]){
+      if(boil===Infinity)break;
+      const temperature=profile.vaporTemperature(pressure);
+      assert.ok(Math.abs(profile.saturation(temperature)-pressure)<1e-7,id);
+    }
+    s.setting=profile.min;
+    runP35(s,10,advanceGas);
+    assert.equal(s.phase.solid,1,id);
+    assert.equal(new Set(particles.map(p=>p.site)).size,profile.count,id);
+    assert.ok(particles.every(p=>p.site && Math.hypot(p.x-p.site.x,p.y-p.site.y,p.z-p.site.z)<.12),id);
+    s.stroke=-20;
+    runP35(s,1,advanceGas);
+    assert.ok(Math.abs(s.pressure-3)<.001,id);
+    assert.ok(s.height>=LOW && s.height<=HIGH,id);
+    s.stroke=20;
+    runP35(s,1,advanceGas);
+    assert.ok(Math.abs(s.pressure-.5)<.001,id);
+    s.setting=melt+3;
+    runP35(s,8,advanceGas);
+    assert.equal(s.phase.liquid,1,id);
+    assert.ok(particles.every(p=>p.site===null && Math.hypot(p.x,p.z)<=profile.bore-profile.skin+1e-8
+      && p.y>=profile.skin && p.y<=s.height-profile.skin),id);
+    assert.equal(particles.length,profile.count,id);
+  }
+});
+
+test('The C8H10 isomers differ at 5 °C, with a shared chamber and nearby boiling points',()=>{
+  const xylene=chamber('p-xylene'), ethylbenzene=chamber('ethylbenzene');
+  assert.equal(xylene.temperature,ethylbenzene.temperature);
+  assert.equal(xylene.phase.solid,1);
+  assert.equal(ethylbenzene.phase.liquid,1);
+  for(const key of ['count','bore','scale'])assert.equal(xylene.profile[key],ethylbenzene.profile[key]);
+  assert.ok(Math.abs(xylene.profile.vaporTemperature(1)-ethylbenzene.profile.vaporTemperature(1)-2.16)<.02);
+});
+
+test('Propane remains gas at 25 °C and compresses reversibly at −25 °C',()=>{
+  const s=createSample(profiles.propane);
+  s.stroke=-20;
+  runP35(s,2);
+  assert.ok(Math.abs(s.pressure-3)<.001);
+  assert.equal(s.phase.gas,1);
+  s.stroke=20;
+  runP35(s,2);
+  s.setting=-25;
+  runP35(s,4);
+  assert.equal(s.phase.gas,1);
+  s.stroke=2.68-s.height;
+  runP35(s,2);
+  assert.ok(Math.abs(s.pressure-2.0077)<.002);
+  assert.ok(s.phase.gas>.1 && s.phase.gas<.9);
+  s.stroke=-7;
+  runP35(s,1);
+  assert.equal(s.phase.liquid,1);
+  s.stroke=10;
+  runP35(s,1);
+  assert.equal(s.phase.gas,1);
+  assert.equal(s.temperature,-25);
+});
+
+test('Fluoride forms unbranched and exchanging liquid links and ordered crystal chains',()=>{
+  const hf=chamber('hydrogen-fluoride');
+  runP35(hf,2,advanceGas);
+  const links=()=>hf.particles.flatMap(p=>p.hydrogenBond?[p.hydrogenBond]:[]);
+  const initial=links();
+  assert.ok(initial.length>=15);
+  assert.equal(initial.length,new Set(initial).size);
+  assert.ok(hf.particles.some(p=>p.hydrogenBond?.hydrogenBond?.hydrogenBond));
+  runP35(hf,1.5,advanceGas);
+  assert.ok(initial.some(p=>!links().includes(p)));
+  hf.setting=-95;
+  runP35(hf,6,advanceGas);
+  assert.ok(hf.particles.filter(p=>p.crystalHydrogenBond).length>=45);
+  assert.equal(links().length,0);
+});
+
+test('Glycol gains mobility with temperature while DMSO has no hydrogen-association links',()=>{
+  const glycol=profiles['ethylene-glycol'].mobility;
+  assert.ok(glycol(0)<glycol(20) && glycol(20)<glycol(60) && glycol(60)<1);
+  const dmso=chamber('dimethyl-sulfoxide');
+  runP35(dmso,1,advanceGas);
+  assert.ok(dmso.particles.some(p=>p.torque.length()>0));
+  assert.ok(dmso.particles.every(p=>p.force.length()===0 && !p.hydrogenBond));
 });

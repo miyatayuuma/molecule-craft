@@ -117,6 +117,34 @@ export function createPistonScene(stage,sample) {
       part.updateMatrix();return {matrix:part.matrix.clone(),rotates:movingAtoms.has(a)&&movingAtoms.has(b)};
     });
   }));
+  const associationLines=profile.associationRange?new T.LineSegments(
+    new T.BufferGeometry().setAttribute('position',new T.BufferAttribute(new Float32Array(particles.length*6),3).setUsage(T.DynamicDrawUsage)),
+    new T.LineBasicMaterial({color:0x92e6f5,opacity:.66,transparent:true,depthWrite:false})
+  ):null;
+  const donor=new T.Vector3(),acceptor=new T.Vector3(),donorAxis=new T.Vector3();
+  if(associationLines){
+    associationLines.frustumCulled=false;
+    gasGroup.add(associationLines);
+  }
+  function drawAssociations(){
+    const geometry=associationLines.geometry, positions=geometry.attributes.position;
+    let n=0;
+    for(const p of particles){
+      const other=p.crystalHydrogenBond??p.hydrogenBond;
+      if(!other || p.free>.15 || other.free>.15)continue;
+      donor.copy(atomPoints[1]).applyQuaternion(p.orientation).add(p);
+      acceptor.copy(atomPoints[0]).applyQuaternion(other.orientation).add(other);
+      const distance=donor.distanceTo(acceptor);
+      donorAxis.set(1,0,0).applyQuaternion(p.orientation);
+      if(distance<.20 || distance>.60 || donorAxis.dot(acceptor.sub(donor))<.77*distance)continue;
+      acceptor.add(donor);
+      positions.setXYZ(n++,donor.x,donor.y,donor.z);
+      positions.setXYZ(n++,acceptor.x,acceptor.y,acceptor.z);
+    }
+    geometry.setDrawRange(0,n);
+    positions.needsUpdate=true;
+  }
+
   let width,height,scale;
   function resize() {
     width=stage.clientWidth; height=stage.clientHeight;
@@ -171,6 +199,7 @@ export function createPistonScene(stage,sample) {
       }
     });
     for(const {mesh} of batches)mesh.instanceMatrix.needsUpdate=true;
+    if(associationLines)drawAssociations();
     anchor.set(bore+.73,.32,0); piston.localToWorld(anchor); anchor.project(camera);
     handle.style.left=((anchor.x+1)*width/2)+'px';
     handle.style.top=((1-anchor.y)*height/2)+'px';

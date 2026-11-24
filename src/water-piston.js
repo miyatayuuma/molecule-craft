@@ -100,6 +100,8 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   }
   try {scene=createPistonScene(stage,gas);} catch {unavailable();return {close};}
   const badge=dialog.querySelector('.water-identity small');
+  const resetToCondensed=profile.liquidOnlyRange ||
+    (profile.startInEquilibrium && profile.start<profile.vaporTemperature(1));
   let lastIce=0,lastVapor=1,resetting=false;
   function draw(){
     scene.draw(gas,angle,grip);
@@ -143,7 +145,7 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     while(elapsed>.000001){
       const dt=Math.min(1/120,elapsed);
       if(resetting&&gas.temperature===profile.start){
-        if(profile.liquidOnlyRange)gas.pressure=1;
+        if(resetToCondensed)gas.pressure=1;
         else gas.stroke=REST-gas.height;
         if(Math.abs(gas.stroke)<.0001)resetting=false;
       }

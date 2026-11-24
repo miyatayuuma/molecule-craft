@@ -7,7 +7,7 @@ const curated=JSON.parse(await readFile(new URL('../data/phase-appearance.json',
 const byId=new Map(records.map(record=>[record.id,record]));
 assert.equal(records.length,142);
 assert.equal(byId.size,142);
-assert.equal(Object.keys(curated).length,11);
+assert.equal(Object.keys(curated).length,20);
 for(const record of records){
   for(const phase of ['liquid','gas']){
     const researched=curated[record.id]?.[phase];
@@ -29,4 +29,4 @@ assert.equal(phaseAppearanceFor(byId.get('ethanol'),'liquid').kind,'colorless');
 assert.equal(phaseAppearanceFor(byId.get('methane'),'liquid').kind,'none');
 assert.equal(phaseAppearanceFor(byId.get('methane'),'liquid').renderColor,NEUTRAL_LIQUID_COLOR);
 assert.throws(()=>phaseAppearanceFor(byId.get('water'),'solid'),/Unknown phase/);
-console.log('Phase appearance: 142 DB records, 11 sourced substances, neutral fallback and phase-specific color PASS.');
+console.log('Phase appearance: 142 DB records, 20 sourced substances, neutral fallback and phase-specific color PASS.');

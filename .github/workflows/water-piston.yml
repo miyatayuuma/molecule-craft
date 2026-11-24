@@ -79,8 +79,9 @@ jobs:
             timeout 35s sudo apt-get install -y -qq -o Acquire::Retries=0 fonts-noto-cjk ||
               echo "::warning::Japanese screenshot font unavailable on this runner"
           fi
-      - name: Nine new chambers on a phone viewport
+      - name: P3.5 chambers on a phone viewport
         env:
+          PHASE_CASES: n-butane,benzene,cyclohexane,oxygen,chlorine,nitrogen,hydrogen,ammonia,glycerol
           PHASE_MEASURE: '1'
         run: python tests/phase-chambers-p35-browser.py
       - uses: actions/upload-artifact@v4
@@ -88,6 +89,36 @@ jobs:
         with:
           name: phase-p35-screens
           path: shots/p35/*.png
+  phase-p36:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {group: aromatics, cases: 'p-xylene,ethylbenzene,toluene,phenol'}
+          - {group: small-molecules, cases: 'hydrogen-fluoride,hydrogen-chloride,propane'}
+          - {group: polar-liquids, cases: 'ethylene-glycol,dimethyl-sulfoxide'}
+    steps:
+      - uses: actions/checkout@v5
+      - run: pip install playwright==1.56.0
+      - name: Install Japanese screenshot font when available
+        run: |
+          if [ -z "$(fc-list :lang=ja)" ]; then
+            timeout 35s sudo apt-get install -y -qq -o Acquire::Retries=0 fonts-noto-cjk ||
+              echo "::warning::Japanese screenshot font unavailable on this runner"
+          fi
+      - name: P3.6 chambers on a phone viewport
+        env:
+          PHASE_CASES: ${{ matrix.cases }}
+          PHASE_MEASURE: '1'
+          PHASE_SCREENSHOTS: shots/p36
+        run: python tests/phase-chambers-p35-browser.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase-p36-${{ matrix.group }}-screens
+          path: shots/p36/*.png
   comparison:
     if: startsWith(github.head_ref, 'work/water-piston-')
     runs-on: ubuntu-latest

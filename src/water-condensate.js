@@ -3,6 +3,7 @@ import { crystal } from './water-ice-sites.js';
 import { ethanolCrystalSites } from './phase-ethanol-crystal.js';
 import { etherCrystalSites } from './phase-ether-crystal.js';
 import { aceticCrystalSites } from './phase-acetic-crystal.js';
+import { measuredCrystalSites } from './phase-crystal-cells.js';
 import { molecularCrystalSites } from './phase-molecular-crystals.js';
 
 
@@ -38,7 +39,7 @@ export function iceSites(body,profile) {
     }
     return sites.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z)).slice(0,profile.count);
   }
-  const sites=molecularCrystalSites(body,profile);
+  const sites=measuredCrystalSites(body,profile)??molecularCrystalSites(body,profile);
   if(sites)return sites;
   return crystal.map(([x,y,z,...q]) => {
     const orientation = new Quaternion(...q).normalize();
