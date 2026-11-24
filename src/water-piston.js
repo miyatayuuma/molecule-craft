@@ -58,6 +58,10 @@ export function openWaterPiston(record,createPistonScene,onClose) {
   const gas=createGas(record), profile=gas.profile;
   const waterIce=profile.iceLabels;
   const nameWithReading={
+    hydrogen:'<ruby>水素<rt>すいそ</rt></ruby>',
+    oxygen:'<ruby>酸素<rt>さんそ</rt></ruby>',
+    nitrogen:'<ruby>窒素<rt>ちっそ</rt></ruby>',
+    chlorine:'<ruby>塩素<rt>えんそ</rt></ruby>',
     water:'<ruby>水<rt>みず</rt></ruby>',
     'carbon-dioxide':'<ruby>二酸化炭素<rt>にさんかたんそ</rt></ruby>',
     'acetic-acid':'<ruby>酢酸<rt>さくさん</rt></ruby>'
@@ -139,7 +143,8 @@ export function openWaterPiston(record,createPistonScene,onClose) {
     while(elapsed>.000001){
       const dt=Math.min(1/120,elapsed);
       if(resetting&&gas.temperature===profile.start){
-        gas.stroke=REST-gas.height;
+        if(profile.liquidOnlyRange)gas.pressure=1;
+        else gas.stroke=REST-gas.height;
         if(Math.abs(gas.stroke)<.0001)resetting=false;
       }
       advanceGas(gas,dt);elapsed-=dt;

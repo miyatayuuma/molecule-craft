@@ -343,3 +343,65 @@ test('At 25 °C and 1 atm ethanol is liquid while its ether isomer is gas',()=>{
     assert.equal(s.phase.gas,expected);
   }
 });
+
+const p35Molecules=JSON.parse(readFileSync(new URL('../data/molecules.json',import.meta.url)));
+const p35Boundaries={
+  'n-butane':[-138.25,-.49], benzene:[5.5,80.07], cyclohexane:[6.5,80.71],
+  oxygen:[-218.8,-182.96], chlorine:[-101,-33.95], nitrogen:[-210,-195.79],
+  hydrogen:[-259.2,-252.78], ammonia:[-77.7,-33.32], glycerol:[18,Infinity]
+};
+
+function runP35(sample,seconds,advance=advanceSample){
+  for(let frame=0;frame<seconds*120;frame++)advance(sample,1/120);
+}
+
+test('n-butane compresses through a fixed-temperature coexistence plateau at room temperature',()=>{
+  const sample=createSample(profiles['n-butane']);
+  sample.stroke=-5;
+  runP35(sample,1.5);
+  assert.ok(Math.abs(sample.temperature-25)<1e-8);
+  assert.ok(Math.abs(sample.pressure-2.4011)<.002);
+  assert.ok(sample.phase.gas>.2&&sample.phase.gas<.8);
+  const height=sample.height;
+  sample.stroke=-3;
+  runP35(sample,2);
+  assert.equal(sample.phase.liquid,1);
+  assert.ok(sample.height<height&&sample.pressure>2.4011);
+  sample.stroke=8;
+  runP35(sample,2);
+  assert.equal(sample.phase.gas,1);
+  assert.ok(sample.pressure<2.4);
+  assert.ok(Math.abs(sample.temperature-25)<1e-8);
+});
+
+test('New chamber boundaries, bounded motion and complete crystal-site capture',()=>{
+  assert.equal(Object.keys(profiles).length,15);
+  for(const [id,[melt,boil]] of Object.entries(p35Boundaries)){
+    const profile=profiles[id], sample=createSample(profile);
+    assert.equal(profile.melt,melt,id);
+    assert.ok(boil===Infinity?profile.vaporTemperature(1)===Infinity:Math.abs(profile.vaporTemperature(1)-boil)<.02,id);
+    const particles=createGas(p35Molecules.find(record=>record.id===id));
+    assert.equal(particles.sites.length,profile.count,id);
+    sample.setting=profile.min;
+    runP35(sample,12);
+    assert.equal(sample.phase.solid,1,id);
+    sample.stroke=-20;
+    runP35(sample,2);
+    assert.ok(Math.abs(sample.pressure-3)<.001,id);
+    sample.setting=profile.max;
+    runP35(sample,14);
+    assert.equal(sample.phase.gas,profile.liquidOnlyRange?0:1,id);
+    sample.stroke=20;
+    runP35(sample,2);
+    assert.ok(sample.height<=HIGH+1e-8,id);
+    assert.ok(sample.height>=LOW,id);
+    assert.ok(sample.pressure>=.5&&sample.pressure<=3,id);
+
+    particles.setting=profile.min;
+    runP35(particles,10,advanceGas);
+    assert.equal(particles.phase.solid,1,id);
+    assert.equal(new Set(particles.particles.map(p=>p.site)).size,profile.count,id);
+    assert.ok(particles.particles.every(p=>p.y>=profile.skin&&p.y<=particles.height-profile.skin
+      && Math.hypot(p.x,p.z)<=profile.bore-profile.skin+1e-8),id);
+  }
+});

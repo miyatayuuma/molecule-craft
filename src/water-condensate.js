@@ -3,6 +3,7 @@ import { crystal } from './water-ice-sites.js';
 import { ethanolCrystalSites } from './phase-ethanol-crystal.js';
 import { etherCrystalSites } from './phase-ether-crystal.js';
 import { aceticCrystalSites } from './phase-acetic-crystal.js';
+import { molecularCrystalSites } from './phase-molecular-crystals.js';
 
 
 export function iceSites(body,profile) {
@@ -37,6 +38,8 @@ export function iceSites(body,profile) {
     }
     return sites.sort((a,b)=>Math.hypot(a.x,a.z)-Math.hypot(b.x,b.z)).slice(0,profile.count);
   }
+  const sites=molecularCrystalSites(body,profile);
+  if(sites)return sites;
   return crystal.map(([x,y,z,...q]) => {
     const orientation = new Quaternion(...q).normalize();
     const offset = new Vector3().fromArray(body.atoms[0].positionAngstrom)
@@ -60,22 +63,23 @@ export function assignIceSite(p, sites, freezing) {
   }
 }
 
-export function moveCondensate(p,s,dt,liquid,ice,index) {
+export function moveCondensate(p,s,dt,liquid,ice,index,mobility=1) {
   const t=s.time, phase=index*2.39996;
   const boundary=s.profile.melt??s.profile.vaporTemperature(s.pressure);
   const warmth=.7+Math.max(0,s.temperature-boundary)/95;
-  const poolTop=.4+1.20*(1-s.phase.gas);
+  const poolDepth=s.profile.poolDepth??1.20;
+  const poolTop=.4+poolDepth*(1-s.phase.gas);
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
-  const flow=t*warmth+phase;
+  const flow=(s.flowTime??t)*warmth+phase;
   const poolRadius=s.profile.bore ? s.profile.bore-s.profile.skin-.3 : 2.06;
   const rim=5*Math.max(0,Math.hypot(p.x,p.z)-poolRadius);
-  const vx=-rim*p.x+.75*warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
-  const vz=-rim*p.z+.75*warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
+  const vx=-rim*p.x+.75*warmth*mobility*(Math.sin(flow*.83+p.z)-.32*p.z);
+  const vz=-rim*p.z+.75*warmth*mobility*(Math.cos(flow*.71+p.x)+.32*p.x);
   const level=.3+(.5+.5*Math.sin(flow*.95+p.z*.5))*(poolTop-.28);
   const damping=1-Math.exp(-4*liquid*dt);
   p.vx+=(vx-p.vx)*damping;
   p.vz+=(vz-p.vz)*damping;
-  p.vy+=(Math.max(-15,4*(level-p.y))-p.vy)*damping;
+  p.vy+=(Math.max(-15,4*mobility*(level-p.y))-p.vy)*damping;
   p.vx+=p.force.x*liquid*dt; p.vy+=p.force.y*liquid*dt; p.vz+=p.force.z*liquid*dt;
   if(p.site && ice>0){
     const amp=.018+.022*(Math.max(-30,(s.temperature-boundary))+30)/30;

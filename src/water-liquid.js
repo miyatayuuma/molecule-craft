@@ -68,7 +68,7 @@ export function sampleInteractions(particles,profile) {
   }
 }
 
-export function turnWater(p, i, dt, heat, temperature) {
+export function turnWater(p, i, dt, heat, temperature, mobility=1, solidRotation=1) {
   // Apply the incremental P1 gas tumble about world axes. This avoids snapping
   // back to an absolute Euler angle when a previously liquid molecule escapes.
   const previousPhase = p.phase;
@@ -86,12 +86,18 @@ export function turnWater(p, i, dt, heat, temperature) {
   const speed = p.spinVelocity.length();
   if (speed > .0001) {
     axis.copy(p.spinVelocity).divideScalar(speed);
-    p.orientation.premultiply(step.setFromAxisAngle(axis,speed*dt*p.liquid));
+    p.orientation.premultiply(step.setFromAxisAngle(axis,speed*dt*p.liquid*Math.sqrt(mobility)));
   }
   if(p.site && !p.site.orientation){
     axis.set(Math.cos(i),.7,Math.sin(i)).normalize();
-    p.orientation.premultiply(step.setFromAxisAngle(axis,dt*p.frozen*p.spin*Math.max(.18,.65+temperature/45)));
+    p.orientation.premultiply(step.setFromAxisAngle(axis,dt*p.frozen*p.spin*solidRotation*Math.max(.18,.65+temperature/45)));
   }
-  if (p.site?.orientation) p.orientation.slerp(p.site.orientation,1-Math.exp(-9*p.frozen*dt));
+  if (p.site?.orientation) {
+    p.orientation.slerp(p.site.orientation,1-Math.exp(-9*p.frozen*dt));
+    if(p.site.libration){
+      axis.set(Math.cos(i),.5,Math.sin(i)).normalize();
+      p.orientation.premultiply(step.setFromAxisAngle(axis,p.site.libration*9*dt*p.frozen*Math.sin(p.phase*3)));
+    }
+  }
   p.orientation.normalize();
 }
