@@ -1,5 +1,32 @@
 const clone=value=>globalThis.structuredClone?globalThis.structuredClone(value):JSON.parse(JSON.stringify(value));
-const keyOf=value=>JSON.stringify(value);
+const bondKey=([a,b,order])=>[Math.min(a,b),Math.max(a,b),order].join(':');
+const keyOf=value=>JSON.stringify({
+  atoms:value.workspace.atoms.map(atom=>atom.element),
+  bonds:value.workspace.bonds.map(bondKey).sort()
+});
+
+// Atom indices are stable within an Undo segment: additions append, and any
+// atom removal clears the segment. Keep the live pose of every surviving atom.
+export function prepareAssemblyUndo(before,current){
+  const restored=clone(before), workspace=restored.workspace, live=current.workspace;
+  for(let i=0;i<workspace.atoms.length;i++){
+    const atom=live.atoms[i];
+    if(atom?.element===workspace.atoms[i].element&&Array.isArray(atom.position))
+      workspace.atoms[i].position=clone(atom.position);
+  }
+  const valid=index=>Number.isInteger(index)&&index>=0&&index<workspace.atoms.length;
+  if(live.camera)workspace.camera=clone(live.camera);
+  if(Object.hasOwn(live,'selected'))workspace.selected=valid(live.selected)?live.selected:null;
+  if(Object.hasOwn(live,'focus'))workspace.focus=valid(live.focus)?live.focus:(valid(workspace.focus)?workspace.focus:null);
+  if(Object.hasOwn(live,'pivot'))workspace.pivot=null; // recompute from the live pose and restored graph
+  if(Object.hasOwn(live,'targetMoleculeId'))workspace.targetMoleculeId=live.targetMoleculeId;
+  const oldKeys=new Set(workspace.bonds.map(bondKey)),liveKeys=new Set(live.bonds.map(bondKey));
+  const changedAtomIndices=[...new Set([
+    ...workspace.bonds.filter(b=>!liveKeys.has(bondKey(b))),
+    ...live.bonds.filter(b=>!oldKeys.has(bondKey(b)))
+  ].flatMap(([a,b])=>[a,b]).filter(valid))];
+  return {snapshot:restored,changedAtomIndices};
+}
 
 const workspaceAtomCount=snapshot=>Array.isArray(snapshot?.workspace?.atoms)?snapshot.workspace.atoms.length:null;
 
@@ -13,7 +40,9 @@ export function isDestructiveCraftChange(before,after){
 
 // Session-local undo history for semantic CRAFT mutations. Snapshots are owned
 // by the integration layer so workspace graph and BASE STOCK can be restored
-// atomically without operation-specific inverse logic. Progression/discovery is
+// atomically without operation-specific inverse logic. User Undo records only
+// graph mutations; pending rollback still restores the full pre-gesture pose.
+// Progression/discovery is
 // deliberately outside these snapshots and therefore remains monotonic.
 export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
   if(typeof capture!=='function'||typeof restore!=='function')throw new TypeError('capture and restore are required');
@@ -45,7 +74,10 @@ export function createCraftHistory({capture,restore,onChange=()=>{}}={}){
   function undo(){
     if(restoring||!past.length)return false;
     cancel();const snapshot=past.pop();restoring=true;let restored=false;
-    try{restored=restore(clone(snapshot))!==false;}
+    try{
+      const prepared=prepareAssemblyUndo(snapshot,capture());
+      restored=restore(prepared.snapshot,{reason:'undo',changedAtomIndices:prepared.changedAtomIndices})!==false;
+    }
     catch(error){past.push(snapshot);throw error;}
     finally{restoring=false;}
     if(!restored)past.push(snapshot);notify();return restored;

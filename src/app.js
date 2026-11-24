@@ -22,7 +22,7 @@ import { createGameShell } from './game-shell.js?v=31';
 import { captureWorkspace, restoreWorkspace } from './workspace-save.js?v=31';
 import { createWorkspaceStorage } from './workspace-persistence.js?v=1';
 import { createCraftWorkspace } from './craft-workspace.js?v=2';
-import { createCraftHistory } from './craft-history.js?v=2';
+import { createCraftHistory } from './craft-history.js?v=3';
 import { bindCraftControls } from './craft-controls.js?v=3';
 import { bindSaveLifecycle, connectCollection, connectExploration, createDiscoveryConnection } from './craft-connections.js?v=28';
 import { createCraftPanel } from './craft-panel.js?v=4';
@@ -863,18 +863,28 @@ function captureCraftHistoryState(){
   const focus=focusedStructure(),rotation=workspaceView.capture(structures,mainStructure,pos);
   return{workspace:captureWorkspace({molecule,positionFor:pos,camera,cameraTarget,selectedAtomId,focusId:focus?.graph.atoms[0]?.id,pivot:rotation?.center,targetMoleculeId:craftTargetId}),elements:{...resources.state.elements}};
 }
-function restoreCraftHistoryState(snapshot){
+function restoreCraftHistoryState(snapshot,{reason='rollback',changedAtomIndices=[]}={}){
   if(!snapshot?.workspace||!snapshot?.elements)return false;
   stopRelaxation();clearBondTransition();clearTorsionGuide();clearBondHoldTimer();
   releaseCraftPointerCaptures();cleanupDetachedTear(dragState);resetCraftPointerState();frameTransition=null;
   workspaceView.clear();const restored=restoreWorkspace(snapshot.workspace,{THREE,molecule,placements,camera,cameraTarget});
   for(const symbol of Object.keys(resources.state.elements))if(!Object.hasOwn(snapshot.elements,symbol))delete resources.state.elements[symbol];Object.assign(resources.state.elements,snapshot.elements);
   selectedAtomId=restored.selected;craftTargetId=(resources.state.recipes.includes(restored.targetMoleculeId)||resources.state.hints.includes(restored.targetMoleculeId))?restored.targetMoleculeId:null;workspaceView.select(restored.focus);
-  protectedUntil.clear();for(const atom of molecule.atoms)protectedUntil.set(atom.id,performance.now()+15000);unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();discoveryConnection.clear();lastStableWorkspace=null;topologyChanged();if(restored.pivot&&focusedStructure())workspaceView.frame(focusedStructure(),restored.pivot);syncCraftStock();refresh();saveWorkspace(true);return true;
+  protectedUntil.clear();for(const atom of molecule.atoms)protectedUntil.set(atom.id,performance.now()+15000);unresolvedAtoms.clear();debrisTracker.reset();fadeTargets.clear();debrisOpacity.clear();discoveryConnection.clear();lastStableWorkspace=null;topologyChanged();if(restored.pivot&&focusedStructure())workspaceView.frame(focusedStructure(),restored.pivot);syncCraftStock();refresh();
+  if(reason==='undo'&&changedAtomIndices.length){
+    const affected=new Set(changedAtomIndices.map(index=>molecule.atoms[index]?.id));
+    const ids=new Set(structures.filter(item=>[...item.ids].some(id=>affected.has(id))).flatMap(item=>[...item.ids]));
+    if(ids.size){
+      solver.rebuildTopology({resetFrames:true});
+      const validation=solver.validateConformation({ids});
+      if(!validation.valid&&validation.errors.finite)startRelaxation('形を整えています',{ids});
+    }
+  }
+  saveWorkspace(true);return true;
 }
 function undoCraft(){
   if(interactionLocked()||dragState||activePointers.size||!craftHistory.canUndo)return;
-  if(craftHistory.undo())pulse('1操作戻しました');
+  if(craftHistory.undo())pulse('組み立てを1つ戻しました');
 }
 
 function beginTwoFinger(){if(bondTransition||frameTransition||collectionOpen||gameShell.isOpen())return;const p=[...activePointers.values()];multiGesture={rotation:workspaceView.capture(structures,mainStructure,pos),mid:{x:(p[0].x+p[1].x)/2,y:(p[0].y+p[1].y)/2},dist:Math.hypot(p[1].x-p[0].x,p[1].y-p[0].y),angle:Math.atan2(p[1].y-p[0].y,p[1].x-p[0].x)};}
