@@ -20,24 +20,43 @@ def verify_phase_chamber(page, touch, box, substance):
  from datetime import datetime, timezone, timedelta
 
  dry_ice=substance=='carbon-dioxide'
- name='co2' if dry_ice else 'ethanol'
+ name='co2' if dry_ice else substance
+ width=page.viewport_size['width']
+ added=substance in ('dimethyl-ether','acetic-acid')
  motion_dir=os.environ.get('PHASE_MOTION')
  frame=0
- if motion_dir:
+ if motion_dir and width==390:
   motion_dir=Path(motion_dir)/name
   motion_dir.mkdir(parents=True,exist_ok=True)
+ else:motion_dir=None
  slider=page.locator('#water-temp')
- if not dry_ice:
+ if substance=='ethanol' and width==390:
   slider.evaluate('(e)=>{e.value=30; e.dispatchEvent(new Event("input"))}')
   page.wait_for_function("document.querySelector('.water-identity small').dataset.phase==='liquid' && document.querySelector('.water-degrees').value==='30'",timeout=45000)
   frame_times,force_times=page.evaluate('''async()=>{window.forceTimes=[];let frames=[],last=await new Promise(requestAnimationFrame);
-   while(frames.length<100){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
+   while(frames.length<180){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
    return [frames,window.forceTimes]}''')
   assert len(force_times)>10
   for label,values in [('frame',frame_times),('Stage A',force_times)]:
    values.sort()
    print(name,label,'median/p95 ms',values[len(values)//2],values[int(.95*len(values))],flush=True)
+  grip=page.locator('.water-grip')
+  for dy in (15,-15,15):
+   x,y=box(grip)
+   touch('Start',[(x,y)])
+   page.evaluate("""()=>{const g=document.querySelector('.water-grip'), p=document.querySelector('.water-pressure');
+    window.responseTime=null;
+    g.addEventListener('pointermove',()=>{const before=p.value,start=performance.now();
+     const observer=new MutationObserver(()=>{if(p.value!==before){window.responseTime=performance.now()-start;observer.disconnect()}});
+     observer.observe(p,{subtree:true,childList:true,characterData:true});
+    },{once:true});
+   }""")
+   touch('Move',[(x,y+dy)])
+   touch('End',[])
+   page.wait_for_function('window.responseTime!==null',timeout=5000)
+   print(name,'piston response ms',page.evaluate('window.responseTime'),flush=True)
   page.locator('.water-close').evaluate('e=>e.click()')
+  if os.environ.get('PISTON_BENCHMARK'):return
   page.locator('#open-water-piston').evaluate('e=>e.click()')
   page.wait_for_selector('.water-stage canvas',state='attached')
  clock=page.clock
@@ -68,7 +87,11 @@ def verify_phase_chamber(page, touch, box, substance):
   assert phase.get_attribute('data-phase')==state,phase.inner_text()
   if dry_ice:assert bands.nth(1).evaluate("e=>e.style.getPropertyValue('--share')")=='0'
   assert .5<=pressure()<=3
-  assert grip.bounding_box()['x']+grip.bounding_box()['width']<=390-16
+  rect=grip.bounding_box()
+  assert rect['x']>=24 and rect['x']+rect['width']<=width-24,rect
+  assert rect['y']+rect['height']<=slider.bounding_box()['y'],rect
+  shares=bands.evaluate_all("(items)=>items.map(e=>Number(e.style.getPropertyValue('--share')))")
+  assert min(shares)>=0 and abs(sum(shares)-1)<1e-8,shares
 
  def advance(ms):
   nonlocal frame
@@ -82,7 +105,7 @@ def verify_phase_chamber(page, touch, box, substance):
    frame+=1
    ms-=interval
 
- def shot(state):page.screenshot(path=f'shots/{name}-{state}.png')
+ def shot(state):page.screenshot(path=f'shots/{name}-{state}'+('' if width==390 else f'-{width}')+'.png')
 
  assert page.locator('.water-stage canvas').count()
  expect('gas');shot('gas')
@@ -102,6 +125,22 @@ def verify_phase_chamber(page, touch, box, substance):
   assert 0<share()<vapor
   heat(-40);advance(500);expect('sublimating')
   advance(4800);expect('gas')
+ elif added:
+  near,melt,liquid,cold,hot=(-30,-141.5,-137,-150,25) if substance=='dimethyl-ether' else (110,16.6,20,10,180)
+  heat(near);advance(5700);expect('liquid')
+  piston(-110);advance(1800);expect('mixed')
+  vapor=share()
+  assert .2<vapor<.85,vapor
+  shot('coexistence')
+  piston(45);advance(1700);expect('mixed')
+  assert 0<share()<vapor
+  piston(95);advance(1800);expect('liquid')
+  heat(liquid);advance(3500);expect('liquid');shot('liquid')
+  heat(cold);advance(680);expect('freezing')
+  heat(melt);advance(550);expect('slush');shot('solid-liquid')
+  heat(cold);advance(3800);expect('ice');shot('solid')
+  heat(liquid);advance(3700);expect('liquid')
+  heat(hot);advance(6800);expect('gas')
  else:
   heat(72);advance(4300);expect('liquid');shot('liquid')
   piston(-116);advance(2300);expect('mixed')
@@ -114,6 +153,18 @@ def verify_phase_chamber(page, touch, box, substance):
   heat(-130);advance(7000);expect('ice');shot('solid')
   heat(130);advance(3500);expect('liquid')
   advance(5300);expect('gas')
+ if not dry_ice:
+  # Keep the first finger on the handle while the second moves the dial.
+  x,y=box(grip)
+  r=slider.bounding_box()
+  xx,yy=r['x']+3,r['y']+r['height']/2
+  touch('Start',[(x,y)])
+  touch('Move',[(x,y+65)])
+  touch('Start',[(x,y+65),(xx,yy)])
+  assert float(slider.input_value())==float(slider.get_attribute('min'))
+  touch('End',[])
+  clock.run_for(400)
+  assert pressure()>1.1
 
  page.locator('.water-reset').evaluate('e=>e.click()')
  clock.run_for(7000);expect('gas')
@@ -129,8 +180,11 @@ with sync_playwright() as pw:
  b=pw.chromium.launch(executable_path=shutil.which('google-chrome') or shutil.which('chromium'),args=['--no-sandbox','--enable-unsafe-swiftshader','--use-angle=swiftshader','--ignore-gpu-blocklist'])
  substance=os.environ.get('PISTON_SUBSTANCE','water')
  comparison=os.environ.get('WATER_COMPARISON')
- new_substance=substance in ('carbon-dioxide','ethanol')
- for w,h in ([(390,844)] if comparison or new_substance else [(390,844),(360,740),(1280,800)]):
+ new_substance=substance in ('carbon-dioxide','ethanol','dimethyl-ether','acetic-acid')
+ sizes=[(390,844),(360,740)]
+ if comparison or os.environ.get('PISTON_BENCHMARK') or substance=='carbon-dioxide':sizes=sizes[:1]
+ if not (comparison or new_substance):sizes.append((1280,800))
+ for w,h in sizes:
   ctx=b.new_context(viewport={'width':w,'height':h},has_touch=w<500,is_mobile=w<500,device_scale_factor=1)
   p=ctx.new_page(); errors=[];p.on('pageerror',lambda err:errors.append(str(err)))
   p.route('**/fixture',lambda r:r.fulfill(body=html,content_type='text/html'))
@@ -163,6 +217,10 @@ with sync_playwright() as pw:
     client.send('Input.dispatchTouchEvent',{'type':'touch'+kind,'touchPoints':[{'x':x,'y':y,'id':i+1} for i,(x,y) in enumerate(points)]})
    verify_phase_chamber(p,touch,box,substance)
    assert save==p.evaluate('JSON.stringify([...data])')
+   if os.environ.get('PISTON_BENCHMARK'):
+    assert not errors,errors
+    ctx.close()
+    continue
    p.add_init_script('''(id=>localStorage.setItem('molecule-craft.collection.v1',JSON.stringify({
     schemaVersion:3,discoveredMolecules:[{id,at:1,order:1}],discoveredGroups:[],
     unlockedStructures:[],legacyElements:[],milestones:[]})))(''' + json.dumps(substance) + ')')
@@ -186,7 +244,7 @@ with sync_playwright() as pw:
    set_temp(liquid)
    p.wait_for_selector('[data-phase=liquid]')
    frames,costs=p.evaluate("""async()=>{window.forceTimes=[];let frames=[],last=await new Promise(requestAnimationFrame);
-    while(frames.length<100){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
+    while(frames.length<180){let t=await new Promise(requestAnimationFrame);frames.push(t-last);last=t}
     return [frames,window.forceTimes]}""")
    for label,values in [('frame',frames),('interaction',costs)]:
     values.sort()

@@ -28,6 +28,14 @@ jobs:
   phase-chambers:
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {substance: carbon-dioxide, sample: co2}
+          - {substance: ethanol, sample: ethanol}
+          - {substance: dimethyl-ether, sample: dimethyl-ether}
+          - {substance: acetic-acid, sample: acetic-acid}
     steps:
       - uses: actions/checkout@v5
       - run: pip install playwright==1.56.0
@@ -35,16 +43,15 @@ jobs:
       - name: Phone acceptance and performance
         env:
           PHASE_MOTION: shots/motion
+          PISTON_SUBSTANCE: ${{ matrix.substance }}
+          PHASE_SAMPLE: ${{ matrix.sample }}
         run: |
-          PISTON_SUBSTANCE=carbon-dioxide python tests/water-piston-browser.py
-          PISTON_SUBSTANCE=ethanol python tests/water-piston-browser.py
-          for sample in co2 ethanol; do
-            ffmpeg -hide_banner -loglevel error -framerate 6 -i "shots/motion/$sample/%04d.png" -c:v libx264 -pix_fmt yuv420p "shots/$sample.mp4"
-          done
+          python tests/water-piston-browser.py
+          ffmpeg -hide_banner -loglevel error -framerate 6 -i "shots/motion/$PHASE_SAMPLE/%04d.png" -c:v libx264 -pix_fmt yuv420p "shots/$PHASE_SAMPLE.mp4"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: phase-chamber-motion
+          name: phase-chamber-${{ matrix.sample }}-motion
           path: |
             shots/*.png
             shots/*.mp4

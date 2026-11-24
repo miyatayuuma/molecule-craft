@@ -1,10 +1,14 @@
 import { Quaternion, Vector3 } from '../vendor/three/three.core.min.js';
 import { crystal } from './water-ice-sites.js';
 import { ethanolCrystalSites } from './phase-ethanol-crystal.js';
+import { etherCrystalSites } from './phase-ether-crystal.js';
+import { aceticCrystalSites } from './phase-acetic-crystal.js';
 
 
 export function iceSites(body,profile) {
   if(profile.lattice==='ethanol-pc')return ethanolCrystalSites(body,profile);
+  if(profile.lattice==='ether-rings')return etherCrystalSites(body,profile);
+  if(profile.lattice==='acetic-acid-pna21')return aceticCrystalSites(body,profile);
   if(profile.lattice==='dry-ice'){
     // Pa-3, a=5.056 Å, https://som.web.cmu.edu/structures/S104-CO2.html
     // The four face-centred sites carry different body-diagonal axes.
@@ -63,7 +67,8 @@ export function moveCondensate(p,s,dt,liquid,ice,index) {
   const poolTop=.4+1.20*(1-s.phase.gas);
   // Decorrelation and counterflow let neighbours exchange places, even at rest.
   const flow=t*warmth+phase;
-  const rim=5*Math.max(0,Math.hypot(p.x,p.z)-2.06);
+  const poolRadius=s.profile.bore ? s.profile.bore-s.profile.skin-.3 : 2.06;
+  const rim=5*Math.max(0,Math.hypot(p.x,p.z)-poolRadius);
   const vx=-rim*p.x+.75*warmth*(Math.sin(flow*.83+p.z)-.32*p.z);
   const vz=-rim*p.z+.75*warmth*(Math.cos(flow*.71+p.x)+.32*p.x);
   const level=.3+(.5+.5*Math.sin(flow*.95+p.z*.5))*(poolTop-.28);

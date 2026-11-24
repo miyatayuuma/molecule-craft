@@ -1,11 +1,11 @@
-export const BORE = 2.85;
+export const DEFAULT_BORE = 2.85;
 import { advanceSample, createSample, REST, clamp } from './water-phase.js';
 import { iceSites, assignIceSite, moveCondensate } from './water-condensate.js';
 export {HIGH} from './water-phase.js';
 import { moleculeSites, initializeWater, sampleInteractions, turnWater } from './water-liquid.js';
 import {profiles} from './phase-profiles.js';
 export function createGas(record) {
-  const profile=profiles[record.id], {count,skin}=profile, radius=BORE-skin;
+  const profile=profiles[record.id], {count,skin,bore=DEFAULT_BORE}=profile, radius=bore-skin;
   const local=moleculeSites(record,profile);
   const particles = [];
   while (particles.length < count) {
@@ -24,8 +24,7 @@ export function createGas(record) {
   return {...createSample(profile),record,particles,sites:iceSites(particles[0].body,profile),time:0,interactionClock:0};
 }
 
-function contain(p, top, pistonSpeed,skin) {
-  const radius=BORE-skin;
+function contain(p, top, pistonSpeed,skin,radius) {
   const r = Math.hypot(p.x,p.z);
   if (r > radius) {
     const nx=p.x/r, nz=p.z/r, outward=Math.max(0,p.vx*nx+p.vz*nz);
@@ -40,12 +39,12 @@ function contain(p, top, pistonSpeed,skin) {
 }
 
 export function advanceGas(gas, dt) {
-  const {count,skin,hz,start,melt,sublimes}=gas.profile;
+  const {count,skin,hz,start,melt,sublimes,bore=DEFAULT_BORE}=gas.profile;
   const previous=gas.height;
   const thermalReference=melt??gas.profile.vaporTemperature(gas.pressure);
   advanceSample(gas,dt);
   gas.time+=dt;
-  const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin;
+  const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin, radius=bore-skin;
   // Carry part of the gas upward with a fast withdrawal. A height gradient keeps
   // the bottom layer in place and frees the swept volume over several substeps.
   const expansion=Math.max(0,gas.height-previous)/(previous-2*skin);
@@ -74,7 +73,7 @@ export function advanceGas(gas, dt) {
     if(p.site || p.liquid>0)moveCondensate(p,gas,dt,p.liquid,p.frozen,i);
     p.x+=p.vx*dt; p.y+=p.vy*dt+.78*(p.y-skin)*expansion; p.z+=p.vz*dt;
     turnWater(p,i,dt,heat,gas.temperature-thermalReference);
-    contain(p,top,pistonSpeed,skin);
+    contain(p,top,pistonSpeed,skin,radius);
   }
   const diameter=skin*2;
   for (let i=0;i<gas.particles.length;i++) {
@@ -96,5 +95,5 @@ export function advanceGas(gas, dt) {
       b.vx+=impulse*nx; b.vy+=impulse*ny; b.vz+=impulse*nz;
     }
   }
-  for (const p of gas.particles) contain(p,top,pistonSpeed,skin);
+  for (const p of gas.particles) contain(p,top,pistonSpeed,skin,radius);
 }

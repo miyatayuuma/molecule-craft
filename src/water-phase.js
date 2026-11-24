@@ -1,6 +1,7 @@
-import {profiles} from './phase-profiles.js';
+import {profiles, roundTemperature} from './phase-profiles.js';
 export {saturation,boiling} from './phase-profiles.js';
-// Heights are display volumes in a constant bore. Condensed volumes and compliance
+// Heights represent normalized display volumes within each profile. The rendered
+// bore varies independently. Condensed volumes and compliance
 // are enlarged for the hand-operated model; neither is a measured specific volume.
 export const REST = 7.6, HIGH = 14.45, LOW = 1.7;
 export const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi,x));
@@ -44,7 +45,7 @@ export function advanceSample(s,dt) {
   // P0 fixed-volume response when the temperature dial stays in its original range.
   const before=heightOf(s), hot=s.temperature>=s.profile.fixedVolumeFrom && s.setting>=s.profile.fixedVolumeFrom;
   const bp=s.profile.vaporTemperature(s.pressure);
-  const setting=s.profile.holdAtDisplayedBoundary && Math.round(bp/s.profile.step)*s.profile.step===s.setting
+  const setting=s.profile.holdAtDisplayedBoundary && roundTemperature(bp,s.profile.step)===s.setting
     ? bp : s.setting;
   const heating=setting>s.temperature+.0001, cooling=setting<s.temperature-.0001;
   // A subliming substance uses the same vapor transition and skips fusion.

@@ -42,6 +42,31 @@ const ethanolTemperatures = [
   108.090709, 108.615778, 109.133696
 ];
 
+// CoolProp 8.1.0 (HEOS DimethylEther), on the same pressure grid as ethanol.
+const dimethylEtherTemperatures = [
+  -39.611230, -37.694182, -35.911864, -34.244421, -32.676203, -31.194641, -29.789479, -28.452232,
+  -27.175798, -25.954164, -24.782196, -23.655471, -22.570150, -21.522879, -20.510708, -19.531030,
+  -18.581526, -17.660126, -16.764973, -15.894395, -15.046879, -14.221053, -13.415670, -12.629589,
+  -11.861766, -11.111243, -10.377137, -9.658636, -8.954986, -8.265490, -7.589501, -6.926416,
+  -6.275674, -5.636750, -5.009154, -4.392428, -3.786140, -3.189885, -2.603284, -2.025977,
+  -1.457626, -0.897913, -0.346535, 0.196794, 0.732344, 1.260371, 1.781120, 2.294821,
+  2.801696, 3.301953, 3.795793
+];
+
+// Perry's Chemical Engineers' Handbook, Table 2-8, DIPPR Eq. 101.
+// ln(p/Pa) = 53.27 - 6304.5/T - 4.2985 ln(T) + 8.8865e-18 T^6, 289.81–591.95 K.
+const aceticAcidTemperatures = [
+  96.807562, 99.568419, 102.129869, 104.521549, 106.766788, 108.884301, 110.889340, 112.794508,
+  114.610349, 116.345774, 118.008389, 119.604740, 121.140502, 122.620632, 124.049484, 125.430906,
+  126.768313, 128.064757, 129.322971, 130.545415, 131.734312, 132.891679, 134.019349, 135.118994,
+  136.192146, 137.240210, 138.264479, 139.266143, 140.246305, 141.205984, 142.146128, 143.067617,
+  143.971271, 144.857856, 145.728087, 146.582635, 147.422127, 148.247153, 149.058269, 149.855995,
+  150.640825, 151.413224, 152.173629, 152.922458, 153.660102, 154.386936, 155.103313, 155.809570,
+  156.506026, 157.192985, 157.870736
+];
+
+export const roundTemperature = (value,step) => Math.round(value/step)/(1/step);
+
 function vaporBoundary(temperatures){
   const min=.5, increment=.05, last=temperatures.length-1;
   return {
@@ -77,9 +102,19 @@ export const profiles={
   'carbon-dioxide':{sublimes:true,...vaporBoundary(carbonDioxideTemperatures),
     min:-110,max:0,step:.5,start:-40,rate:22,holdAtDisplayedBoundary:true,
     solidHeight:1.96,count:64,scale:.225,skin:.37,lattice:'dry-ice',orderedLattice:true,fixedVolumeFrom:Infinity},
+  'dimethyl-ether':{melt:-141.5,...vaporBoundary(dimethylEtherTemperatures),
+    min:-160,max:40,step:.5,start:25,rate:51,holdAtDisplayedBoundary:true,
+    solidHeight:2.16*.882/.975,liquidHeight:2.16,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.40,
+    compactRendering:true,lattice:'ether-rings',orderedLattice:true,fixedVolumeFrom:Infinity,
+    torqueGain:.25,forceGain:.32},
+  'acetic-acid':{melt:16.6,...vaporBoundary(aceticAcidTemperatures),
+    min:-10,max:180,step:.1,start:150,rate:46,holdAtDisplayedBoundary:true,
+    solidHeight:2.28*1.053/1.266,liquidHeight:2.28,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.42,
+    compactRendering:true,lattice:'acetic-acid-pna21',orderedLattice:true,fixedVolumeFrom:Infinity,
+    torqueGain:.19,forceGain:.27},
   // NIST SRD 69 (CAS 64-17-5) reports 159 ± 2 K for fusion.
   ethanol:{melt:-114,...vaporBoundary(ethanolTemperatures),
     min:-140,max:160,step:.5,start:130,rate:66,holdAtDisplayedBoundary:true,
-    solidHeight:2.08,liquidHeight:2.16,count:40,hz:10,scale:.175,skin:.37,compactRendering:true,
+    solidHeight:2.08,liquidHeight:2.16,bore:3.20,count:50,hz:10,interactionRange:12,scale:.175,skin:.37,compactRendering:true,
     lattice:'ethanol-pc',orderedLattice:true,fixedVolumeFrom:Infinity,torqueGain:.28,forceGain:.34}
 };

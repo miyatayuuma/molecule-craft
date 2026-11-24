@@ -49,7 +49,18 @@ export function sampleInteractions(particles,profile) {
     active.push(p.body);
   }
   if (active.length < 2) return;
-  const result = evaluateStageAForces(active, {collectPairDiagnostics:false});
+  const excludedMoleculePairs = new Set();
+  if (profile.interactionRange) {
+    // These neutral molecules are driven by nearby partners in the observation
+    // model. Use Stage A's existing pair filter to leave the shared solver alone.
+    const cutoffSquared=profile.interactionRange**2;
+    for(let i=0;i<active.length;i++)for(let j=i+1;j<active.length;j++){
+      const a=active[i], b=active[j];
+      const [ax,ay,az]=a.positionAngstrom, [bx,by,bz]=b.positionAngstrom;
+      if((ax-bx)**2+(ay-by)**2+(az-bz)**2>cutoffSquared)excludedMoleculePairs.add(`${a.id}|${b.id}`);
+    }
+  }
+  const result = evaluateStageAForces(active, {collectPairDiagnostics:false,excludedMoleculePairs});
   for (const body of active) {
     const p = particles[body.id], state = result.bodies.get(body.id);
     bounded(p.torque,state.torqueKcalMolAngstrom,profile.torqueGain,4.2);
