@@ -18,7 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: pip install playwright==1.56.0
-      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install Japanese screenshot font when available
+        run: |
+          if [ -z "$(fc-list :lang=ja)" ]; then
+            timeout 35s sudo apt-get install -y -qq -o Acquire::Retries=0 fonts-noto-cjk ||
+              echo "::warning::Japanese screenshot font unavailable on this runner"
+          fi
       - run: node --test tests/water-phase.test.mjs
       - run: python tests/water-piston-browser.py
       - uses: actions/upload-artifact@v4
@@ -39,8 +44,13 @@ jobs:
           - {substance: acetic-acid, sample: acetic-acid}
     steps:
       - uses: actions/checkout@v5
-      - run: pip install playwright==1.56.0
-      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk ffmpeg
+      - run: pip install playwright==1.56.0 imageio-ffmpeg==0.6.0
+      - name: Install Japanese screenshot font when available
+        run: |
+          if [ -z "$(fc-list :lang=ja)" ]; then
+            timeout 35s sudo apt-get install -y -qq -o Acquire::Retries=0 fonts-noto-cjk ||
+              echo "::warning::Japanese screenshot font unavailable on this runner"
+          fi
       - name: Phone acceptance and performance
         env:
           PHASE_MOTION: shots/motion
@@ -48,7 +58,8 @@ jobs:
           PHASE_SAMPLE: ${{ matrix.sample }}
         run: |
           python tests/water-piston-browser.py
-          ffmpeg -hide_banner -loglevel error -framerate 6 -i "shots/motion/$PHASE_SAMPLE/%04d.png" -c:v libx264 -pix_fmt yuv420p "shots/$PHASE_SAMPLE.mp4"
+          ffmpeg=$(python -c "import imageio_ffmpeg; print(imageio_ffmpeg.get_ffmpeg_exe())")
+          "$ffmpeg" -hide_banner -loglevel error -framerate 6 -i "shots/motion/$PHASE_SAMPLE/%04d.png" -c:v libx264 -pix_fmt yuv420p "shots/$PHASE_SAMPLE.mp4"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -62,7 +73,12 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - run: pip install playwright==1.56.0
-      - run: sudo apt-get update -qq && sudo apt-get install -y fonts-noto-cjk
+      - name: Install Japanese screenshot font when available
+        run: |
+          if [ -z "$(fc-list :lang=ja)" ]; then
+            timeout 35s sudo apt-get install -y -qq -o Acquire::Retries=0 fonts-noto-cjk ||
+              echo "::warning::Japanese screenshot font unavailable on this runner"
+          fi
       - name: Nine new chambers on a phone viewport
         env:
           PHASE_MEASURE: '1'
