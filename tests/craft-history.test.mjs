@@ -90,12 +90,12 @@ test('failed/no-op mutations do not create history and a new mutation after undo
   assert.equal(fx.history.depth,2);fx.history.undo();assert.deepEqual(fx.state.workspace.atoms,[{element:'H'}]);
 });
 
-test('reset defines a new session baseline and pending gestures collapse to one history entry',()=>{
+test('reset defines a new session baseline and coordinate-only gestures never create Undo entries',()=>{
   const fx=fixture();
   fx.history.record(()=>{fx.state.elements.H--;fx.state.workspace.atoms.push({element:'H'});return true;});
   fx.history.reset();assert.equal(fx.history.canUndo,false);assert.equal(fx.changes.at(-1).canUndo,false,'Undo UI state is disabled after reset');
   fx.history.begin();for(let i=0;i<25;i++)fx.state.workspace.atoms[0].x=i;fx.history.commit();
-  assert.equal(fx.history.depth,1);fx.history.undo();assert.equal('x' in fx.state.workspace.atoms[0],false);
+  assert.equal(fx.history.depth,0);assert.equal(fx.history.undo(),false);assert.equal(fx.state.workspace.atoms[0].x,24);
 });
 
 
@@ -105,4 +105,42 @@ test('rollback restores an interrupted pending gesture without adding an Undo en
   assert.equal(fx.history.pending,true);assert.equal(fx.history.rollback(),true);
   assert.deepEqual(fx.state,baseline);assert.equal(fx.history.pending,false);assert.equal(fx.history.depth,0);assert.equal(fx.history.canUndo,false);
   assert.equal(fx.history.rollback(),false,'repeated interruption is idempotent');
+});
+
+
+test('Undo ignores pose, view and focus edits, preserving the live pose on graph restoration',()=>{
+  const fx=fixture(),w=fx.state.workspace;
+  w.atoms=[{element:'C',position:[0,0,0]},{element:'H',position:[1,0,0]}];
+  w.camera={position:[0,0,10],target:[0,0,0],up:[0,1,0]};w.selected=0;w.focus=0;w.pivot=[0,0,0];w.targetMoleculeId=null;
+  fx.history.record(()=>{w.bonds.push([0,1,1]);return true;});
+  fx.history.record(()=>{w.atoms[0].position=[2,3,0];w.atoms[1].position=[2,4,0];w.camera.position=[1,2,14];w.selected=1;w.focus=1;w.targetMoleculeId='water';return true;});
+  assert.equal(fx.history.depth,1);
+  fx.history.undo();
+  const restored=fx.state.workspace;
+  assert.deepEqual(restored.bonds,[]);
+  assert.deepEqual(restored.atoms.map(atom=>atom.position),[[2,3,0],[2,4,0]]);
+  assert.deepEqual(restored.camera.position,[1,2,14]);assert.equal(restored.selected,1);assert.equal(restored.focus,1);
+  assert.equal(restored.targetMoleculeId,'water');assert.equal(restored.pivot,null);
+});
+
+test('Undoing atom or part placement keeps surviving coordinates and refunds stock',()=>{
+  const fx=fixture();
+  fx.history.record(()=>{fx.state.elements.C--;fx.state.workspace.atoms.push({element:'C',position:[0,0,0]});return true;});
+  fx.history.record(()=>{fx.state.elements.H-=2;fx.state.workspace.atoms.push({element:'H',position:[1,0,0]},{element:'H',position:[2,0,0]});fx.state.workspace.bonds.push([1,2,1]);return true;});
+  fx.history.record(()=>{fx.state.workspace.atoms[0].position=[4,5,6];fx.state.workspace.selected=2;fx.state.workspace.focus=2;return true;});
+  assert.equal(fx.history.depth,2);fx.history.undo();
+  assert.deepEqual(fx.state.workspace.atoms,[{element:'C',position:[4,5,6]}]);assert.deepEqual(fx.state.workspace.bonds,[]);
+  assert.equal(fx.state.elements.H,4);assert.equal(fx.state.workspace.selected,null);assert.equal(fx.state.workspace.focus,null);
+});
+
+test('Bond order and removal Undo report changed atoms, but rollback restores full pose',()=>{
+  let state={workspace:{atoms:[{element:'C',position:[0,0,0]},{element:'C',position:[1,0,0]}],bonds:[[0,1,2]]},elements:{C:0}},meta;
+  const history=createCraftHistory({capture:()=>copy(state),restore:(snapshot,options)=>{state=snapshot;meta=options;return true;}});
+  history.record(()=>{state.workspace.bonds[0][2]=1;return true;});
+  history.record(()=>{state.workspace.bonds=[];return true;});
+  history.record(()=>{state.workspace.atoms[1].position=[5,0,0];return true;});
+  history.undo();assert.deepEqual(state.workspace.bonds,[[0,1,1]]);assert.deepEqual(meta,{reason:'undo',changedAtomIndices:[0,1]});
+  history.undo();assert.deepEqual(state.workspace.bonds,[[0,1,2]]);assert.deepEqual(state.workspace.atoms[1].position,[5,0,0]);
+  history.begin();state.workspace.atoms[1].position=[8,0,0];history.rollback();
+  assert.deepEqual(state.workspace.atoms[1].position,[5,0,0]);assert.equal(meta,undefined);
 });
