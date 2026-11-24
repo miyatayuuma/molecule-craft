@@ -33,7 +33,7 @@ function movePiston(s, delta) {
   const sat=s.profile.saturation(s.temperature), edge=clamp(sat,.5,3);
   const condensed=denseVolume(s)-compliance*(edge-1);
   const vapor=gasVolume(s)/edge;
-  const stroke=heightOf(s)-gripTravel*Math.max(0,s.pressure-edge)*(1-s.phase.gas)+delta;
+  const stroke=Math.min(HIGH,heightOf(s)-gripTravel*Math.max(0,s.pressure-edge)*(1-s.phase.gas)+delta);
   if(sat>3.00005 && (s.profile.sublimes || s.phase.solid===0)){
     s.phase.gas=1; s.pressure=clamp(gasVolume(s)/clamp(stroke,(Number.isFinite(s.profile.fixedVolumeFrom)?2.78*clamp((s.temperature-130)/30,.65,1):LOW),HIGH),.5,3);
   }else if(sat<.49995 || stroke<condensed){
@@ -82,6 +82,22 @@ export function advanceSample(s,dt) {
   const travel=clamp(s.velocity,-40,40)*dt;
   s.stroke-=travel;
   if(Math.abs(travel)>1e-7)movePiston(s,travel);
-  if(s.phase.gas===1 && heightOf(s)>HIGH)s.pressure=clamp(gasVolume(s)/HIGH,.5,3);
+  // At the upper stop, vapor cannot expand the chamber further.
+  // Raise pressure at the current phase fraction, including during coexistence.
+  if(heightOf(s)>HIGH){
+    if(s.phase.gas===1)s.pressure=clamp(gasVolume(s)/HIGH,.5,3);
+    else{
+      let lo=s.pressure,hi=3;
+      for(let i=0;i<40;i++){
+        s.pressure=(lo+hi)/2;
+        if(heightOf(s)>HIGH)lo=s.pressure;else hi=s.pressure;
+      }
+      s.pressure=hi;
+    }
+  }
+  if(heightOf(s)>=HIGH-1e-9){
+    s.stroke=Math.min(s.stroke,0);
+    s.velocity=Math.min(s.velocity,0);
+  }
   s.height=heightOf(s);
 }
