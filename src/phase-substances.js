@@ -5,7 +5,10 @@ import {saturationTemperatures} from './phase-saturation-temperatures.js';
 const densities={
   'n-butane':[.735,.81], benzene:[.894,1.00], cyclohexane:[.791,.845],
   oxygen:[1.306,1.32], chlorine:[1.744,2.04], nitrogen:[.867,.94],
-  hydrogen:[.0770,.088], ammonia:[.734,.85], glycerol:[1.261,1.37]
+  hydrogen:[.0770,.088], ammonia:[.734,.85], glycerol:[1.261,1.37],
+  'p-xylene':[.867,1.096], ethylbenzene:[.969,1.067], toluene:[.975,1.066],
+  phenol:[1.058,1.189], 'hydrogen-fluoride':[1.204,1.81], 'hydrogen-chloride':[1.254,1.47],
+  propane:[.733,.818], 'ethylene-glycol':[1.136,1.29], 'dimethyl-sulfoxide':[1.102,1.311]
 };
 
 // Geometry, animation rates and fill are independent of the physical data.
@@ -32,6 +35,32 @@ const observations={
     liquidOnlyRange:true, viscous:true}
 };
 
+const aromatic={count:42,bore:3.82,liquidHeight:3.02,poolDepth:1.70,scale:.168,skin:.58};
+const hydrogenHalide={count:100,bore:3.19,scale:.226,skin:.31,poolDepth:1.37,hz:10};
+const newObservations={
+  'p-xylene':{...aromatic,melt:13.25,min:-115,max:192,step:.25,start:5,rate:54},
+  ethylbenzene:{...aromatic,melt:-95,min:-115,max:192,step:.25,start:5,rate:54},
+  toluene:{...aromatic,melt:-95.2,min:-115,max:165,step:.2,start:25,rate:48},
+  phenol:{...aromatic,melt:40.9,min:8,max:235,step:.1,start:25,rate:46,
+    hz:10,interactionRange:6.8,torqueGain:.31,forceGain:.24},
+  'hydrogen-fluoride':{...hydrogenHalide,melt:-83.4,min:-105,max:62,step:.1,start:-40,rate:35,
+    liquidHeight:2.94,associationRange:1.03},
+  'hydrogen-chloride':{...hydrogenHalide,melt:-114.1,min:-145,max:-32,step:.1,start:-40,rate:26,
+    liquidHeight:2.13,crystalSpacing:.194,interactionRange:6,torqueGain:.17,forceGain:.16,solidRotation:.8},
+  propane:{melt:-187.6,min:-202,max:32,step:.2,start:25,rate:47,
+    count:56,bore:3.31,liquidHeight:2.12,poolDepth:1.33,scale:.169,skin:.41},
+  'ethylene-glycol':{melt:-12.9,min:-37,max:215,step:.1,start:20,rate:49,
+    count:48,bore:3.41,liquidHeight:2.55,poolDepth:1.63,scale:.173,skin:.45,
+    hz:10,interactionRange:6.3,torqueGain:.34,forceGain:.25,mobility:glycolMobility},
+  'dimethyl-sulfoxide':{melt:18.5,min:-8,max:120,step:.1,start:20,rate:23,
+    count:48,bore:3.43,liquidHeight:2.62,poolDepth:1.65,scale:.177,skin:.47,
+    hz:10,antiparallelRange:1.22,liquidOnlyRange:true}
+};
+
+for(const [id,observation] of Object.entries(newObservations)){
+  observations[id]={...observation,lattice:id,startInEquilibrium:true};
+}
+
 export function additionalPhaseProfiles(vaporBoundary){
   return Object.fromEntries(Object.entries(observations).map(([id,observation])=>{
     const [liquidDensity,solidDensity]=densities[id];
@@ -49,9 +78,20 @@ export function additionalPhaseProfiles(vaporBoundary){
 // Segur & Oberstar (1951), pure glycerol, dynamic viscosity in mPa·s.
 // Interpolate in log space and compress the contrast for the observation timescale.
 const viscosity=[1410,612,284,142,81.3,50.6,31.9,21.3,14.8];
+function logViscosity(temperature,values,start,step){
+  const index=Math.max(0,Math.min((temperature-start)/step,values.length-1));
+  const i=Math.min(Math.floor(index),values.length-2);
+  return values[i]*(values[i+1]/values[i])**(index-i);
+}
+
 export function glycerolMobility(temperature){
-  const index=Math.max(0,Math.min((temperature-20)/10,viscosity.length-1));
-  const i=Math.min(Math.floor(index),viscosity.length-2);
-  const value=viscosity[i]*(viscosity[i+1]/viscosity[i])**(index-i);
-  return (14.8/value)**.36;
+  return (14.8/logViscosity(temperature,viscosity,20,10))**.36;
+}
+
+// Perry 8e, table 2-313, dynamic viscosity in mPa·s at -10, 0, …, 210 °C.
+const glycolViscosity=[108.206,57.395,33.282,20.738,13.703,9.504,6.863,5.127,3.941,3.106,2.5,2.049,
+  1.707,1.443,1.234,1.068,.933,.823,.731,.655,.59,.535,.488];
+
+function glycolMobility(temperature){
+  return Math.min(1,(.9/logViscosity(temperature,glycolViscosity,-10,10))**.30);
 }

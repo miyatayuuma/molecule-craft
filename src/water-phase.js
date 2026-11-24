@@ -20,7 +20,12 @@ export function createSample(profile=profiles.water) {
   const phase=profile.sublimes
     ? {gas:1,get solid(){return 1-this.gas;},liquid:0}
     : {solid:0,gas:profile.liquidOnlyRange?0:1,get liquid(){return Math.max(0,1-this.solid-this.gas);}};
-  return {profile,temperature:profile.start,setting:profile.start,pressure:1,phase,height:profile.liquidOnlyRange?profile.liquidHeight:REST,stroke:0,velocity:0};
+  if(profile.startInEquilibrium){
+    phase.solid=Number(profile.start<profile.melt);
+    phase.gas=Number(profile.start>profile.vaporTemperature(1));
+  }
+  const sample={profile,temperature:profile.start,setting:profile.start,pressure:1,phase,stroke:0,velocity:0};
+  return {...sample,height:phase.gas===1?REST:heightOf(sample)};
 }
 // Finger travel below the bubble point mostly loads the piston spring. In the
 // two-phase interval, volume is shared by the condensed phase and saturated vapor.

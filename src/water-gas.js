@@ -4,6 +4,7 @@ import { iceSites, assignIceSite, moveCondensate } from './water-condensate.js';
 export {HIGH} from './water-phase.js';
 import { moleculeSites, initializeWater, sampleInteractions, turnWater } from './water-liquid.js';
 import {profiles} from './phase-profiles.js';
+import {sampleAntiparallel,sampleFluoride} from './phase-liquid-interactions.js';
 import {glycerolMobility} from './phase-substances.js';
 export function createGas(record) {
   const profile=profiles[record.id], {count,skin,bore=DEFAULT_BORE}=profile, radius=bore-skin;
@@ -25,12 +26,22 @@ export function createGas(record) {
   particles.forEach((p,i)=>{
     initializeWater(p,i,record,local,profile);
     p.site=null; p.free=sample.phase.gas; p.frozen=0; p.liquid=sample.phase.liquid;
-    if(profile.liquidOnlyRange){
+    if(sample.phase.liquid===1){
       p.y=skin+(p.y-skin)*(sample.height-2*skin)/(REST-2*skin);
       p.vx=p.vy=p.vz=0;
     }
   });
-  return {...sample,record,particles,sites:iceSites(particles[0].body,profile),time:0,interactionClock:0};
+  const sites=iceSites(particles[0].body,profile);
+  if(sample.phase.solid===1){
+    particles.forEach((p,i)=>{
+      const site=sites[i];
+      p.site=site; site.occupied=true; p.frozen=1;
+      p.x=site.x; p.y=site.y; p.z=site.z;
+      p.vx=p.vy=p.vz=0;
+      if(site.orientation)p.orientation.copy(site.orientation);
+    });
+  }
+  return {...sample,record,particles,sites,time:0,interactionClock:0};
 }
 
 function contain(p, top, pistonSpeed,skin,radius) {
@@ -53,8 +64,9 @@ export function advanceGas(gas, dt) {
   const thermalReference=melt??gas.profile.vaporTemperature(gas.pressure);
   advanceSample(gas,dt);
   gas.time+=dt;
-  const mobility=gas.profile.viscous?glycerolMobility(gas.temperature):1;
-  if(gas.profile.viscous)gas.flowTime=(gas.flowTime??0)+dt*mobility;
+  const mobilityAt=gas.profile.mobility??(gas.profile.viscous?glycerolMobility:null);
+  const mobility=mobilityAt?mobilityAt(gas.temperature):1;
+  if(mobilityAt)gas.flowTime=(gas.flowTime??0)+dt*mobility;
   const pistonSpeed=(gas.height-previous)/dt, top=gas.height-skin, radius=bore-skin;
   // Carry part of the gas upward with a fast withdrawal. A height gradient keeps
   // the bottom layer in place and frees the swept volume over several substeps.
@@ -74,7 +86,10 @@ export function advanceGas(gas, dt) {
   gas.interactionClock+=dt;
   if(hz && gas.interactionClock>=1/hz){
     gas.interactionClock%=1/hz;
-    sampleInteractions(gas.particles,gas.profile);
+    const {particles,profile,time,temperature}=gas;
+    if(profile.associationRange)sampleFluoride(particles,profile,time,temperature);
+    else if(profile.antiparallelRange)sampleAntiparallel(particles,profile,temperature);
+    else sampleInteractions(particles,profile);
   }
   for (let i=0;i<count;i++) {
     const p=gas.particles[i];

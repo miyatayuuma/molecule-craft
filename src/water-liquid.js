@@ -4,6 +4,7 @@ import { createStageABody, evaluateStageAForces } from './reaction-lab-stage-a.j
 // 0.215 display units per O–H bond in the P1 model. Both the drawn atom
 // offsets and Stage A sites are relative to the same molecular centre of mass.
 import * as THREE from '../vendor/three/three.core.min.js';
+import { measuredConformer } from './phase-crystal-cells.js';
 import { createPreviewModel } from './preview-model.js';
 import { REACTION_LAB_WORLD_UNITS_PER_ANGSTROM } from './reaction-lab-stage-a.js';
 const halfAngle = 52.25 * Math.PI / 180;
@@ -14,6 +15,10 @@ const freeOrientation = (phase, i) => step.setFromEuler(euler.set(phase+i,phase*
 
 export function moleculeSites(record,profile){
   if(profile.donorFrame)return localSites; // GenIce local donor frame
+  const measured=measuredConformer(record.id);
+  if(measured)return measured;
+  if(record.id==='hydrogen-fluoride')return [[0,0,0],[.917,0,0]];
+  if(record.id==='hydrogen-chloride')return [[-.6375,0,0],[.6375,0,0]];
   const preview=createPreviewModel(THREE,record);
   for(let i=0;i<80;i++)preview.step();
   return preview.snapshot().atoms.map(atom=>atom.point.divideScalar(REACTION_LAB_WORLD_UNITS_PER_ANGSTROM).toArray());

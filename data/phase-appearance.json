@@ -11,6 +11,36 @@
   "1-butanol": {
     "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/263" }
   },
+  "p-xylene": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7809" }
+  },
+  "ethylbenzene": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7500" }
+  },
+  "toluene": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/1140" }
+  },
+  "phenol": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/996" }
+  },
+  "hydrogen-fluoride": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/14917" },
+    "gas": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/14917" }
+  },
+  "hydrogen-chloride": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/313" },
+    "gas": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/313" }
+  },
+  "propane": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6334" },
+    "gas": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6334" }
+  },
+  "ethylene-glycol": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/174" }
+  },
+  "dimethyl-sulfoxide": {
+    "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/679" }
+  },
   "aniline": {
     "liquid": { "kind": "colorless", "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6115", "noteJa": "新鮮な純物質は無色。空気や光で褐色に変わる場合がある。" }
   },

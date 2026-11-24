@@ -656,10 +656,12 @@
     "iupacNameEn": "Hydrogen chloride",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/313"
       },
       "gas": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/313"
       }
     },
     "nonbonded": {
@@ -725,10 +727,12 @@
     "iupacNameEn": "Hydrogen fluoride",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/14917"
       },
       "gas": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/14917"
       }
     },
     "nonbonded": {
@@ -2374,10 +2378,12 @@
     "iupacNameEn": "Propane",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6334"
       },
       "gas": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/6334"
       }
     },
     "nonbonded": {
@@ -7437,7 +7443,8 @@
     "commonNameEn": "Toluene",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/1140"
       },
       "gas": {
         "kind": "none"
@@ -7685,7 +7692,8 @@
     "iupacNameEn": "Ethylbenzene",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7500"
       },
       "gas": {
         "kind": "none"
@@ -7953,7 +7961,8 @@
     "commonNameEn": "p-Xylene",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/7809"
       },
       "gas": {
         "kind": "none"
@@ -10770,7 +10779,8 @@
     "commonNameEn": "Ethylene glycol",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/174"
       },
       "gas": {
         "kind": "none"
@@ -17940,7 +17950,8 @@
     "commonNameEn": "Phenol",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/996"
       },
       "gas": {
         "kind": "none"
@@ -23397,7 +23408,8 @@
     "commonNameEn": "Dimethyl sulfoxide",
     "phaseAppearance": {
       "liquid": {
-        "kind": "none"
+        "kind": "colorless",
+        "sourceUrl": "https://pubchem.ncbi.nlm.nih.gov/compound/679"
       },
       "gas": {
         "kind": "none"
